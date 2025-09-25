@@ -1,14 +1,15 @@
 package com.farma_ya.model;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
-@Table(name = "order_items")
+@Table(name = "DetallePedido")
 public class OrderItem {
     public OrderItem() {
     }
 
-    public OrderItem(Long id, Order order, Product product, Integer quantity, Double price) {
+    public OrderItem(Long id, Order order, Product product, Integer quantity, BigDecimal price) {
         this.id = id;
         this.order = order;
         this.product = product;
@@ -18,21 +19,25 @@ public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "detalle_pedido_id")
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "pedido_id", nullable = false)
     private Order order;
 
     @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "producto_id", nullable = false)
     private Product product;
 
-    @Column(nullable = false)
+    @Column(name = "cantidad", nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false)
-    private Double price;
+    @Column(name = "precio_unit", nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+
+    @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
+    private BigDecimal subtotal;
 
     public Long getId() {
         return id;
@@ -66,11 +71,19 @@ public class OrderItem {
         this.quantity = quantity;
     }
 
-    public Double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public BigDecimal getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal;
     }
 }
