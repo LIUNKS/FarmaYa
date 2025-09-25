@@ -1,51 +1,86 @@
 package com.farma_ya.model;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "products")
+@Table(name = "Producto")
 public class Product {
-    public Product() {
-    }
-
-    public Product(Long id, String name, String description, Double price, Integer stock, String imageUrl,
-            Category category) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.price = price;
-        this.stock = stock;
-        this.imageUrl = imageUrl;
-        this.category = category;
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "producto_id")
+    private Integer id;
 
-    @Column(nullable = false)
+    @Column(name = "sku", unique = true)
+    private String sku;
+
+    @Column(name = "nombre", nullable = false)
     private String name;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "descripcion", columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
-    private Double price;
+    @Column(name = "presentacion")
+    private String presentacion;
 
-    @Column(nullable = false)
-    private Integer stock;
+    @Column(name = "principio_activo")
+    private String principioActivo;
 
+    @Column(name = "precio", nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+
+    @Column(name = "categoria")
+    private String categoria;
+
+    @Column(name = "imagen_url", length = 500)
     private String imageUrl;
 
-    @Enumerated(EnumType.STRING)
-    private Category category;
+    @Column(name = "stock", nullable = false)
+    private Integer stock = 0;
 
+    @Column(name = "activo")
+    private Boolean activo = true;
+
+    @Column(name = "creado_en")
+    private LocalDateTime creadoEn = LocalDateTime.now();
+
+    // Constructores
+    public Product() {
+    }
+
+    public Product(String sku, String name, String description, BigDecimal price, String categoria) {
+        this.sku = sku;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.categoria = categoria;
+    }
+
+    // Getters y Setters
     public Long getId() {
-        return id;
+        return id != null ? id.longValue() : null;
     }
 
     public void setId(Long id) {
+        this.id = id != null ? id.intValue() : null;
+    }
+
+    public Integer getIdInt() {
+        return id;
+    }
+
+    public void setIdInt(Integer id) {
         this.id = id;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
     }
 
     public String getName() {
@@ -64,20 +99,36 @@ public class Product {
         this.description = description;
     }
 
-    public Double getPrice() {
+    public String getPresentacion() {
+        return presentacion;
+    }
+
+    public void setPresentacion(String presentacion) {
+        this.presentacion = presentacion;
+    }
+
+    public String getPrincipioActivo() {
+        return principioActivo;
+    }
+
+    public void setPrincipioActivo(String principioActivo) {
+        this.principioActivo = principioActivo;
+    }
+
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
-    public Integer getStock() {
-        return stock;
+    public String getCategoria() {
+        return categoria;
     }
 
-    public void setStock(Integer stock) {
-        this.stock = stock;
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
     }
 
     public String getImageUrl() {
@@ -88,11 +139,27 @@ public class Product {
         this.imageUrl = imageUrl;
     }
 
-    public Category getCategory() {
-        return category;
+    public Boolean getActivo() {
+        return activo;
     }
 
-    public void setCategory(Category category) {
-        this.category = category;
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
+    public LocalDateTime getCreadoEn() {
+        return creadoEn;
+    }
+
+    public void setCreadoEn(LocalDateTime creadoEn) {
+        this.creadoEn = creadoEn;
+    }
+
+    public Integer getStock() {
+        return stock;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
     }
 }
