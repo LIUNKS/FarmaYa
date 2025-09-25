@@ -41,10 +41,16 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = tokenProvider.generateToken(authentication);
+        String accessToken = tokenProvider.generateToken(authentication);
+        String refreshToken = tokenProvider.generateRefreshToken(authentication);
 
         User user = userService.getUserByUsername(loginRequest.getUsername());
-        JwtResponseDTO response = new JwtResponseDTO(jwt, user.getUsername(), user.getRole().name());
+        JwtResponseDTO response = new JwtResponseDTO(
+                accessToken,
+                refreshToken,
+                user.getUsername(),
+                user.getRole().name(),
+                tokenProvider.getExpirationTime());
 
         return ResponseEntity.ok(response);
     }
