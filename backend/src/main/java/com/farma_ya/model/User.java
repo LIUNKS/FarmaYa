@@ -6,11 +6,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(name = "Usuario")
 public class User implements UserDetails {
     public User() {
     }
@@ -63,18 +64,52 @@ public class User implements UserDetails {
         this.role = role;
     }
 
+    public Integer getRolId() {
+        return rolId;
+    }
+
+    public void setRolId(Integer rolId) {
+        this.rolId = rolId;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public LocalDateTime getCreadoEn() {
+        return creadoEn;
+    }
+
+    public void setCreadoEn(LocalDateTime creadoEn) {
+        this.creadoEn = creadoEn;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "usuario_id")
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "rol_id")
+    private Integer rolId;
+
+    @Column(name = "nombre", nullable = false)
     private String username;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "telefono")
+    private String telefono;
+
+    @Column(name = "password_hash", nullable = false)
     private String password;
+
+    @Column(name = "creado_en")
+    private LocalDateTime creadoEn = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
