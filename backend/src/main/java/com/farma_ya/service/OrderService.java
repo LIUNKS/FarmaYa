@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,7 +51,7 @@ public class OrderService {
 
         Order order = new Order();
         order.setUser(user);
-        order.setTotalAmount(cart.getTotalAmount());
+        order.setTotalAmount(BigDecimal.valueOf(cart.getTotalAmount()));
         List<OrderItem> orderItems = cart.getItems().stream().map(this::convertToOrderItem)
                 .collect(Collectors.toList());
         order.setItems(orderItems);
@@ -70,6 +71,12 @@ public class OrderService {
         orderItem.setProduct(cartItem.getProduct());
         orderItem.setQuantity(cartItem.getQuantity());
         orderItem.setPrice(cartItem.getProduct().getPrice());
+
+        // Calcular subtotal
+        BigDecimal subtotal = cartItem.getProduct().getPrice()
+                .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+        orderItem.setSubtotal(subtotal);
+
         return orderItem;
     }
 
