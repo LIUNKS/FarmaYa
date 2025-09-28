@@ -4,6 +4,14 @@ import com.farma_ya.model.Order;
 import com.farma_ya.model.User;
 import com.farma_ya.service.OrderService;
 import com.farma_ya.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Pedidos", description = "Gestión de pedidos y órdenes de compra")
+@SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -23,6 +33,12 @@ public class OrderController {
     @Autowired
     private UserService userService;
 
+    @Operation(summary = "Crear pedido", description = "Crea un nuevo pedido a partir del carrito actual del usuario")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Pedido creado exitosamente", content = @Content(schema = @Schema(implementation = Order.class))),
+            @ApiResponse(responseCode = "400", description = "Carrito vacío o productos sin stock"),
+            @ApiResponse(responseCode = "401", description = "Usuario no autenticado")
+    })
     @PostMapping
     public ResponseEntity<Order> createOrder(@AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
@@ -30,6 +46,11 @@ public class OrderController {
         return new ResponseEntity<>(newOrder, HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Obtener pedidos del usuario", description = "Retorna todos los pedidos del usuario autenticado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de pedidos obtenida exitosamente", content = @Content(schema = @Schema(implementation = Order.class))),
+            @ApiResponse(responseCode = "401", description = "Usuario no autenticado")
+    })
     @GetMapping
     public ResponseEntity<List<Order>> getUserOrders(@AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
@@ -37,8 +58,17 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
+    @Operation(summary = "Obtener pedido por ID", description = "Obtiene los detalles de un pedido específico (solo el propietario)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedido obtenido exitosamente", content = @Content(schema = @Schema(implementation = Order.class))),
+            @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado - No es propietario del pedido"),
+            @ApiResponse(responseCode = "404", description = "Pedido no encontrado")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<Order> getOrderById(
+            @Parameter(description = "ID del pedido", required = true) @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
         Order order = orderService.getOrderById(id);
         if (!order.getUser().getId().equals(currentUser.getId())) {
@@ -47,8 +77,18 @@ public class OrderController {
         return ResponseEntity.ok(order);
     }
 
+    @Operation(summary = "Actualizar estado del pedido", description = "Actualiza el estado de un pedido (solo administradores)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Estado del pedido actualizado exitosamente", content = @Content(schema = @Schema(implementation = Order.class))),
+            @ApiResponse(responseCode = "400", description = "Estado inválido"),
+            @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado - Solo administradores"),
+            @ApiResponse(responseCode = "404", description = "Pedido no encontrado")
+    })
     @PutMapping("/{id}/status")
-    public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
+    public ResponseEntity<Order> updateOrderStatus(
+            @Parameter(description = "ID del pedido", required = true) @PathVariable Long id,
+            @Parameter(description = "Nuevo estado del pedido (PENDING, PROCESSING, DELIVERED, CANCELLED)", required = true) @RequestParam String status) {
         Order updatedOrder = orderService.updateOrderStatus(id, status);
         return ResponseEntity.ok(updatedOrder);
     }
