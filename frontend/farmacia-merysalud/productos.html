@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos - Farmacia Mery Salud</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    
+    <style>
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            position: sticky;
+            top: 80px;
+        }
+        
+        .product-grid {
+            min-height: 500px;
+        }
+        
+        .results-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 100px 20px;
+        }
+        
+        .sort-select {
+            min-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar (mismo que index.html) -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="./index.html">
+                <i class="fas fa-clinic-medical text-success me-2 fs-4"></i>
+                <span class="fw-bold text-success">Farmacia Mery Salud</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./index.html">
+                            <i class="fas fa-home"></i> Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active fw-semibold" href="./productos.html">
+                            <i class="fas fa-pills"></i> Productos
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="carrito.html">
+                            <i class="fas fa-shopping-cart fs-5"></i>
+                            <span class="cart-badge badge bg-danger rounded-pill">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown user-menu" style="display: none;">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle fs-5"></i> <span class="user-name"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="mis-pedidos.html">
+                                <i class="fas fa-box"></i> Mis Pedidos
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item btn-logout" href="#">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item btn-login">
+                        <a class="btn btn-outline-success ms-2" href="login.html">
+                            <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb -->
+    <div class="bg-light py-2">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+                    <li class="breadcrumb-item active">Productos</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        <div class="row">
+            <!-- Filtros Sidebar -->
+            <div class="col-lg-3 mb-4">
+                <div class="filter-section">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-filter"></i> Filtros
+                    </h5>
+                    
+                    <!-- Búsqueda -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Buscar</label>
+                        <div class="input-group">
+                            <input type="text" id="searchFilter" class="form-control" 
+                                   placeholder="Nombre del producto...">
+                            <button class="btn btn-success" onclick="applyFilters()">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Categorías -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Categoría</label>
+                        <select id="categoryFilter" class="form-select" onchange="applyFilters()">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                    </div>
+
+                    <!-- Rango de Precio -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Precio</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" id="minPrice" class="form-control" 
+                                       placeholder="Min" min="0" onchange="applyFilters()">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" id="maxPrice" class="form-control" 
+                                       placeholder="Max" min="0" onchange="applyFilters()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stock -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="inStockOnly" 
+                                   onchange="applyFilters()">
+                            <label class="form-check-label" for="inStockOnly">
+                                Solo productos en stock
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Botón limpiar -->
+                    <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> Limpiar Filtros
+                    </button>
+                </div>
+            </div>
+
+            <!-- Productos -->
+            <div class="col-lg-9">
+                <!-- Barra de resultados -->
+                <div class="results-info d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">Catálogo de Productos</h4>
+                        <small id="resultsCount">Mostrando 0 productos</small>
+                    </div>
+                    <div>
+                        <select class="form-select sort-select" id="sortBy" onchange="applyFilters()">
+                            <option value="name">Ordenar por nombre</option>
+                            <option value="price-asc">Precio: menor a mayor</option>
+                            <option value="price-desc">Precio: mayor a menor</option>
+                            <option value="stock">Mayor stock</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Grid de productos -->
+                <div class="row g-3 product-grid" id="productsContainer">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+
+                <!-- Sin resultados -->
+                <div class="no-results" id="noResults" style="display: none;">
+                    <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                    <h4>No se encontraron productos</h4>
+                    <p class="text-muted">Intenta con otros filtros o términos de búsqueda</p>
+                    <button class="btn btn-primary" onclick="clearFilters()">
+                        Ver todos los productos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer (mismo que index.html) -->
+    <footer class="bg-dark text-white pt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-clinic-medical"></i> Farmacia Mery Salud
+                    </h5>
+                    <p class="text-white-50">Tu farmacia de confianza en Breña.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Contacto</h5>
+                    <p class="text-white-50">
+                        <i class="fas fa-map-marker-alt me-2"></i> Av. Brasil 123, Breña<br>
+                        <i class="fas fa-phone me-2"></i> (01) 234-5678<br>
+                        <i class="fab fa-whatsapp me-2"></i> +51 999 888 777
+                    </p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Horario</h5>
+                    <p class="text-white-50">
+                        Lunes a Domingo<br>
+                        8:00 AM - 10:00 PM
+                    </p>
+                </div>
+            </div>
+            <hr class="bg-white opacity-25">
+            <div class="text-center py-3">
+                <p class="mb-0 text-white-50">&copy; 2024 Farmacia Mery Salud</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script específico de la página -->
+    <script>
+        // Datos simulados (mismo que en index.html)
+        const productos = [
+            {id: 1, nombre: "Paracetamol 500mg", precio: 5.50, stock: 100, categoria: "Analgésicos", descripcion: "Caja x 10 tabletas", imagen: "https://dcuk1cxrnzjkh.cloudfront.net/imagesproducto/010348X.jpg"},
+            {id: 2, nombre: "Ibuprofeno 400mg", precio: 8.00, stock: 75, categoria: "Analgésicos", descripcion: "Caja x 10 cápsulas", imagen: "https://www.sanpablo.com.mx/media/catalog/product/7/5/7501086313280_1.jpg"},
+            {id: 3, nombre: "Vitamina C 1000mg", precio: 12.00, stock: 50, categoria: "Vitaminas", descripcion: "Frasco x 30 tabletas", imagen: "https://dcuk1cxrnzjkh.cloudfront.net/imagesproducto/061184X.jpg"},
+            {id: 4, nombre: "Complejo B", precio: 15.00, stock: 40, categoria: "Vitaminas", descripcion: "Frasco x 30 cápsulas", imagen: "https://www.farmaciasguadalajara.com/media/catalog/product/7/5/7501082241125_1.jpg"},
+            {id: 5, nombre: "Alcohol 70°", precio: 6.00, stock: 200, categoria: "Primeros Auxilios", descripcion: "Frasco x 250ml", imagen: "https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg"},
+            {id: 6, nombre: "Gasas estériles", precio: 3.50, stock: 150, categoria: "Primeros Auxilios", descripcion: "Paquete x 10", imagen: "https://www.suministrosmedicosdemexico.com.mx/wp-content/uploads/2020/08/GASA-ESTERIL.jpg"},
+            {id: 7, nombre: "Mascarillas KN95", precio: 2.00, stock: 500, categoria: "Protección", descripcion: "Unidad", imagen: "https://home.ripley.com.pe/Attachment/WOP_5/2004271985564/2004271985564_2.jpg"},
+            {id: 8, nombre: "Termómetro Digital", precio: 25.00, stock: 20, categoria: "Equipos", descripcion: "Unidad", imagen: "https://m.media-amazon.com/images/I/41kDaOAqgqL._AC_.jpg"},
+            {id: 9, nombre: "Jarabe para la tos", precio: 18.00, stock: 30, categoria: "Medicamentos", descripcion: "Frasco x 120ml", imagen: "https://www.farmaciasguadalajara.com/media/catalog/product/7/5/7501314700394_1.jpg"},
+            {id: 10, nombre: "Aspirina 100mg", precio: 4.50, stock: 80, categoria: "Analgésicos", descripcion: "Caja x 30 tabletas", imagen: "https://www.farmaciasguadalajara.com/media/catalog/product/7/5/7501318612839_1.jpg"},
+            {id: 11, nombre: "Vitamina D3", precio: 20.00, stock: 25, categoria: "Vitaminas", descripcion: "Frasco x 60 cápsulas", imagen: "https://dcuk1cxrnzjkh.cloudfront.net/imagesproducto/061193X.jpg"},
+            {id: 12, nombre: "Curitas adhesivas", precio: 5.00, stock: 100, categoria: "Primeros Auxilios", descripcion: "Caja x 20 unidades", imagen: "https://plazavea.vteximg.com.br/arquivos/ids/534041-1000-1000/20267882.jpg"}
+        ];
+
+        const categorias = ["Analgésicos", "Vitaminas", "Primeros Auxilios", "Protección", "Equipos", "Medicamentos"];
+        
+        let productosFiltrados = [...productos];
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategories();
+            checkUrlParams();
+            applyFilters();
+        });
+
+        // Cargar categorías en el filtro
+        function loadCategories() {
+            const select = document.getElementById('categoryFilter');
+            categorias.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                select.appendChild(option);
+            });
+        }
+
+        // Verificar parámetros de URL
+        function checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoria = urlParams.get('categoria');
+            const search = urlParams.get('search');
+            
+            if (categoria) {
+                document.getElementById('categoryFilter').value = categoria;
+            }
+            if (search) {
+                document.getElementById('searchFilter').value = search;
+            }
+        }
+
+        // Aplicar filtros
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+            const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+            const inStockOnly = document.getElementById('inStockOnly').checked;
+            const sortBy = document.getElementById('sortBy').value;
+            
+            // Filtrar productos
+            productosFiltrados = productos.filter(producto => {
+                const matchesSearch = producto.nombre.toLowerCase().includes(searchTerm) || 
+                                     producto.descripcion.toLowerCase().includes(searchTerm);
+                const matchesCategory = !category || producto.categoria === category;
+                const matchesPrice = producto.precio >= minPrice && producto.precio <= maxPrice;
+                const matchesStock = !inStockOnly || producto.stock > 0;
+                
+                return matchesSearch && matchesCategory && matchesPrice && matchesStock;
+            });
+            
+            // Ordenar
+            switch(sortBy) {
+                case 'name':
+                    productosFiltrados.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                    break;
+                case 'price-asc':
+                    productosFiltrados.sort((a, b) => a.precio - b.precio);
+                    break;
+                case 'price-desc':
+                    productosFiltrados.sort((a, b) => b.precio - a.precio);
+                    break;
+                case 'stock':
+                    productosFiltrados.sort((a, b) => b.stock - a.stock);
+                    break;
+            }
+            
+            displayProducts();
+        }
+
+        // Mostrar productos
+        function displayProducts() {
+            const container = document.getElementById('productsContainer');
+            const noResults = document.getElementById('noResults');
+            const resultsCount = document.getElementById('resultsCount');
+            
+            if (productosFiltrados.length === 0) {
+                container.style.display = 'none';
+                noResults.style.display = 'block';
+                resultsCount.textContent = 'No se encontraron productos';
+                return;
+            }
+            
+            container.style.display = 'flex';
+            noResults.style.display = 'none';
+            resultsCount.textContent = `Mostrando ${productosFiltrados.length} producto${productosFiltrados.length !== 1 ? 's' : ''}`;
+            
+            let html = '';
+            productosFiltrados.forEach(producto => {
+                const stockBadge = producto.stock > 20 ? 'success' : producto.stock > 10 ? 'warning' : 'danger';
+                
+                html += `
+                    <div class="col-6 col-md-4">
+                        <div class="card product-card h-100 position-relative">
+                            <span class="badge bg-${stockBadge} position-absolute top-0 end-0 m-2">
+                                ${producto.stock > 0 ? `Stock: ${producto.stock}` : 'Agotado'}
+                            </span>
+                            <img src="${producto.imagen}" 
+                                 class="card-img-top" 
+                                 alt="${producto.nombre}"
+                                 style="height: 200px; object-fit: cover;"
+                                 onerror="this.src='https://via.placeholder.com/300x200/f8f9fa/6c757d?text=Sin+Imagen'">
+                            <div class="card-body d-flex flex-column">
+                                <span class="badge bg-secondary mb-2">${producto.categoria}</span>
+                                <h6 class="card-title">${producto.nombre}</h6>
+                                <p class="text-muted small mb-2">${producto.descripcion}</p>
+                                <p class="price mb-auto fw-bold text-success fs-5">S/. ${producto.precio.toFixed(2)}</p>
+                                <button class="btn btn-success btn-sm w-100 mt-2" 
+                                        onclick="addToCart(${producto.id})"
+                                        ${producto.stock === 0 ? 'disabled' : ''}>
+                                    <i class="fas fa-cart-plus"></i> Agregar al Carrito
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Limpiar filtros
+        function clearFilters() {
+            document.getElementById('searchFilter').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('minPrice').value = '';
+            document.getElementById('maxPrice').value = '';
+            document.getElementById('inStockOnly').checked = false;
+            document.getElementById('sortBy').value = 'name';
+            applyFilters();
+        }
+
+        // Agregar al carrito (simulado)
+        function addToCart(productId) {
+            const producto = productos.find(p => p.id === productId);
+            alert(`✅ ${producto.nombre} agregado al carrito`);
+            
+            // Actualizar badge del carrito
+            const badges = document.querySelectorAll('.cart-badge');
+            badges.forEach(badge => {
+                const current = parseInt(badge.textContent) || 0;
+                badge.textContent = current + 1;
+                badge.style.display = 'inline-block';
+            });
+        }
+    </script>
+</body>
+</html>

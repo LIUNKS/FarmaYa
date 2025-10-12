@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras - Farmacia Mery Salud</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    
+    <style>
+        .cart-item {
+            border-bottom: 1px solid #dee2e6;
+            padding: 20px 0;
+        }
+        
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .quantity-control button {
+            width: 35px;
+            height: 35px;
+            padding: 0;
+        }
+        
+        .quantity-control input {
+            width: 60px;
+            text-align: center;
+        }
+        
+        .cart-summary {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            position: sticky;
+            top: 80px;
+        }
+        
+        .empty-cart {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        
+        .product-thumbnail {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="./index.html">
+                <i class="fas fa-clinic-medical text-success me-2 fs-4"></i>
+                <span class="fw-bold text-success">Farmacia Mery Salud</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./index.html">
+                            <i class="fas fa-home"></i> Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./productos.html">
+                            <i class="fas fa-pills"></i> Productos
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link position-relative active fw-semibold" href="./carrito.html">
+                            <i class="fas fa-shopping-cart fs-5"></i>
+                            <span class="cart-badge badge bg-danger rounded-pill">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown user-menu" style="display: none;">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle fs-5"></i> <span class="user-name"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="./mis-pedidos.html">
+                                <i class="fas fa-box"></i> Mis Pedidos
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item btn-logout" href="#">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item btn-login">
+                        <a class="btn btn-outline-success ms-2" href="./login.html">
+                            <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb -->
+    <div class="bg-light py-2">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="./index.html">Inicio</a></li>
+                    <li class="breadcrumb-item active">Carrito de Compras</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        <h2 class="mb-4">
+            <i class="fas fa-shopping-cart text-success"></i> Mi Carrito de Compras
+        </h2>
+        
+        <div class="row">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body" id="cartItemsContainer">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+                
+                <!-- Empty Cart Message -->
+                <div class="empty-cart" id="emptyCart" style="display: none;">
+                    <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                    <h4>Tu carrito está vacío</h4>
+                    <p class="text-muted">Agrega productos para comenzar tu compra</p>
+                    <a href="./productos.html" class="btn btn-success btn-lg">
+                        <i class="fas fa-pills"></i> Ver Productos
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cart Summary -->
+            <div class="col-lg-4">
+                <div class="cart-summary">
+                    <h4 class="mb-3">Resumen del Pedido</h4>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">S/. 0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Delivery:</span>
+                        <span class="text-success">GRATIS</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Total:</strong>
+                        <strong class="text-success fs-5" id="total">S/. 0.00</strong>
+                    </div>
+                    
+                    <button class="btn btn-success btn-lg w-100 mb-2" onclick="proceedToCheckout()">
+                        <i class="fas fa-credit-card"></i> Proceder al Pago
+                    </button>
+                    <a href="./productos.html" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-arrow-left"></i> Seguir Comprando
+                    </a>
+                    
+                    <div class="alert alert-info mt-3">
+                        <small>
+                            <i class="fas fa-info-circle"></i> 
+                            Pago contra entrega disponible
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white pt-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-clinic-medical"></i> Farmacia Mery Salud
+                    </h5>
+                    <p class="text-white-50">Tu farmacia de confianza en Breña.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Contacto</h5>
+                    <p class="text-white-50">
+                        <i class="fas fa-map-marker-alt me-2"></i> Av. Brasil 123, Breña<br>
+                        <i class="fas fa-phone me-2"></i> (01) 234-5678<br>
+                        <i class="fab fa-whatsapp me-2"></i> +51 999 888 777
+                    </p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Horario</h5>
+                    <p class="text-white-50">
+                        Lunes a Domingo<br>
+                        8:00 AM - 10:00 PM
+                    </p>
+                </div>
+            </div>
+            <hr class="bg-white opacity-25">
+            <div class="text-center py-3">
+                <p class="mb-0 text-white-50">&copy; 2024 Farmacia Mery Salud</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script específico del carrito -->
+    <script>
+        // Carrito simulado en localStorage
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        // Productos de ejemplo (mismo que productos.html)
+        const productos = [
+            {id: 1, nombre: "Paracetamol 500mg", precio: 5.50, imagen: "https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg"},
+            {id: 2, nombre: "Ibuprofeno 400mg", precio: 8.00, imagen: "https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg"},
+            {id: 3, nombre: "Vitamina C 1000mg", precio: 12.00, imagen: "https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg"},
+        ];
+
+        // Inicializar con datos de ejemplo si el carrito está vacío
+        if (cart.length === 0) {
+            cart = [
+                {id: 1, cantidad: 2},
+                {id: 2, cantidad: 1},
+                {id: 3, cantidad: 3}
+            ];
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        // Cargar carrito al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCart();
+            updateCartBadge();
+        });
+
+        // Renderizar carrito
+        function renderCart() {
+            const container = document.getElementById('cartItemsContainer');
+            const emptyCart = document.getElementById('emptyCart');
+            
+            if (cart.length === 0) {
+                container.parentElement.style.display = 'none';
+                emptyCart.style.display = 'block';
+                updateTotals();
+                return;
+            }
+            
+            container.parentElement.style.display = 'block';
+            emptyCart.style.display = 'none';
+            
+            let html = '';
+            cart.forEach(item => {
+                const producto = productos.find(p => p.id === item.id);
+                if (producto) {
+                    const subtotal = producto.precio * item.cantidad;
+                    html += `
+                        <div class="cart-item">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    <img src="${producto.imagen}" alt="${producto.nombre}" 
+                                         class="product-thumbnail"
+                                         onerror="this.src='https://via.placeholder.com/100'">
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="mb-1">${producto.nombre}</h6>
+                                    <small class="text-muted">Precio unitario: S/. ${producto.precio.toFixed(2)}</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="quantity-control">
+                                        <button class="btn btn-outline-secondary" onclick="updateQuantity(${producto.id}, -1)">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" class="form-control" value="${item.cantidad}" 
+                                               min="1" onchange="setQuantity(${producto.id}, this.value)">
+                                        <button class="btn btn-outline-secondary" onclick="updateQuantity(${producto.id}, 1)">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    <strong class="text-success">S/. ${subtotal.toFixed(2)}</strong>
+                                </div>
+                                <div class="col-md-1 text-end">
+                                    <button class="btn btn-danger btn-sm" onclick="removeFromCart(${producto.id})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            container.innerHTML = html;
+            updateTotals();
+        }
+
+        // Actualizar cantidad
+        function updateQuantity(productId, change) {
+            const item = cart.find(i => i.id === productId);
+            if (item) {
+                item.cantidad = Math.max(1, item.cantidad + change);
+                saveCart();
+                renderCart();
+            }
+        }
+
+        // Establecer cantidad específica
+        function setQuantity(productId, quantity) {
+            const item = cart.find(i => i.id === productId);
+            if (item) {
+                item.cantidad = Math.max(1, parseInt(quantity) || 1);
+                saveCart();
+                renderCart();
+            }
+        }
+
+        // Eliminar del carrito
+        function removeFromCart(productId) {
+            if (confirm('¿Eliminar este producto del carrito?')) {
+                cart = cart.filter(i => i.id !== productId);
+                saveCart();
+                renderCart();
+            }
+        }
+
+        // Guardar carrito
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartBadge();
+        }
+
+        // Actualizar totales
+        function updateTotals() {
+            let subtotal = 0;
+            cart.forEach(item => {
+                const producto = productos.find(p => p.id === item.id);
+                if (producto) {
+                    subtotal += producto.precio * item.cantidad;
+                }
+            });
+            
+            document.getElementById('subtotal').textContent = `S/. ${subtotal.toFixed(2)}`;
+            document.getElementById('total').textContent = `S/. ${subtotal.toFixed(2)}`;
+        }
+
+        // Actualizar badge del carrito
+        function updateCartBadge() {
+            const totalItems = cart.reduce((sum, item) => sum + item.cantidad, 0);
+            document.querySelectorAll('.cart-badge').forEach(badge => {
+                badge.textContent = totalItems;
+                badge.style.display = totalItems > 0 ? 'inline-block' : 'none';
+            });
+        }
+
+        // Proceder al checkout
+        function proceedToCheckout() {
+            if (cart.length === 0) {
+                alert('Tu carrito está vacío');
+                return;
+            }
+            window.location.href = './checkout.html';
+        }
+    </script>
+</body>
+</html>

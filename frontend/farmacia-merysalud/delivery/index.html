@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Repartidor - Farmacia Mery Salud</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .delivery-header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .pedido-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .pedido-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .status-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        
+        .client-info {
+            border-left: 4px solid #28a745;
+            padding-left: 15px;
+            margin: 15px 0;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .delivery-stats {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .floating-action {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="container mt-4">
+        <div class="delivery-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h2 class="fw-bold text-primary mb-0">
+                        <i class="fas fa-motorcycle"></i> Panel de Entregas
+                    </h2>
+                    <p class="text-muted mb-0">Bienvenido, <span id="repartidorName">Pedro Repartidor</span></p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="d-flex justify-content-end gap-3">
+                        <button class="btn btn-outline-info" onclick="refreshPedidos()">
+                            <i class="fas fa-sync-alt"></i> Actualizar
+                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i> Mi Cuenta
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="../index.html">
+                                    <i class="fas fa-globe"></i> Ver Sitio Público
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" onclick="logout()">
+                                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="delivery-stats">
+                    <h4 class="text-warning" id="pedidosPendientes">0</h4>
+                    <small>Pendientes</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="delivery-stats">
+                    <h4 class="text-info" id="pedidosEnProceso">0</h4>
+                    <small>En Proceso</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="delivery-stats">
+                    <h4 class="text-success" id="pedidosEntregados">0</h4>
+                    <small>Entregados Hoy</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="delivery-stats">
+                    <h4 class="text-primary" id="totalGanancias">S/. 0</h4>
+                    <small>Total del Día</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <select class="form-select" id="estadoFilter" onchange="applyFilters()">
+                    <option value="">Todos los estados</option>
+                    <option value="PENDIENTE">Pendientes</option>
+                    <option value="EN_PROCESO">En Proceso</option>
+                    <option value="ENTREGADO">Entregados</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <input type="text" class="form-control" id="searchInput" 
+                       placeholder="Buscar por cliente o N° pedido..." onkeyup="applyFilters()">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-light w-100" onclick="clearFilters()">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+
+        <!-- Pedidos List -->
+        <div id="pedidosList">
+            <!-- Se llenará dinámicamente -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center text-white" style="display: none;">
+            <i class="fas fa-clipboard-list fa-5x mb-3 opacity-50"></i>
+            <h4>No hay pedidos asignados</h4>
+            <p>Los nuevos pedidos aparecerán aquí automáticamente</p>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="floating-action">
+        <button class="btn btn-success btn-lg rounded-circle" onclick="refreshPedidos()" title="Actualizar pedidos">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+    </div>
+
+    <!-- Modal Cambiar Estado -->
+    <div class="modal fade" id="cambiarEstadoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar Estado del Pedido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Desea cambiar el estado del pedido <strong id="modalPedidoNumero"></strong>?</p>
+                    <div class="mb-3">
+                        <label class="form-label">Nuevo Estado:</label>
+                        <select class="form-select" id="nuevoEstado">
+                            <option value="EN_PROCESO">En Proceso</option>
+                            <option value="ENTREGADO">Entregado</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="comentarioDiv" style="display: none;">
+                        <label class="form-label">Comentario (opcional):</label>
+                        <textarea class="form-control" id="comentarioEntrega" rows="3" 
+                                  placeholder="Entregado a..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmarCambioEstado()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="../assets/js/data.js"></script> -->
+    <script src="../assets/js/app.js"></script>
+
+    <script>
+        let allPedidos = [];
+        let filteredPedidos = [];
+        let selectedPedidoId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkDeliveryAuth();
+            loadPedidos();
+            setupEventListeners();
+        });
+
+        function checkDeliveryAuth() {
+            const deliveryUser = JSON.parse(sessionStorage.getItem('adminUser') || 'null');
+            
+            if (!deliveryUser || deliveryUser.rol !== 'REPARTIDOR') {
+                window.location.href = '../admin/index.html';
+                return;
+            }
+            
+            document.getElementById('repartidorName').textContent = deliveryUser.nombre;
+        }
+
+        function setupEventListeners() {
+            // Mostrar/ocultar comentario según el estado
+            document.getElementById('nuevoEstado').addEventListener('change', function() {
+                const comentarioDiv = document.getElementById('comentarioDiv');
+                if (this.value === 'ENTREGADO') {
+                    comentarioDiv.style.display = 'block';
+                } else {
+                    comentarioDiv.style.display = 'none';
+                }
+            });
+        }
+
+        function loadPedidos() {
+            // Datos por defecto para demostración del delivery
+            allPedidos = [
+                {
+                    id: 1,
+                    numero: "ORD-001",
+                    clienteNombre: "María García",
+                    telefono: "999888777",
+                    direccion: "Av. Brasil 123, Breña",
+                    productos: [
+                        {id: 1, nombre: "Paracetamol 500mg", cantidad: 2, precio: 5.50, subtotal: 11.00},
+                        {id: 3, nombre: "Vitamina C 1000mg", cantidad: 1, precio: 12.00, subtotal: 12.00}
+                    ],
+                    total: 23.00,
+                    estado: "PENDIENTE",
+                    fecha: "2024-12-20 10:30",
+                    repartidorId: 3
+                },
+                {
+                    id: 2,
+                    numero: "ORD-002",
+                    clienteNombre: "Carlos Mendoza",
+                    telefono: "987654321",
+                    direccion: "Jr. Lampa 456, Cercado de Lima",
+                    productos: [
+                        {id: 5, nombre: "Alcohol 70°", cantidad: 2, precio: 6.00, subtotal: 12.00},
+                        {id: 7, nombre: "Mascarillas KN95", cantidad: 5, precio: 2.00, subtotal: 10.00}
+                    ],
+                    total: 22.00,
+                    estado: "EN_PROCESO",
+                    fecha: "2024-12-20 11:15",
+                    repartidorId: 3
+                },
+                {
+                    id: 3,
+                    numero: "ORD-003",
+                    clienteNombre: "Ana López",
+                    telefono: "945123789",
+                    direccion: "Av. Universitaria 1245, San Miguel",
+                    productos: [
+                        {id: 2, nombre: "Ibuprofeno 400mg", cantidad: 1, precio: 8.00, subtotal: 8.00},
+                        {id: 4, nombre: "Complejo B", cantidad: 1, precio: 15.00, subtotal: 15.00}
+                    ],
+                    total: 23.00,
+                    estado: "ENTREGADO",
+                    fecha: "2024-12-20 09:00",
+                    repartidorId: 3
+                },
+                {
+                    id: 4,
+                    numero: "ORD-004",
+                    clienteNombre: "Roberto Silva",
+                    telefono: "912345678",
+                    direccion: "Av. Arequipa 2890, Lince",
+                    productos: [
+                        {id: 8, nombre: "Termómetro Digital", cantidad: 1, precio: 25.00, subtotal: 25.00},
+                        {id: 6, nombre: "Gasas estériles", cantidad: 3, precio: 3.50, subtotal: 10.50}
+                    ],
+                    total: 35.50,
+                    estado: "PENDIENTE",
+                    fecha: "2024-12-20 13:45",
+                    repartidorId: 3
+                },
+                {
+                    id: 5,
+                    numero: "ORD-005",
+                    clienteNombre: "Lucía Fernández",
+                    telefono: "998877665",
+                    direccion: "Calle Los Pinos 789, Surco",
+                    productos: [
+                        {id: 9, nombre: "Jarabe para la tos", cantidad: 1, precio: 18.00, subtotal: 18.00}
+                    ],
+                    total: 18.00,
+                    estado: "EN_PROCESO",
+                    fecha: "2024-12-20 12:30",
+                    repartidorId: 3
+                }
+            ];
+            
+            // Si tienes dataStore disponible, usar esos datos en su lugar
+            if (typeof dataStore !== 'undefined') {
+                try {
+                    const data = dataStore.getData();
+                    if (data && data.pedidos && data.pedidos.length > 0) {
+                        allPedidos = data.pedidos;
+                    }
+                } catch (error) {
+                    console.log('Usando datos por defecto para demostración');
+                }
+            }
+            
+            filteredPedidos = [...allPedidos];
+            
+            updateStats();
+            renderPedidos();
+        }
+
+        function updateStats() {
+            const hoy = new Date().toLocaleDateString();
+            
+            const stats = {
+                pendientes: allPedidos.filter(p => p.estado === 'PENDIENTE').length,
+                enProceso: allPedidos.filter(p => p.estado === 'EN_PROCESO').length,
+                entregadosHoy: allPedidos.filter(p => 
+                    p.estado === 'ENTREGADO' && 
+                    p.fecha.includes(hoy.split('/').reverse().join('-'))
+                ).length,
+                totalGanancias: allPedidos
+                    .filter(p => p.estado === 'ENTREGADO')
+                    .reduce((sum, p) => sum + p.total, 0)
+            };
+            
+            document.getElementById('pedidosPendientes').textContent = stats.pendientes;
+            document.getElementById('pedidosEnProceso').textContent = stats.enProceso;
+            document.getElementById('pedidosEntregados').textContent = stats.entregadosHoy;
+            document.getElementById('totalGanancias').textContent = `S/. ${stats.totalGanancias.toFixed(2)}`;
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const estadoFilter = document.getElementById('estadoFilter').value;
+            
+            filteredPedidos = allPedidos.filter(pedido => {
+                const matchSearch = !searchTerm || 
+                    pedido.numero.toLowerCase().includes(searchTerm) ||
+                    pedido.clienteNombre.toLowerCase().includes(searchTerm);
+                
+                const matchEstado = !estadoFilter || pedido.estado === estadoFilter;
+                
+                return matchSearch && matchEstado;
+            });
+            
+            renderPedidos();
+        }
+
+        function renderPedidos() {
+            const container = document.getElementById('pedidosList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (filteredPedidos.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'block';
+            emptyState.style.display = 'none';
+            
+            let html = '';
+            filteredPedidos.forEach(pedido => {
+                const badgeClass = {
+                    'PENDIENTE': 'warning',
+                    'EN_PROCESO': 'info',
+                    'ENTREGADO': 'success'
+                }[pedido.estado] || 'secondary';
+                
+                const statusIcon = {
+                    'PENDIENTE': 'clock',
+                    'EN_PROCESO': 'truck',
+                    'ENTREGADO': 'check-circle'
+                }[pedido.estado] || 'question';
+                
+                html += `
+                    <div class="pedido-card position-relative" onclick="verDetalle(${pedido.id})">
+                        <span class="badge bg-${badgeClass} status-badge">
+                            <i class="fas fa-${statusIcon}"></i> ${pedido.estado}
+                        </span>
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="fw-bold text-primary">${pedido.numero}</h5>
+                                <div class="client-info">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-user"></i> ${pedido.clienteNombre}
+                                    </h6>
+                                    <p class="mb-1">
+                                        <i class="fas fa-phone text-success"></i> 
+                                        <a href="tel:${pedido.telefono}" class="text-decoration-none">
+                                            ${pedido.telefono}
+                                        </a>
+                                    </p>
+                                    <p class="mb-1">
+                                        <i class="fas fa-map-marker-alt text-danger"></i> 
+                                        ${pedido.direccion}
+                                    </p>
+                                    <p class="mb-0 text-muted">
+                                        <i class="fas fa-clock"></i> ${pedido.fecha}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <h4 class="text-success fw-bold">S/. ${pedido.total.toFixed(2)}</h4>
+                                <p class="text-muted">
+                                    <i class="fas fa-pills"></i> ${pedido.productos.length} productos
+                                </p>
+                                
+                                <div class="action-buttons" onclick="event.stopPropagation()">
+                                    <a href="tel:${pedido.telefono}" class="btn btn-success btn-sm">
+                                        <i class="fas fa-phone"></i>
+                                    </a>
+                                    <a href="https://wa.me/51${pedido.telefono}" target="_blank" class="btn btn-success btn-sm">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </a>
+                                    ${pedido.estado !== 'ENTREGADO' ? 
+                                        `<button class="btn btn-primary btn-sm" onclick="cambiarEstado(${pedido.id})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>` : ''
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function verDetalle(pedidoId) {
+            window.location.href = `./pedido.html?id=${pedidoId}`;
+        }
+
+        function cambiarEstado(pedidoId) {
+            const pedido = allPedidos.find(p => p.id === pedidoId);
+            if (!pedido) return;
+            
+            selectedPedidoId = pedidoId;
+            document.getElementById('modalPedidoNumero').textContent = pedido.numero;
+            
+            // Configurar opciones según estado actual
+            const nuevoEstadoSelect = document.getElementById('nuevoEstado');
+            nuevoEstadoSelect.innerHTML = '';
+            
+            if (pedido.estado === 'PENDIENTE') {
+                nuevoEstadoSelect.innerHTML = `
+                    <option value="EN_PROCESO">En Proceso</option>
+                    <option value="ENTREGADO">Entregado</option>
+                `;
+            } else if (pedido.estado === 'EN_PROCESO') {
+                nuevoEstadoSelect.innerHTML = `
+                    <option value="ENTREGADO">Entregado</option>
+                `;
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('cambiarEstadoModal'));
+            modal.show();
+        }
+
+        function confirmarCambioEstado() {
+            const nuevoEstado = document.getElementById('nuevoEstado').value;
+            const comentario = document.getElementById('comentarioEntrega').value;
+            
+            // Actualizar el estado en los datos locales
+            const pedido = allPedidos.find(p => p.id === selectedPedidoId);
+            if (pedido) {
+                pedido.estado = nuevoEstado;
+                
+                // Si dataStore está disponible, usarlo
+                if (typeof dataStore !== 'undefined') {
+                    try {
+                        dataStore.updatePedidoEstado(selectedPedidoId, nuevoEstado);
+                    } catch (error) {
+                        console.log('Actualizando solo datos locales');
+                    }
+                }
+                
+                loadPedidos(); // Recargar datos
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('cambiarEstadoModal'));
+                modal.hide();
+                
+                showNotification(`Estado actualizado a ${nuevoEstado}`, 'success');
+            } else {
+                showNotification('Error al actualizar el estado', 'danger');
+            }
+        }
+
+        function refreshPedidos() {
+            // Simular recarga con animación
+            const button = event.target.closest('button');
+            const icon = button.querySelector('i');
+            
+            icon.classList.add('fa-spin');
+            
+            setTimeout(() => {
+                loadPedidos();
+                icon.classList.remove('fa-spin');
+                showNotification('Pedidos actualizados', 'info');
+            }, 1000);
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('estadoFilter').value = '';
+            applyFilters();
+        }
+
+        function showNotification(message, type) {
+            // Crear notificación
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function logout() {
+            if (confirm('¿Desea cerrar sesión?')) {
+                sessionStorage.removeItem('adminUser');
+                window.location.href = '../admin/index.html';
+            }
+        }
+    </script>
+</body>
+</html>

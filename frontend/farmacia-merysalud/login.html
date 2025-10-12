@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Farmacia Mery Salud</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .container {
+            min-height: 99vh;
+            margin: auto;
+            display: flex;
+            align-items: center; 
+        }
+        .login-container {
+            max-width: 450px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+            min-width: 400px;
+        }
+        
+        .login-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .login-body {
+            padding: 30px;
+        }
+        
+        .nav-pills .nav-link {
+            color: #6c757d;
+            border-radius: 20px;
+        }
+        
+        .nav-pills .nav-link.active {
+            background-color: #28a745;
+        }
+        
+        .form-floating label {
+            color: #6c757d;
+        }
+        
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <!-- Back to Home -->
+    <a href="./index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i> Volver al inicio
+    </a>
+
+    <div class="container">
+        <div class="login-container">
+            <div class="login-card">
+                <!-- Header -->
+                <div class="login-header">
+                    <i class="fas fa-clinic-medical fa-3x mb-3"></i>
+                    <h3>Farmacia Mery Salud</h3>
+                    <p class="mb-0">Tu salud es nuestra prioridad</p>
+                </div>
+
+                <!-- Body -->
+                <div class="login-body">
+                    <!-- Tabs -->
+                    <ul class="nav nav-pills nav-fill mb-4" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#login-tab" type="button">
+                                Iniciar Sesión
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#register-tab" type="button">
+                                Registrarse
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                        <!-- Login Tab -->
+                        <div class="tab-pane fade show active" id="login-tab">
+                            <form id="loginForm">
+                                <div class="form-floating mb-3">
+                                    <input type="email" class="form-control" id="loginEmail" 
+                                           placeholder="correo@ejemplo.com" required>
+                                    <label for="loginEmail">
+                                        <i class="fas fa-envelope"></i> Correo Electrónico
+                                    </label>
+                                </div>
+                                
+                                <div class="form-floating mb-3">
+                                    <input type="password" class="form-control" id="loginPassword" 
+                                           placeholder="Contraseña" required>
+                                    <label for="loginPassword">
+                                        <i class="fas fa-lock"></i> Contraseña
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                                    <label class="form-check-label" for="rememberMe">
+                                        Recordar mi sesión
+                                    </label>
+                                </div>
+
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                                </button>
+
+                                <div class="text-center mt-3">
+                                    <a href="#" class="text-muted small">¿Olvidaste tu contraseña?</a>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Register Tab -->
+                        <div class="tab-pane fade" id="register-tab">
+                            <form id="registerForm">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="registerName" 
+                                           placeholder="Nombre completo" required>
+                                    <label for="registerName">
+                                        <i class="fas fa-user"></i> Nombre Completo
+                                    </label>
+                                </div>
+
+                                <div class="form-floating mb-3">
+                                    <input type="email" class="form-control" id="registerEmail" 
+                                           placeholder="correo@ejemplo.com" required>
+                                    <label for="registerEmail">
+                                        <i class="fas fa-envelope"></i> Correo Electrónico
+                                    </label>
+                                </div>
+
+                                <div class="form-floating mb-3">
+                                    <input type="tel" class="form-control" id="registerPhone" 
+                                           placeholder="999888777" pattern="[0-9]{9}" required>
+                                    <label for="registerPhone">
+                                        <i class="fas fa-phone"></i> Teléfono
+                                    </label>
+                                </div>
+
+                                <div class="form-floating mb-3">
+                                    <input type="password" class="form-control" id="registerPassword" 
+                                           placeholder="Contraseña" minlength="6" required>
+                                    <label for="registerPassword">
+                                        <i class="fas fa-lock"></i> Contraseña
+                                    </label>
+                                </div>
+
+                                <div class="form-floating mb-3">
+                                    <input type="password" class="form-control" id="confirmPassword" 
+                                           placeholder="Confirmar contraseña" minlength="6" required>
+                                    <label for="confirmPassword">
+                                        <i class="fas fa-lock"></i> Confirmar Contraseña
+                                    </label>
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="acceptTerms" required>
+                                    <label class="form-check-label" for="acceptTerms">
+                                        Acepto los términos y condiciones
+                                    </label>
+                                </div>
+
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-user-plus"></i> Crear Cuenta
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <hr class="my-4">
+
+                    <!-- Guest Checkout -->
+                    <div class="text-center">
+                        <p class="text-muted">¿Prefieres comprar sin registrarte?</p>
+                        <a href="./productos.html" class="btn btn-outline-secondary">
+                            <i class="fas fa-shopping-bag"></i> Comprar como Invitado
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Usuarios simulados (basado en BD)
+        let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [
+            {
+                id: 1,
+                rol: 'CLIENTE',
+                nombre: 'María García',
+                email: 'maria@gmail.com',
+                telefono: '999888777',
+                password: '123456' // En producción sería hash
+            },
+            {
+                id: 2,
+                rol: 'ADMIN',
+                nombre: 'Admin',
+                email: 'admin@farmacia.com',
+                password: 'admin123'
+            },
+            {
+                id: 3,
+                rol: 'REPARTIDOR',
+                nombre: 'Pedro Repartidor',
+                email: 'delivery@farmacia.com',
+                password: 'delivery123'
+            }
+        ];
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Buscar usuario
+            const usuario = usuarios.find(u => u.email === email && u.password === password);
+            
+            if (usuario) {
+                // Guardar sesión
+                localStorage.setItem('usuarioActual', JSON.stringify(usuario));
+                
+                // Redirigir según rol
+                if (usuario.rol === 'ADMIN') {
+                    alert('Error: Usa /admin para login de administrador');
+                } else if (usuario.rol === 'REPARTIDOR') {
+                    alert('Error: Usa /admin para login de repartidor');
+                } else {
+                    // Cliente - ir al home
+                    alert(`Bienvenido ${usuario.nombre}`);
+                    window.location.href = './index.html';
+                }
+            } else {
+                alert('Credenciales incorrectas');
+            }
+        });
+
+        // Register
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                alert('Las contraseñas no coinciden');
+                return;
+            }
+            
+            // Crear nuevo usuario
+            const nuevoUsuario = {
+                id: usuarios.length + 1,
+                rol: 'CLIENTE',
+                nombre: document.getElementById('registerName').value,
+                email: document.getElementById('registerEmail').value,
+                telefono: document.getElementById('registerPhone').value,
+                password: password // En producción sería hash
+            };
+            
+            // Verificar si email ya existe
+            if (usuarios.find(u => u.email === nuevoUsuario.email)) {
+                alert('Este email ya está registrado');
+                return;
+            }
+            
+            // Guardar usuario
+            usuarios.push(nuevoUsuario);
+            localStorage.setItem('usuarios', JSON.stringify(usuarios));
+            
+            // Auto login
+            localStorage.setItem('usuarioActual', JSON.stringify(nuevoUsuario));
+            
+            alert('Cuenta creada exitosamente');
+            window.location.href = './index.html';
+        });
+    </script>
+</body>
+</html>

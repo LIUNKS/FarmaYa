@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Farmacia Mery Salud</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        .sidebar {
+            background: #343a40;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .sidebar .nav-link {
+            color: #adb5bd;
+            padding: 10px 20px;
+            margin: 5px 0;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar .nav-link.active {
+            color: white;
+            background: #007bff;
+        }
+        
+        .top-navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 p-0 sidebar">
+                <div class="text-center text-white py-3">
+                    <i class="fas fa-clinic-medical fa-2x mb-2"></i>
+                    <h5>Farmacia Admin</h5>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="./dashboard.html">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a class="nav-link" href="./productos.html">
+                        <i class="fas fa-pills"></i> Productos
+                    </a>
+                    <a class="nav-link" href="./pedidos.html">
+                        <i class="fas fa-shopping-cart"></i> Pedidos
+                    </a>
+                    <a class="nav-link" href="./usuarios.html">
+                        <i class="fas fa-users"></i> Usuarios
+                    </a>
+                    <a class="nav-link" href="./perfil.html">
+                        <i class="fas fa-user-cog"></i> Mi Perfil
+                    </a>
+                    <hr class="bg-secondary">
+                    <a class="nav-link" href="#" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 pt-4">
+                <!-- Top Bar -->
+                <div class="top-navbar">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="h3 mb-3 fw-bold">
+                            <i class="fas fa-tachometer-alt text-primary"></i> Dashboard Administrativo
+                        </h1>
+                        <div>
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-user"></i> <span id="adminName">Admin</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-4">
+                    <!-- Stats Cards -->
+                    <div class="row g-4 mb-4">
+                        <!-- Total Productos -->
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card dashboard-card text-white bg-primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="text-white-50 small">Total Productos</div>
+                                            <div class="h4 fw-bold" id="totalProductos">0</div>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-pills fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-primary bg-opacity-25">
+                                    <a href="./productos.html" class="text-white text-decoration-none">
+                                        Ver todos <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Pedidos -->
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card dashboard-card text-white bg-success">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="text-white-50 small">Total Pedidos</div>
+                                            <div class="h4 fw-bold" id="totalPedidos">0</div>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-box fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-success bg-opacity-25">
+                                    <a href="./pedidos.html" class="text-white text-decoration-none">
+                                        Ver todos <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pedidos Pendientes -->
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card dashboard-card text-white bg-warning">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="text-dark small">Pedidos Pendientes</div>
+                                            <div class="h4 fw-bold text-dark" id="pedidosPendientes">0</div>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-clock fa-2x text-dark"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-warning bg-opacity-25">
+                                    <a href="./pedidos.html?estado=PENDIENTE" class="text-dark text-decoration-none">
+                                        Ver pendientes <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Usuarios -->
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card dashboard-card text-white bg-info">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="text-white-50 small">Total Usuarios</div>
+                                            <div class="h4 fw-bold" id="totalUsuarios">0</div>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-users fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-info bg-opacity-25">
+                                    <a href="./usuarios.html" class="text-white text-decoration-none">
+                                        Ver todos <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="row g-4 mb-4">
+                        <!-- Pedidos por Estado -->
+                        <div class="col-md-6">
+                            <div class="card dashboard-card">
+                                <div class="card-header bg-white">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-chart-pie text-primary"></i> Pedidos por Estado
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="estadoPedidosChart" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Productos con Poco Stock -->
+                        <div class="col-md-6">
+                            <div class="card dashboard-card">
+                                <div class="card-header bg-white">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-exclamation-triangle text-warning"></i> Productos con Poco Stock
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="lowStockProducts">
+                                        <!-- Se llenará dinámicamente -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card dashboard-card">
+                                <div class="card-header bg-white">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-history text-info"></i> Pedidos Recientes
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>N° Pedido</th>
+                                                    <th>Cliente</th>
+                                                    <th>Fecha</th>
+                                                    <th>Total</th>
+                                                    <th>Estado</th>
+                                                    <th>Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="recentOrdersTable">
+                                                <!-- Se llenará dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- <script src="../assets/js/data.js"></script> -->
+    <!-- <script src="../assets/js/app.js"></script> -->
+
+    <script>
+        // Verificar autenticación al cargar
+        document.addEventListener('DOMContentLoaded', function () {
+            checkAdminAuth();
+            loadDashboardData();
+        });
+
+        function checkAdminAuth() {
+            const adminUser = JSON.parse(sessionStorage.getItem('adminUser') || 'null');
+            
+            // Usar datos por defecto si no hay usuario en sesión
+            if (!adminUser) {
+                const defaultAdmin = {
+                    id: 2,
+                    nombre: "Juan Administrador",
+                    rol: "ADMIN"
+                };
+                console.log('Usando datos por defecto para demostración del dashboard');
+                document.getElementById('adminName').textContent = defaultAdmin.nombre;
+                return;
+            }
+
+            // if (!adminUser || adminUser.rol !== 'ADMIN') {
+            //     window.location.href = './index.html';
+            //     return;
+            // }
+
+            document.getElementById('adminName').textContent = adminUser.nombre;
+        }
+
+        function loadDashboardData() {
+            // Datos por defecto para demostración
+            const defaultData = {
+                productos: [
+                    {id: 1, nombre: "Paracetamol 500mg", stock: 100, categoria: "Analgésicos"},
+                    {id: 2, nombre: "Ibuprofeno 400mg", stock: 75, categoria: "Analgésicos"},
+                    {id: 3, nombre: "Vitamina C 1000mg", stock: 50, categoria: "Vitaminas"},
+                    {id: 4, nombre: "Complejo B", stock: 40, categoria: "Vitaminas"},
+                    {id: 5, nombre: "Alcohol 70°", stock: 200, categoria: "Primeros Auxilios"},
+                    {id: 6, nombre: "Gasas estériles", stock: 150, categoria: "Primeros Auxilios"},
+                    {id: 7, nombre: "Mascarillas KN95", stock: 500, categoria: "Protección"},
+                    {id: 8, nombre: "Termómetro Digital", stock: 20, categoria: "Equipos"},
+                    {id: 9, nombre: "Jarabe para la tos", stock: 8, categoria: "Medicamentos"}, // Stock bajo
+                    {id: 10, nombre: "Crema antibiótica", stock: 5, categoria: "Medicamentos"}, // Stock bajo
+                    {id: 11, nombre: "Pañales para adulto", stock: 15, categoria: "Cuidado Personal"},
+                    {id: 12, nombre: "Glucómetro", stock: 10, categoria: "Equipos"}
+                ],
+                pedidos: [
+                    {
+                        id: 1,
+                        numero: "ORD-001",
+                        clienteNombre: "María García",
+                        telefono: "999888777",
+                        direccion: "Av. Brasil 123, Breña",
+                        total: 23.00,
+                        estado: "PENDIENTE",
+                        fecha: "2024-12-20 10:30"
+                    },
+                    {
+                        id: 2,
+                        numero: "ORD-002",
+                        clienteNombre: "Carlos Mendoza",
+                        total: 22.00,
+                        estado: "EN_PROCESO",
+                        fecha: "2024-12-20 11:15"
+                    },
+                    {
+                        id: 3,
+                        numero: "ORD-003",
+                        clienteNombre: "Ana López",
+                        total: 66.50,
+                        estado: "ENTREGADO",
+                        fecha: "2024-12-20 09:00"
+                    },
+                    {
+                        id: 4,
+                        numero: "ORD-004",
+                        clienteNombre: "Roberto Silva",
+                        total: 35.50,
+                        estado: "PENDIENTE",
+                        fecha: "2024-12-20 13:45"
+                    },
+                    {
+                        id: 5,
+                        numero: "ORD-005",
+                        clienteNombre: "Lucía Fernández",
+                        total: 18.00,
+                        estado: "EN_PROCESO",
+                        fecha: "2024-12-20 12:30"
+                    }
+                ],
+                usuarios: [
+                    {id: 1, rol: "CLIENTE", nombre: "María García"},
+                    {id: 2, rol: "ADMIN", nombre: "Juan Administrador"},
+                    {id: 3, rol: "REPARTIDOR", nombre: "Pedro Repartidor"},
+                    {id: 4, rol: "CLIENTE", nombre: "Carlos Mendoza"},
+                    {id: 5, rol: "CLIENTE", nombre: "Ana López"}
+                ]
+            };
+
+            let data = defaultData;
+            
+            // Si dataStore está disponible, intentar usar datos reales
+            if (typeof dataStore !== 'undefined') {
+                try {
+                    const realData = dataStore.getData();
+                    if (realData && realData.productos && realData.productos.length > 0) {
+                        data = realData;
+                    }
+                } catch (error) {
+                    console.log('Usando datos por defecto para demostración del dashboard');
+                }
+            }
+
+            // Cargar estadísticas
+            document.getElementById('totalProductos').textContent = data.productos.length;
+            document.getElementById('totalPedidos').textContent = data.pedidos.length;
+            document.getElementById('totalUsuarios').textContent = data.usuarios.filter(u => u.rol === 'CLIENTE').length;
+
+            const pedidosPendientes = data.pedidos.filter(p => p.estado === 'PENDIENTE').length;
+            document.getElementById('pedidosPendientes').textContent = pedidosPendientes;
+
+            // Cargar gráfico de estados
+            loadEstadoPedidosChart(data.pedidos);
+
+            // Cargar productos con poco stock
+            loadLowStockProducts(data.productos);
+
+            // Cargar pedidos recientes
+            loadRecentOrders(data.pedidos);
+        }
+
+        function loadEstadoPedidosChart(pedidos) {
+            const estados = {
+                'PENDIENTE': 0,
+                'EN_PROCESO': 0,
+                'ENTREGADO': 0
+            };
+
+            pedidos.forEach(pedido => {
+                estados[pedido.estado] = (estados[pedido.estado] || 0) + 1;
+            });
+
+            const ctx = document.getElementById('estadoPedidosChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pendiente', 'En Proceso', 'Entregado'],
+                    datasets: [{
+                        data: [estados.PENDIENTE, estados.EN_PROCESO, estados.ENTREGADO],
+                        backgroundColor: ['#ffc107', '#17a2b8', '#28a745'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadLowStockProducts(productos) {
+            const lowStock = productos.filter(p => p.stock <= 20).sort((a, b) => a.stock - b.stock);
+            const container = document.getElementById('lowStockProducts');
+
+            if (lowStock.length === 0) {
+                container.innerHTML = '<p class="text-muted">No hay productos con stock bajo</p>';
+                return;
+            }
+
+            let html = '';
+            lowStock.slice(0, 5).forEach(producto => {
+                const alertClass = producto.stock <= 10 ? 'danger' : 'warning';
+                html += `
+                    <div class="alert alert-${alertClass} d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>${producto.nombre}</strong><br>
+                            <small>Stock: ${producto.stock} unidades</small>
+                        </div>
+                        <a href="./productos.html" class="btn btn-sm btn-outline-${alertClass}">Ver</a>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function loadRecentOrders(pedidos) {
+            const tbody = document.getElementById('recentOrdersTable');
+            const recent = pedidos.slice(-5).reverse(); // Últimos 5 pedidos
+
+            let html = '';
+            recent.forEach(pedido => {
+                const badgeClass = {
+                    'PENDIENTE': 'warning',
+                    'EN_PROCESO': 'info',
+                    'ENTREGADO': 'success'
+                }[pedido.estado] || 'secondary';
+
+                html += `
+                    <tr>
+                        <td><strong>${pedido.numero}</strong></td>
+                        <td>${pedido.clienteNombre}</td>
+                        <td>${pedido.fecha}</td>
+                        <td><strong>S/. ${pedido.total.toFixed(2)}</strong></td>
+                        <td><span class="badge bg-${badgeClass}">${pedido.estado}</span></td>
+                        <td>
+                            <a href="./pedidos.html" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            if (html === '') {
+                html = '<tr><td colspan="6" class="text-center text-muted">No hay pedidos registrados</td></tr>';
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        function logout() {
+            if (confirm('¿Desea cerrar sesión?')) {
+                sessionStorage.removeItem('adminUser');
+                window.location.href = './index.html';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Farmacia Mery Salud</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+
+    <style>
+        .checkout-form {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .order-summary {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            position: sticky;
+            top: 80px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-bottom: 3px solid #dee2e6;
+            color: #6c757d;
+        }
+
+        .step.active {
+            border-bottom-color: #28a745;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .step.completed {
+            border-bottom-color: #28a745;
+            color: #28a745;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="./index.html">
+                <i class="fas fa-clinic-medical text-success me-2 fs-4"></i>
+                <span class="fw-bold text-success">Farmacia Mery Salud</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./index.html">
+                            <i class="fas fa-home"></i> Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./productos.html">
+                            <i class="fas fa-pills"></i> Productos
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="./carrito.html">
+                            <i class="fas fa-shopping-cart fs-5"></i>
+                            <span class="cart-badge badge bg-danger rounded-pill">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item btn-login">
+                        <a class="btn btn-outline-success ms-2" href="./login.html">
+                            <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Steps -->
+    <div class="container mt-4">
+        <div class="step-indicator">
+            <div class="step completed">
+                <i class="fas fa-shopping-cart"></i> Carrito
+            </div>
+            <div class="step active">
+                <i class="fas fa-user"></i> Datos
+            </div>
+            <div class="step">
+                <i class="fas fa-check"></i> Confirmación
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        <div class="row">
+            <!-- Checkout Form -->
+            <div class="col-lg-8">
+                <div class="checkout-form">
+                    <h3 class="mb-4">
+                        <i class="fas fa-user text-success"></i> Información de Entrega
+                    </h3>
+
+                    <form id="checkoutForm">
+                        <!-- Datos Personales -->
+                        <h5 class="mb-3">Datos Personales</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre Completo *</label>
+                                <input type="text" class="form-control" name="nombre" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Teléfono *</label>
+                                <input type="tel" class="form-control" name="telefono" placeholder="999888777"
+                                    pattern="[0-9]{9}" required>
+                                <small class="text-muted">El repartidor usará este número para contactarte</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email" placeholder="correo@ejemplo.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">DNI</label>
+                                <input type="text" class="form-control" name="dni" pattern="[0-9]{8}"
+                                    placeholder="12345678">
+                            </div>
+                        </div>
+
+                        <!-- Dirección de Entrega -->
+                        <h5 class="mb-3 mt-4">Dirección de Entrega</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Dirección *</label>
+                            <input type="text" class="form-control" name="direccion" placeholder="Av. Brasil 123"
+                                required>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Distrito *</label>
+                                <select class="form-select" name="distrito" required>
+                                    <option value="">Seleccionar distrito</option>
+                                    <option value="Breña">Breña</option>
+                                    <option value="Lima">Lima (Cercado)</option>
+                                    <option value="Jesus Maria">Jesús María</option>
+                                    <option value="Pueblo Libre">Pueblo Libre</option>
+                                    <option value="Lince">Lince</option>
+                                    <option value="San Miguel">San Miguel</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Referencias</label>
+                                <input type="text" class="form-control" name="referencia" placeholder="Cerca de...">
+                            </div>
+                        </div>
+
+                        <!-- Método de Pago -->
+                        <h5 class="mb-3 mt-4">Método de Pago</h5>
+                        <div class="alert alert-info">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <strong>Pago Contra Entrega</strong><br>
+                            Paga en efectivo cuando recibas tu pedido
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="./carrito.html" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver al Carrito
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                Confirmar Pedido <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="order-summary">
+                    <h4 class="mb-3">Resumen del Pedido</h4>
+                    <div id="orderItems">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">S/. 0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Delivery:</span>
+                        <span class="text-success">GRATIS</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total:</strong>
+                        <strong class="text-success fs-5" id="total">S/. 0.00</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Confirmación -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3">¡Pedido Confirmado!</h4>
+                    <p class="mb-1">Tu número de pedido es:</p>
+                    <h3 class="text-success" id="orderNumber">ORD-0001</h3>
+                    <p class="text-muted">El repartidor te contactará pronto al número proporcionado</p>
+                    <div class="mt-4">
+                        <a href="./index.html" class="btn btn-outline-secondary">
+                            Volver al Inicio
+                        </a>
+                        <a href="./mis-pedidos.html" class="btn btn-success ms-2">
+                            Ver Mis Pedidos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white pt-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <p>&copy; 2024 Farmacia Mery Salud</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Cargar resumen del pedido
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const productos = [
+            { id: 1, nombre: "Paracetamol 500mg", precio: 5.50 },
+            { id: 2, nombre: "Ibuprofeno 400mg", precio: 8.00 },
+            { id: 3, nombre: "Vitamina C 1000mg", precio: 12.00 }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (cart.length === 0) {
+                alert('Tu carrito está vacío');
+                window.location.href = './carrito.html';  // <-- ESTE ES EL PROBLEMA
+                return;
+            }
+
+            loadOrderSummary();
+        });
+        
+        function loadOrderSummary() {
+            const container = document.getElementById('orderItems');
+            let html = '';
+            let total = 0;
+
+            cart.forEach(item => {
+                const producto = productos.find(p => p.id === item.id);
+                if (producto) {
+                    const subtotal = producto.precio * item.cantidad;
+                    total += subtotal;
+                    html += `
+                        <div class="d-flex justify-content-between mb-2">
+                            <small>${producto.nombre} x${item.cantidad}</small>
+                            <small>S/. ${subtotal.toFixed(2)}</small>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+            document.getElementById('subtotal').textContent = `S/. ${total.toFixed(2)}`;
+            document.getElementById('total').textContent = `S/. ${total.toFixed(2)}`;
+        }
+
+        // Procesar formulario
+        document.getElementById('checkoutForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Simular creación de pedido
+            const formData = new FormData(this);
+            const pedido = {
+                numero: 'ORD-' + String(Math.floor(Math.random() * 1000) + 1).padStart(4, '0'),
+                cliente: {
+                    nombre: formData.get('nombre'),
+                    telefono: formData.get('telefono'),
+                    email: formData.get('email'),
+                    dni: formData.get('dni')
+                },
+                direccion: {
+                    direccion: formData.get('direccion'),
+                    distrito: formData.get('distrito'),
+                    referencia: formData.get('referencia')
+                },
+                productos: cart,
+                total: document.getElementById('total').textContent,
+                estado: 'PENDIENTE',
+                fecha: new Date().toLocaleString('es-PE')
+            };
+
+            // Guardar pedido en localStorage (simulado)
+            let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            pedidos.push(pedido);
+            localStorage.setItem('pedidos', JSON.stringify(pedidos));
+
+            // Limpiar carrito
+            localStorage.removeItem('cart');
+
+            // Mostrar confirmación
+            document.getElementById('orderNumber').textContent = pedido.numero;
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            modal.show();
+        });
+    </script>
+</body>
+
+</html>

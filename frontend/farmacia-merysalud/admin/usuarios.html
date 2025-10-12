@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Farmacia Mery Salud</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        .sidebar {
+            background: #343a40;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .sidebar .nav-link {
+            color: #adb5bd;
+            padding: 10px 20px;
+            margin: 5px 0;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar .nav-link.active {
+            color: white;
+            background: #007bff;
+        }
+        
+        .top-navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 p-0 sidebar">
+                <div class="text-center text-white py-3">
+                    <i class="fas fa-clinic-medical fa-2x mb-2"></i>
+                    <h5>Farmacia Admin</h5>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="./dashboard.html">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a class="nav-link" href="./productos.html">
+                        <i class="fas fa-pills"></i> Productos
+                    </a>
+                    <a class="nav-link" href="./pedidos.html">
+                        <i class="fas fa-shopping-cart"></i> Pedidos
+                    </a>
+                    <a class="nav-link active" href="./usuarios.html">
+                        <i class="fas fa-users"></i> Usuarios
+                    </a>
+                    <a class="nav-link" href="./perfil.html">
+                        <i class="fas fa-user-cog"></i> Mi Perfil
+                    </a>
+                    <hr class="bg-secondary">
+                    <a class="nav-link" href="#" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 pt-4">
+                <!-- Top Bar -->
+                <div class="top-navbar">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="h3 mb-3 fw-bold">
+                            <i class="fas fa-users text-info"></i> Gestión de Usuarios
+                        </h1>
+                        <div>
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-user"></i> <span id="adminName">Admin</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-4">
+                    <div class="content-card">
+                        <p class="text-muted mb-4">Visualización y administración de usuarios del sistema</p>
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="h3 mb-3 fw-bold">
+                    <i class="fas fa-users text-info"></i> Gestión de Usuarios
+                </h1>
+                <p class="text-muted">Visualización y administración de usuarios del sistema</p>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" class="form-control" id="searchInput" 
+                           placeholder="Buscar por nombre o email...">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" id="rolFilter">
+                    <option value="">Todos los roles</option>
+                    <option value="CLIENTE">Clientes</option>
+                    <option value="ADMIN">Administradores</option>
+                    <option value="REPARTIDOR">Repartidores</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary" id="totalClientes">0</h3>
+                        <small>Clientes</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success" id="totalAdmins">0</h3>
+                        <small>Administradores</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning" id="totalRepartidores">0</h3>
+                        <small>Repartidores</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-info" id="totalUsuarios">0</h3>
+                        <small>Total Usuarios</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list"></i> Lista de Usuarios
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th>Rol</th>
+                                <th>Dirección</th>
+                                <th>Pedidos</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuariosTable">
+                            <!-- Se llenará dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Detalle Usuario -->
+    <div class="modal fade" id="detalleUsuarioModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user"></i> Detalle del Usuario
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detalleUsuarioContent">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Historial de Pedidos -->
+    <div class="modal fade" id="historialPedidosModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-history"></i> Historial de Pedidos
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="historialPedidosContent">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="../assets/js/data.js"></script> -->
+    <script src="../assets/js/app.js"></script>
+
+    <script>
+        let allUsuarios = [];
+        let filteredUsuarios = [];
+        let allPedidos = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAdminAuth();
+            loadUsuarios();
+            setupEventListeners();
+        });
+
+        function checkAdminAuth() {
+            const adminUser = JSON.parse(sessionStorage.getItem('adminUser') || 'null');
+            
+            // if (!adminUser || adminUser.rol !== 'ADMIN') {
+            //     window.location.href = './index.html';
+            //     return;
+            // }
+            
+            document.getElementById('adminName').textContent = adminUser.nombre;
+        }
+
+        function setupEventListeners() {
+            // Filtros en tiempo real
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('rolFilter').addEventListener('change', applyFilters);
+        }
+
+        function loadUsuarios() {
+    // Datos por defecto para demostración
+    const defaultData = {
+        usuarios: [
+            {
+                id: 1,
+                email: "maria@gmail.com",
+                rol: "CLIENTE",
+                nombre: "María García",
+                telefono: "999888777",
+                direccion: "Av. Brasil 123, Breña"
+            },
+            {
+                id: 2,
+                email: "admin@farmacia.com",
+                rol: "ADMIN",
+                nombre: "Juan Administrador",
+                telefono: "999777666"
+            },
+            {
+                id: 3,
+                email: "delivery@farmacia.com",
+                rol: "REPARTIDOR",
+                nombre: "Pedro Repartidor",
+                telefono: "999666555"
+            },
+            {
+                id: 4,
+                email: "carlos@email.com",
+                rol: "CLIENTE",
+                nombre: "Carlos Mendoza",
+                telefono: "987654321",
+                direccion: "Jr. Lampa 456, Cercado de Lima"
+            },
+            {
+                id: 5,
+                email: "ana@email.com",
+                rol: "CLIENTE",
+                nombre: "Ana López",
+                telefono: "945123789",
+                direccion: "Av. Universitaria 1245, San Miguel"
+            }
+        ],
+        pedidos: [
+            {id: 1, clienteId: 1, numero: "ORD-001", total: 23.00, estado: "PENDIENTE"},
+            {id: 2, clienteId: 4, numero: "ORD-002", total: 12.00, estado: "EN_PROCESO"},
+            {id: 3, clienteId: 5, numero: "ORD-003", total: 28.00, estado: "ENTREGADO"},
+            {id: 4, clienteId: 1, numero: "ORD-004", total: 25.00, estado: "PENDIENTE"}
+        ]
+    };
+
+    let data = defaultData;
+    
+    // Si dataStore está disponible, intentar usar datos reales
+    if (typeof dataStore !== 'undefined') {
+        try {
+            const realData = dataStore.getData();
+            if (realData && realData.usuarios && realData.usuarios.length > 0) {
+                data = realData;
+            }
+        } catch (error) {
+            console.log('Usando datos por defecto para demostración de usuarios');
+        }
+    }
+    
+    allUsuarios = data.usuarios;
+    allPedidos = data.pedidos;
+    filteredUsuarios = [...allUsuarios];
+    
+    updateStats();
+    renderUsuariosTable();
+}
+
+        function updateStats() {
+            const stats = {
+                clientes: allUsuarios.filter(u => u.rol === 'CLIENTE').length,
+                admins: allUsuarios.filter(u => u.rol === 'ADMIN').length,
+                repartidores: allUsuarios.filter(u => u.rol === 'REPARTIDOR').length,
+                total: allUsuarios.length
+            };
+            
+            document.getElementById('totalClientes').textContent = stats.clientes;
+            document.getElementById('totalAdmins').textContent = stats.admins;
+            document.getElementById('totalRepartidores').textContent = stats.repartidores;
+            document.getElementById('totalUsuarios').textContent = stats.total;
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const rolFilter = document.getElementById('rolFilter').value;
+            
+            filteredUsuarios = allUsuarios.filter(usuario => {
+                // Filtro de búsqueda
+                const matchSearch = !searchTerm || 
+                    usuario.nombre.toLowerCase().includes(searchTerm) ||
+                    usuario.email.toLowerCase().includes(searchTerm);
+                
+                // Filtro de rol
+                const matchRol = !rolFilter || usuario.rol === rolFilter;
+                
+                return matchSearch && matchRol;
+            });
+            
+            renderUsuariosTable();
+        }
+
+        function renderUsuariosTable() {
+            const tbody = document.getElementById('usuariosTable');
+            
+            if (filteredUsuarios.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-3x mb-3 d-block"></i>
+                            No se encontraron usuarios
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            filteredUsuarios.forEach(usuario => {
+                const badgeClass = {
+                    'CLIENTE': 'primary',
+                    'ADMIN': 'success',
+                    'REPARTIDOR': 'warning'
+                }[usuario.rol] || 'secondary';
+                
+                const roleIcon = {
+                    'CLIENTE': 'fa-user',
+                    'ADMIN': 'fa-user-shield',
+                    'REPARTIDOR': 'fa-motorcycle'
+                }[usuario.rol] || 'fa-user';
+                
+                // Contar pedidos del usuario
+                const pedidosCount = allPedidos.filter(p => p.clienteId === usuario.id).length;
+                
+                html += `
+                    <tr>
+                        <td><strong>#${usuario.id}</strong></td>
+                        <td>${usuario.nombre}</td>
+                        <td>
+                            <a href="mailto:${usuario.email}" class="text-decoration-none">
+                                ${usuario.email}
+                            </a>
+                        </td>
+                        <td>
+                            ${usuario.telefono ? 
+                                `<a href="tel:${usuario.telefono}" class="text-decoration-none">
+                                    <i class="fas fa-phone text-success"></i> ${usuario.telefono}
+                                </a>` : 
+                                '<span class="text-muted">N/A</span>'
+                            }
+                        </td>
+                        <td>
+                            <span class="badge bg-${badgeClass}">
+                                <i class="fas ${roleIcon}"></i> ${usuario.rol}
+                            </span>
+                        </td>
+                        <td>
+                            ${usuario.direccion || '<span class="text-muted">N/A</span>'}
+                        </td>
+                        <td>
+                            ${pedidosCount > 0 ? 
+                                `<button class="btn btn-sm btn-outline-info" onclick="verHistorialPedidos(${usuario.id})">
+                                    ${pedidosCount} pedidos
+                                </button>` : 
+                                '<span class="text-muted">Sin pedidos</span>'
+                            }
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1" 
+                                    onclick="verDetalle(${usuario.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${usuario.telefono ? 
+                                `<a href="tel:${usuario.telefono}" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-phone"></i>
+                                </a>` : ''
+                            }
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        function verDetalle(usuarioId) {
+            const usuario = allUsuarios.find(u => u.id === usuarioId);
+            if (!usuario) return;
+            
+            const modal = new bootstrap.Modal(document.getElementById('detalleUsuarioModal'));
+            const content = document.getElementById('detalleUsuarioContent');
+            
+            const badgeClass = {
+                'CLIENTE': 'primary',
+                'ADMIN': 'success',
+                'REPARTIDOR': 'warning'
+            }[usuario.rol] || 'secondary';
+            
+            const roleIcon = {
+                'CLIENTE': 'fa-user',
+                'ADMIN': 'fa-user-shield',
+                'REPARTIDOR': 'fa-motorcycle'
+            }[usuario.rol] || 'fa-user';
+            
+            const pedidosCount = allPedidos.filter(p => p.clienteId === usuario.id).length;
+            const totalGastado = allPedidos
+                .filter(p => p.clienteId === usuario.id)
+                .reduce((sum, p) => sum + p.total, 0);
+            
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle"></i> Información Personal</h6>
+                        <table class="table table-sm">
+                            <tr><th>ID:</th><td>#${usuario.id}</td></tr>
+                            <tr><th>Nombre:</th><td>${usuario.nombre}</td></tr>
+                            <tr><th>Email:</th><td>
+                                <a href="mailto:${usuario.email}">${usuario.email}</a>
+                            </td></tr>
+                            <tr><th>Teléfono:</th><td>
+                                ${usuario.telefono ? 
+                                    `<a href="tel:${usuario.telefono}">${usuario.telefono}</a>` : 
+                                    'N/A'
+                                }
+                            </td></tr>
+                            <tr><th>Rol:</th><td>
+                                <span class="badge bg-${badgeClass}">
+                                    <i class="fas ${roleIcon}"></i> ${usuario.rol}
+                                </span>
+                            </td></tr>
+                            <tr><th>Dirección:</th><td>${usuario.direccion || 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-chart-bar"></i> Estadísticas</h6>
+                        <table class="table table-sm">
+                            <tr><th>Total Pedidos:</th><td><strong>${pedidosCount}</strong></td></tr>
+                            <tr><th>Total Gastado:</th><td><strong>S/. ${totalGastado.toFixed(2)}</strong></td></tr>
+                            <tr><th>Promedio por Pedido:</th><td>
+                                ${pedidosCount > 0 ? 
+                                    `S/. ${(totalGastado / pedidosCount).toFixed(2)}` : 
+                                    'N/A'
+                                }
+                            </td></tr>
+                        </table>
+                        
+                        ${pedidosCount > 0 ? 
+                            `<button class="btn btn-info btn-sm" onclick="verHistorialPedidos(${usuario.id})">
+                                <i class="fas fa-history"></i> Ver Historial de Pedidos
+                            </button>` : ''
+                        }
+                    </div>
+                </div>
+            `;
+            
+            modal.show();
+        }
+
+        function verHistorialPedidos(usuarioId) {
+            const usuario = allUsuarios.find(u => u.id === usuarioId);
+            const pedidosUsuario = allPedidos.filter(p => p.clienteId === usuarioId);
+            
+            if (!usuario || pedidosUsuario.length === 0) {
+                App.showNotification('No hay pedidos para este usuario', 'info');
+                return;
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('historialPedidosModal'));
+            const content = document.getElementById('historialPedidosContent');
+            
+            let html = `
+                <div class="mb-3">
+                    <h6>Historial de Pedidos - ${usuario.nombre}</h6>
+                    <p class="text-muted">Total: ${pedidosUsuario.length} pedidos</p>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>N° Pedido</th>
+                                <th>Fecha</th>
+                                <th>Productos</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            pedidosUsuario.forEach(pedido => {
+                const badgeClass = {
+                    'PENDIENTE': 'warning',
+                    'EN_PROCESO': 'info',
+                    'ENTREGADO': 'success'
+                }[pedido.estado] || 'secondary';
+                
+                let productosHtml = '';
+                pedido.productos.forEach(producto => {
+                    productosHtml += `<li>${producto.nombre} (x${producto.cantidad})</li>`;
+                });
+                
+                html += `
+                    <tr>
+                        <td><strong>${pedido.numero}</strong></td>
+                        <td>${pedido.fecha}</td>
+                        <td>
+                            <ul class="list-unstyled mb-0 small">
+                                ${productosHtml}
+                            </ul>
+                        </td>
+                        <td><strong>S/. ${pedido.total.toFixed(2)}</strong></td>
+                        <td><span class="badge bg-${badgeClass}">${pedido.estado}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>ndex
+                    </table>
+                </div>
+            `;
+            
+            content.innerHTML = html;
+            modal.show();
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('rolFilter').value = '';
+            applyFilters();
+        }
+
+        function logout() {
+            if (confirm('¿Desea cerrar sesión?')) {
+                sessionStorage.removeItem('adminUser');
+                window.location.href = './index.html';
+            }
+        }
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

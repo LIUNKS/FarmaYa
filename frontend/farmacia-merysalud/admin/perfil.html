@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Farmacia Mery Salud</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        .sidebar {
+            background: #343a40;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .sidebar .nav-link {
+            color: #adb5bd;
+            padding: 10px 20px;
+            margin: 5px 0;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar .nav-link.active {
+            color: white;
+            background: #007bff;
+        }
+        
+        .top-navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            margin: 0 auto 20px;
+        }
+        
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 p-0 sidebar">
+                <div class="text-center text-white py-3">
+                    <i class="fas fa-clinic-medical fa-2x mb-2"></i>
+                    <h5>Farmacia Admin</h5>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="./dashboard.html">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a class="nav-link" href="./productos.html">
+                        <i class="fas fa-pills"></i> Productos
+                    </a>
+                    <a class="nav-link" href="./pedidos.html">
+                        <i class="fas fa-shopping-cart"></i> Pedidos
+                    </a>
+                    <a class="nav-link" href="./usuarios.html">
+                        <i class="fas fa-users"></i> Usuarios
+                    </a>
+                    <a class="nav-link active" href="./perfil.html">
+                        <i class="fas fa-user-cog"></i> Mi Perfil
+                    </a>
+                    <hr class="bg-secondary">
+                    <a class="nav-link" href="#" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 pt-4">
+                <!-- Top Bar -->
+                <div class="top-navbar">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="h3 mb-3 fw-bold">
+                            <i class="fas fa-user-cog text-primary"></i> Mi Perfil
+                        </h1>
+                        <div>
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-user"></i> <span id="adminName">Juan Administrador</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-4">
+                    <div class="row">
+                        <!-- Profile Info -->
+                        <div class="col-md-4">
+                            <div class="content-card text-center">
+                                <div class="profile-avatar">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                                <h4 id="profileName">Juan Administrador</h4>
+                                <p class="text-muted" id="profileRole">Administrador del Sistema</p>
+                                <p class="text-muted" id="profileEmail">admin@farmacia.com</p>
+                                
+                                <hr>
+                                
+                                <div class="row text-center">
+                                    <div class="col">
+                                        <h5 class="text-primary" id="totalProductosAdmin">12</h5>
+                                        <small>Productos</small>
+                                    </div>
+                                    <div class="col">
+                                        <h5 class="text-success" id="totalPedidosAdmin">8</h5>
+                                        <small>Pedidos</small>
+                                    </div>
+                                    <div class="col">
+                                        <h5 class="text-info" id="totalUsuariosAdmin">3</h5>
+                                        <small>Usuarios</small>
+                                    </div>
+                                </div>
+                                
+                                <hr>
+                                
+                                <!-- Activity Summary -->
+                                <div class="text-start">
+                                    <h6 class="fw-bold mb-3">Actividad Reciente</h6>
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock text-primary"></i>
+                                            Último login: Hoy 09:30
+                                        </small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-edit text-success"></i>
+                                            Productos actualizados: 3
+                                        </small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-check text-warning"></i>
+                                            Pedidos procesados: 5
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profile Settings -->
+                        <div class="col-md-8">
+                            <div class="content-card">
+                                <h5 class="mb-4">
+                                    <i class="fas fa-cog"></i> Configuración de Cuenta
+                                </h5>
+                                
+                                <!-- Change Password Form -->
+                                <form id="changePasswordForm">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">
+                                                    <i class="fas fa-lock"></i> Contraseña Actual
+                                                </label>
+                                                <input type="password" class="form-control" id="currentPassword" required>
+                                                <div class="form-text">Ingrese su contraseña actual</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">
+                                                    <i class="fas fa-key"></i> Nueva Contraseña
+                                                </label>
+                                                <input type="password" class="form-control" id="newPassword" required minlength="6">
+                                                <div class="form-text">Mínimo 6 caracteres</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">
+                                                    <i class="fas fa-check-circle"></i> Confirmar Nueva Contraseña
+                                                </label>
+                                                <input type="password" class="form-control" id="confirmPassword" required minlength="6">
+                                                <div class="form-text">Repita la nueva contraseña</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 d-flex align-items-end">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="fas fa-save"></i> Cambiar Contraseña
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                                
+                                <hr class="my-4">
+                                
+                                <!-- Personal Information Form -->
+                                <h5 class="mb-3">
+                                    <i class="fas fa-user"></i> Información Personal
+                                </h5>
+                                
+                                <form id="personalInfoForm">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Nombre Completo</label>
+                                                <input type="text" class="form-control" id="fullName" value="Juan Administrador">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Email</label>
+                                                <input type="email" class="form-control" id="email" value="admin@farmacia.com" readonly>
+                                                <div class="form-text">El email no se puede modificar</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Teléfono</label>
+                                                <input type="tel" class="form-control" id="phone" value="999777666">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Cargo</label>
+                                                <input type="text" class="form-control" value="Administrador General" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-save"></i> Actualizar Información
+                                    </button>
+                                </form>
+                                
+                                <hr class="my-4">
+                                
+                                <!-- Account Info -->
+                                <h5 class="mb-3">
+                                    <i class="fas fa-info-circle"></i> Información de la Cuenta
+                                </h5>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <th>ID de Usuario:</th>
+                                                <td id="adminId">#2</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Rol:</th>
+                                                <td><span class="badge bg-success">ADMIN</span></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Estado:</th>
+                                                <td><span class="badge bg-success">Activo</span></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Permisos:</th>
+                                                <td><span class="badge bg-primary">Completos</span></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <th>Último Login:</th>
+                                                <td id="lastLogin">Hoy 09:30</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Fecha de Creación:</th>
+                                                <td>01/01/2024</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Sesiones Activas:</th>
+                                                <td>1</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Intentos de Login:</th>
+                                                <td class="text-success">Exitosos</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <hr class="my-4">
+                                
+                                <!-- System Actions -->
+                                <h5 class="mb-3">
+                                    <i class="fas fa-tools"></i> Acciones del Sistema
+                                </h5>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="d-grid gap-2">
+                                            <a href="../index.html" class="btn btn-outline-info">
+                                                <i class="fas fa-globe"></i> Ver Sitio Público
+                                            </a>
+                                            <button class="btn btn-outline-warning" onclick="exportData()">
+                                                <i class="fas fa-download"></i> Exportar Datos
+                                            </button>
+                                            <button class="btn btn-outline-secondary" onclick="generateReport()">
+                                                <i class="fas fa-chart-bar"></i> Generar Reporte
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-outline-secondary" onclick="clearLogs()">
+                                                <i class="fas fa-trash"></i> Limpiar Logs
+                                            </button>
+                                            <button class="btn btn-outline-info" onclick="backupData()">
+                                                <i class="fas fa-database"></i> Backup Sistema
+                                            </button>
+                                            <button class="btn btn-outline-danger" onclick="logout()">
+                                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- <script src="../assets/js/data.js"></script> -->
+    <!-- <script src="../assets/js/app.js"></script> -->
+
+    <script>
+        // Datos por defecto para demostración
+        const defaultAdminData = {
+            id: 2,
+            nombre: "Juan Administrador",
+            email: "admin@farmacia.com",
+            telefono: "999777666",
+            rol: "ADMIN",
+            totalProductos: 12,
+            totalPedidos: 8,
+            totalUsuarios: 3,
+            ultimoLogin: "Hoy 09:30",
+            fechaCreacion: "01/01/2024"
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAdminAuth();
+            loadProfileData();
+            setupFormValidation();
+        });
+
+        function checkAdminAuth() {
+            let adminUser = JSON.parse(sessionStorage.getItem('adminUser') || 'null');
+            
+            // Si no hay usuario en sesión, usar datos por defecto para demostración
+            if (!adminUser) {
+                adminUser = defaultAdminData;
+                console.log('Usando datos por defecto para demostración del perfil');
+            }
+            
+            // Cargar información del usuario
+            document.getElementById('adminName').textContent = adminUser.nombre;
+            document.getElementById('profileName').textContent = adminUser.nombre;
+            document.getElementById('profileEmail').textContent = adminUser.email;
+            document.getElementById('adminId').textContent = `#${adminUser.id}`;
+            document.getElementById('fullName').value = adminUser.nombre;
+            document.getElementById('email').value = adminUser.email;
+            document.getElementById('phone').value = adminUser.telefono || "999777666";
+        }
+
+        function loadProfileData() {
+            // Cargar estadísticas del admin (datos por defecto o reales)
+            let stats = defaultAdminData;
+            
+            // Si dataStore está disponible, intentar usar datos reales
+            if (typeof dataStore !== 'undefined') {
+                try {
+                    const data = dataStore.getData();
+                    stats = {
+                        totalProductos: data.productos.length,
+                        totalPedidos: data.pedidos.length,
+                        totalUsuarios: data.usuarios.filter(u => u.rol === 'CLIENTE').length
+                    };
+                } catch (error) {
+                    console.log('Usando estadísticas por defecto');
+                }
+            }
+            
+            document.getElementById('totalProductosAdmin').textContent = stats.totalProductos;
+            document.getElementById('totalPedidosAdmin').textContent = stats.totalPedidos;
+            document.getElementById('totalUsuariosAdmin').textContent = stats.totalUsuarios;
+            
+            // Simular último login
+            document.getElementById('lastLogin').textContent = new Date().toLocaleDateString('es-PE') + ' 09:30';
+        }
+
+        function setupFormValidation() {
+            // Formulario de cambio de contraseña
+            const passwordForm = document.getElementById('changePasswordForm');
+            passwordForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                changePassword();
+            });
+            
+            // Formulario de información personal
+            const personalForm = document.getElementById('personalInfoForm');
+            personalForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                updatePersonalInfo();
+            });
+            
+            // Validar que las contraseñas coincidan
+            document.getElementById('confirmPassword').addEventListener('input', function() {
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = this.value;
+                
+                if (newPassword !== confirmPassword) {
+                    this.setCustomValidity('Las contraseñas no coinciden');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+        }
+
+        function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Validar contraseña actual (usando la por defecto)
+            if (currentPassword !== 'admin123') {
+                showAlert('La contraseña actual es incorrecta', 'danger');
+                return;
+            }
+            
+            // Validar que las nuevas contraseñas coincidan
+            if (newPassword !== confirmPassword) {
+                showAlert('Las contraseñas nuevas no coinciden', 'danger');
+                return;
+            }
+            
+            // Validar longitud
+            if (newPassword.length < 6) {
+                showAlert('La nueva contraseña debe tener al menos 6 caracteres', 'danger');
+                return;
+            }
+            
+            // Simular cambio de contraseña exitoso
+            showAlert('Contraseña actualizada exitosamente', 'success');
+            
+            // Limpiar formulario
+            document.getElementById('changePasswordForm').reset();
+        }
+
+        function updatePersonalInfo() {
+            const fullName = document.getElementById('fullName').value;
+            const phone = document.getElementById('phone').value;
+            
+            if (!fullName.trim()) {
+                showAlert('El nombre es requerido', 'warning');
+                return;
+            }
+            
+            // Simular actualización exitosa
+            showAlert('Información personal actualizada exitosamente', 'success');
+            
+            // Actualizar nombre en la UI
+            document.getElementById('adminName').textContent = fullName;
+            document.getElementById('profileName').textContent = fullName;
+        }
+
+        function exportData() {
+            // Datos de ejemplo para exportar
+            const exportData = {
+                perfil: defaultAdminData,
+                timestamp: new Date().toISOString(),
+                productos: 12,
+                pedidos: 8,
+                usuarios: 3
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `farmacia_backup_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            showAlert('Datos exportados exitosamente', 'success');
+        }
+
+        function generateReport() {
+            showAlert('Generando reporte del sistema...', 'info');
+            
+            // Simular generación de reporte
+            setTimeout(() => {
+                showAlert('Reporte generado exitosamente', 'success');
+            }, 2000);
+        }
+
+        function backupData() {
+            if (confirm('¿Desea crear un backup completo del sistema?')) {
+                showAlert('Iniciando backup del sistema...', 'info');
+                
+                setTimeout(() => {
+                    showAlert('Backup creado exitosamente', 'success');
+                }, 3000);
+            }
+        }
+
+        function clearLogs() {
+            if (confirm('¿Está seguro de limpiar todos los logs del sistema?')) {
+                showAlert('Logs del sistema limpiados', 'info');
+            }
+        }
+
+        function showAlert(message, type) {
+            // Crear alerta temporal
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // Auto-remover después de 3 segundos
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        function logout() {
+            if (confirm('¿Desea cerrar sesión?')) {
+                sessionStorage.removeItem('adminUser');
+                window.location.href = './index.html';
+            }
+        }
+    </script>
+</body>
+</html>
