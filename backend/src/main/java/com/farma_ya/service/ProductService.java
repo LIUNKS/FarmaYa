@@ -4,17 +4,21 @@ package com.farma_ya.service;
 import com.farma_ya.model.Product;
 import com.farma_ya.repository.ProductRepository;
 import com.farma_ya.exception.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-public class ProductService {
+public class ProductService implements IProductService {
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final ProductValidator productValidator;
+
+    public ProductService(ProductRepository productRepository, ProductValidator productValidator) {
+        this.productRepository = productRepository;
+        this.productValidator = productValidator;
+    }
 
     public List<Product> getAllProducts() {
         return productRepository.findAll();
@@ -26,21 +30,25 @@ public class ProductService {
     }
 
     public Product createProduct(Product product) {
-        if (product.getPrice().compareTo(BigDecimal.ZERO) <= 0 || product.getStock() < 0) {
-            throw new IllegalArgumentException("Precio y stock deben ser valores válidos");
-        }
+        productValidator.validateProduct(product);
         return productRepository.save(product);
     }
 
     public Product updateProduct(Long id, Product productDetails) {
-        Product product = getProductById(id);
-        product.setName(productDetails.getName());
-        product.setDescription(productDetails.getDescription());
-        product.setPrice(productDetails.getPrice());
-        product.setStock(productDetails.getStock());
-        product.setImageUrl(productDetails.getImageUrl());
-        product.setCategoria(productDetails.getCategoria());
-        return productRepository.save(product);
+        Product existingProduct = getProductById(id);
+
+        // Actualizar campos
+        existingProduct.setName(productDetails.getName());
+        existingProduct.setDescription(productDetails.getDescription());
+        existingProduct.setPrice(productDetails.getPrice());
+        existingProduct.setStock(productDetails.getStock());
+        existingProduct.setImageUrl(productDetails.getImageUrl());
+        existingProduct.setCategoria(productDetails.getCategoria());
+
+        // Validar producto actualizado
+        productValidator.validateForUpdate(getProductById(id), existingProduct);
+
+        return productRepository.save(existingProduct);
     }
 
     public void deleteProduct(Long id) {
