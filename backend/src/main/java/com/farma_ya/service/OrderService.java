@@ -1,18 +1,14 @@
 
 package com.farma_ya.service;
 
-import com.farma_ya.model.Product;
 import com.farma_ya.model.OrderStatus;
-
 import com.farma_ya.model.Cart;
 import com.farma_ya.model.CartItem;
 import com.farma_ya.model.Order;
 import com.farma_ya.model.OrderItem;
 import com.farma_ya.model.User;
 import com.farma_ya.repository.OrderRepository;
-import com.farma_ya.repository.ProductRepository;
 import com.farma_ya.exception.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,16 +17,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class OrderService {
+public class OrderService implements IOrderService {
 
-    @Autowired
-    private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
-    @Autowired
-    private CartService cartService;
+    private final ICartService cartService;
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final InventoryService inventoryService;
+
+    public OrderService(OrderRepository orderRepository, ICartService cartService, InventoryService inventoryService) {
+        this.orderRepository = orderRepository;
+        this.cartService = cartService;
+        this.inventoryService = inventoryService;
+    }
 
     @Transactional
     public Order createOrderFromCart(User user) {
@@ -39,14 +38,9 @@ public class OrderService {
             throw new IllegalArgumentException("El carrito está vacío");
         }
 
-        // Verificar y actualizar stock
+        // Verificar y actualizar stock usando InventoryService
         for (CartItem item : cart.getItems()) {
-            Product product = item.getProduct();
-            if (product.getStock() < item.getQuantity()) {
-                throw new IllegalArgumentException("Stock insuficiente para " + product.getName());
-            }
-            product.setStock(product.getStock() - item.getQuantity());
-            productRepository.save(product);
+            inventoryService.checkAndDecrementStock(item.getProduct().getId(), item.getQuantity());
         }
 
         Order order = new Order();
