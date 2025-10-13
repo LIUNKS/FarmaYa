@@ -11,7 +11,7 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "producto_id")
-    private Integer id;
+    private Long id;
 
     @Column(name = "sku", unique = true)
     private String sku;
@@ -60,18 +60,10 @@ public class Product {
 
     // Getters y Setters
     public Long getId() {
-        return id != null ? id.longValue() : null;
-    }
-
-    public void setId(Long id) {
-        this.id = id != null ? id.intValue() : null;
-    }
-
-    public Integer getIdInt() {
         return id;
     }
 
-    public void setIdInt(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
