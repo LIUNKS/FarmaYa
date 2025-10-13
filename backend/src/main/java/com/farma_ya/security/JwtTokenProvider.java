@@ -35,7 +35,7 @@ public class JwtTokenProvider {
     private String jwtAudience;
 
     private SecretKey getSigningKey() {
-        // Decode Base64 encoded secret key for enhanced security
+        // Decodificar la clave secreta en Base64 para una mayor seguridad
         byte[] decodedKey = Base64.getDecoder().decode(jwtSecret);
         return Keys.hmacShaKeyFor(decodedKey);
     }
@@ -94,7 +94,7 @@ public class JwtTokenProvider {
 
             Claims claims = parser.parseSignedClaims(token).getPayload();
 
-            // Additional validation for token type
+            // Validaciones adicionales
             String tokenType = claims.get("type", String.class);
             if (!"access".equals(tokenType)) {
                 logger.error("Token type invalid: expected 'access', found '{}'", tokenType);
@@ -133,7 +133,7 @@ public class JwtTokenProvider {
 
             Claims claims = parser.parseSignedClaims(token).getPayload();
 
-            // Validate that this is a refresh token
+            // Validación adicional para tipo de token
             String tokenType = claims.get("type", String.class);
             return "refresh".equals(tokenType);
         } catch (JwtException | IllegalArgumentException ex) {
