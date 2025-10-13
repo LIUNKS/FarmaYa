@@ -2,7 +2,7 @@ package com.farma_ya.controller;
 
 import com.farma_ya.model.Cart;
 import com.farma_ya.model.User;
-import com.farma_ya.service.CartService;
+import com.farma_ya.service.ICartService;
 import com.farma_ya.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,11 +24,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/cart")
 public class CartController {
 
-    @Autowired
-    private CartService cartService;
+    private final ICartService cartService;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public CartController(ICartService cartService, UserService userService) {
+        this.cartService = cartService;
+        this.userService = userService;
+    }
 
     @Operation(summary = "Obtener carrito del usuario", description = "Obtiene el carrito actual del usuario autenticado")
     @ApiResponses(value = {
