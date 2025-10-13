@@ -2,7 +2,7 @@ package com.farma_ya.controller;
 
 import com.farma_ya.model.Order;
 import com.farma_ya.model.User;
-import com.farma_ya.service.OrderService;
+import com.farma_ya.service.IOrderService;
 import com.farma_ya.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,11 +26,14 @@ import java.util.List;
 @RequestMapping("/api/orders")
 public class OrderController {
 
-    @Autowired
-    private OrderService orderService;
+    private final IOrderService orderService;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public OrderController(IOrderService orderService, UserService userService) {
+        this.orderService = orderService;
+        this.userService = userService;
+    }
 
     @Operation(summary = "Crear pedido", description = "Crea un nuevo pedido a partir del carrito actual del usuario")
     @ApiResponses(value = {
