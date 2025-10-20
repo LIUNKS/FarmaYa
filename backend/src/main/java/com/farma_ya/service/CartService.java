@@ -7,19 +7,21 @@ import com.farma_ya.model.User;
 import com.farma_ya.repository.CartRepository;
 import com.farma_ya.repository.ProductRepository;
 import com.farma_ya.exception.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
-public class CartService {
+public class CartService implements ICartService {
 
-    @Autowired
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+
+    public CartService(CartRepository cartRepository, ProductRepository productRepository) {
+        this.cartRepository = cartRepository;
+        this.productRepository = productRepository;
+    }
 
     public Cart getCartByUser(User user) {
         return cartRepository.findByUser(user)

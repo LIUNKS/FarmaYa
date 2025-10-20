@@ -1,0 +1,25 @@
+#!/bin/bash
+# Maven Wrapper Script for Windows
+
+# This script allows you to run Maven without having Maven installed locally
+# Download Maven 3.9.9 if it doesn't exist
+
+MAVEN_VERSION="3.9.9"
+MAVEN_HOME="$HOME/.m2/wrapper/maven-$MAVEN_VERSION"
+MAVEN_BIN="$MAVEN_HOME/bin/mvn"
+
+if [ ! -f "$MAVEN_BIN" ]; then
+    echo "Downloading Maven $MAVEN_VERSION..."
+    mkdir -p "$MAVEN_HOME"
+    curl -o "$HOME/.m2/wrapper/maven-$MAVEN_VERSION.zip" \
+         "https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.zip"
+    cd "$HOME/.m2/wrapper"
+    unzip -q "maven-$MAVEN_VERSION.zip"
+    mv "apache-maven-$MAVEN_VERSION"/* "$MAVEN_HOME/"
+    chmod +x "$MAVEN_BIN"
+    rm "maven-$MAVEN_VERSION.zip"
+    rm -rf "apache-maven-$MAVEN_VERSION"
+fi
+
+# Run Maven with all arguments
+"$MAVEN_BIN" "$@"

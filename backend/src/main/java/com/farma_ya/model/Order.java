@@ -2,17 +2,18 @@ package com.farma_ya.model;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "Pedido")
 public class Order {
     public Order() {
     }
 
-    public Order(Long id, User user, java.util.List<OrderItem> items, Double totalAmount, OrderStatus status,
+    public Order(Long id, User user, java.util.List<OrderItem> items, BigDecimal totalAmount, OrderStatus status,
             java.time.LocalDateTime createdAt) {
         this.id = id;
         this.user = user;
@@ -24,26 +25,36 @@ public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "pedido_id")
     private Long id;
 
+    @Column(name = "numero_pedido", unique = true)
+    private String numeroPedido;
+
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "usuario_id")
     private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
-    @Column(nullable = false)
-    private Double totalAmount;
-
     @Enumerated(EnumType.STRING)
+    @Column(name = "estado")
     private OrderStatus status = OrderStatus.PENDING;
 
-    @Column(nullable = false)
+    @Column(name = "subtotal", precision = 10, scale = 2)
+    private BigDecimal subtotal = BigDecimal.ZERO;
+
+    @Column(name = "total", precision = 10, scale = 2)
+    private BigDecimal totalAmount = BigDecimal.ZERO;
+
+    @Column(name = "creado_en")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public double getTotalAmount() {
-        return items.stream().mapToDouble(item -> item.getPrice() * item.getQuantity()).sum();
+        return items.stream()
+                .mapToDouble(item -> item.getPrice().doubleValue() * item.getQuantity())
+                .sum();
     }
 
     public Long getId() {
@@ -70,12 +81,28 @@ public class Order {
         this.items = items;
     }
 
-    public Double getTotalAmountValue() {
+    public BigDecimal getTotalAmountValue() {
         return totalAmount;
     }
 
-    public void setTotalAmount(Double totalAmount) {
+    public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public String getNumeroPedido() {
+        return numeroPedido;
+    }
+
+    public void setNumeroPedido(String numeroPedido) {
+        this.numeroPedido = numeroPedido;
+    }
+
+    public BigDecimal getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal;
     }
 
     public OrderStatus getStatus() {

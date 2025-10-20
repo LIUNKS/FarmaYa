@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "carts")
+@Table(name = "Carrito")
 public class Cart {
     public Cart() {
     }
@@ -21,20 +21,26 @@ public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "carrito_id")
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "usuario_id")
     private User user;
+
+    @Column(name = "session_token")
+    private String sessionToken;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
-    @Column(nullable = false)
+    @Column(name = "creado_en")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public double getTotalAmount() {
-        return items.stream().mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity()).sum();
+        return items.stream()
+                .mapToDouble(item -> item.getProduct().getPrice().doubleValue() * item.getQuantity())
+                .sum();
     }
 
     public Long getId() {
@@ -67,5 +73,13 @@ public class Cart {
 
     public void setCreatedAt(java.time.LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getSessionToken() {
+        return sessionToken;
+    }
+
+    public void setSessionToken(String sessionToken) {
+        this.sessionToken = sessionToken;
     }
 }

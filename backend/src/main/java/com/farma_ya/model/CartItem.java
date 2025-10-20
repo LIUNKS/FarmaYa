@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "cart_items")
+@Table(name = "ItemCarrito")
 public class CartItem {
     public CartItem() {
     }
@@ -20,20 +20,21 @@ public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "item_carrito_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_id")
+    @JoinColumn(name = "carrito_id")
     private Cart cart;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
+    @JoinColumn(name = "producto_id")
     private Product product;
 
-    @Column(nullable = false)
+    @Column(name = "cantidad", nullable = false)
     private int quantity;
 
-    @Column(nullable = false)
+    @Column(name = "creado_en")
     private LocalDateTime addedAt = LocalDateTime.now();
 
     public Long getId() {
