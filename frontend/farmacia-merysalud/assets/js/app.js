@@ -48,8 +48,8 @@ const App = {
     },
 
     // Actualizar badge del carrito
-    updateCartBadge() {
-        const carrito = dataStore.getCarrito();
+    async updateCartBadge() {
+        const carrito = await dataStore.getCarrito();
         const badges = document.querySelectorAll('.cart-badge');
         const cantidad = carrito.reduce((total, item) => total + item.cantidad, 0);
         
@@ -174,11 +174,11 @@ const App = {
     },
 
     // Agregar al carrito (función global)
-    addToCart(productoId, cantidad = 1) {
-        const success = dataStore.addToCarrito(productoId, cantidad);
+    async addToCart(productoId, cantidad = 1) {
+        const success = await dataStore.addToCarrito(productoId, cantidad);
         
         if (success) {
-            this.updateCartBadge();
+            await this.updateCartBadge();
             this.showNotification('Producto agregado al carrito', 'success');
             
             // Animar el botón del carrito
