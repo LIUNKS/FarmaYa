@@ -57,11 +57,14 @@ public class User implements UserDetails {
     }
 
     public Role getRole() {
-        return role;
+        // Determinar el rol basado en rolId: 1 = ADMIN, 2 = CLIENTE/USER
+        return (rolId != null && rolId == 1) ? Role.ADMIN : Role.USER;
     }
 
     public void setRole(Role role) {
         this.role = role;
+        // Actualizar rolId basado en el role
+        this.rolId = (role == Role.ADMIN) ? 1 : 2;
     }
 
     public Integer getRolId() {
@@ -111,12 +114,14 @@ public class User implements UserDetails {
     @Column(name = "creado_en")
     private LocalDateTime creadoEn = LocalDateTime.now();
 
-    @Enumerated(EnumType.STRING)
+    @Transient
     private Role role = Role.USER;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        // Determinar el rol basado en rolId
+        Role currentRole = (rolId != null && rolId == 1) ? Role.ADMIN : Role.USER;
+        return List.of(new SimpleGrantedAuthority("ROLE_" + currentRole.name()));
     }
 
     @Override
