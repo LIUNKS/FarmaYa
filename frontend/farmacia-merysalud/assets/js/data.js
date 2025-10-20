@@ -1,384 +1,267 @@
-// data.js - Datos simulados para el sistema de la farmacia
-// Este archivo simula la base de datos usando localStorage
+// data.js - Gestión de datos con integración al backend
+// Este archivo maneja los datos locales (carrito) y se comunica con el backend vía API
 
-const INITIAL_DATA = {
-    // Usuarios del sistema
-    usuarios: [
-        {
-            id: 1,
-            email: "maria@gmail.com",
-            password: "123456",
-            rol: "CLIENTE",
-            nombre: "María García",
-            telefono: "999888777",
-            direccion: "Av. Brasil 123, Breña"
-        },
-        {
-            id: 2,
-            email: "admin@farmacia.com",
-            password: "admin123",
-            rol: "ADMIN",
-            nombre: "Juan Administrador",
-            telefono: "999777666"
-        },
-        {
-            id: 3,
-            email: "delivery@farmacia.com",
-            password: "delivery123",
-            rol: "REPARTIDOR",
-            nombre: "Pedro Repartidor",
-            telefono: "999666555"
-        }
-    ],
-
-    // Catálogo de productos
-    productos: [
-        {
-            id: 1,
-            nombre: "Paracetamol 500mg",
-            precio: 5.50,
-            stock: 100,
-            categoria: "Analgésicos",
-            imagen: "paracetamol.jpg",
-            descripcion: "Caja x 10 tabletas"
-        },
-        {
-            id: 2,
-            nombre: "Ibuprofeno 400mg",
-            precio: 8.00,
-            stock: 75,
-            categoria: "Analgésicos",
-            imagen: "ibuprofeno.jpg",
-            descripcion: "Caja x 10 cápsulas"
-        },
-        {
-            id: 3,
-            nombre: "Vitamina C 1000mg",
-            precio: 12.00,
-            stock: 50,
-            categoria: "Vitaminas",
-            imagen: "vitaminac.jpg",
-            descripcion: "Frasco x 30 tabletas"
-        },
-        {
-            id: 4,
-            nombre: "Complejo B",
-            precio: 15.00,
-            stock: 40,
-            categoria: "Vitaminas",
-            imagen: "complejob.jpg",
-            descripcion: "Frasco x 30 cápsulas"
-        },
-        {
-            id: 5,
-            nombre: "Alcohol 70°",
-            precio: 6.00,
-            stock: 200,
-            categoria: "Primeros Auxilios",
-            imagen: "alcohol.jpg",
-            descripcion: "Frasco x 250ml"
-        },
-        {
-            id: 6,
-            nombre: "Gasas estériles",
-            precio: 3.50,
-            stock: 150,
-            categoria: "Primeros Auxilios",
-            imagen: "gasas.jpg",
-            descripcion: "Paquete x 10 unidades"
-        },
-        {
-            id: 7,
-            nombre: "Mascarillas KN95",
-            precio: 2.00,
-            stock: 500,
-            categoria: "Protección",
-            imagen: "mascarilla.jpg",
-            descripcion: "Unidad"
-        },
-        {
-            id: 8,
-            nombre: "Termómetro Digital",
-            precio: 25.00,
-            stock: 20,
-            categoria: "Equipos",
-            imagen: "termometro.jpg",
-            descripcion: "Unidad"
-        },
-        {
-            id: 9,
-            nombre: "Jarabe para la tos",
-            precio: 18.00,
-            stock: 30,
-            categoria: "Medicamentos",
-            imagen: "jarabe.jpg",
-            descripcion: "Frasco x 120ml"
-        },
-        {
-            id: 10,
-            nombre: "Crema antibiótica",
-            precio: 22.00,
-            stock: 25,
-            categoria: "Medicamentos",
-            imagen: "crema.jpg",
-            descripcion: "Tubo x 15g"
-        },
-        {
-            id: 11,
-            nombre: "Pañales para adulto",
-            precio: 35.00,
-            stock: 15,
-            categoria: "Cuidado Personal",
-            imagen: "panales.jpg",
-            descripcion: "Paquete x 10 unidades"
-        },
-        {
-            id: 12,
-            nombre: "Glucómetro",
-            precio: 85.00,
-            stock: 10,
-            categoria: "Equipos",
-            imagen: "glucometro.jpg",
-            descripcion: "Kit completo"
-        }
-    ],
-
-    // Categorías disponibles
-    categorias: [
-        "Todos",
-        "Analgésicos",
-        "Vitaminas",
-        "Primeros Auxilios",
-        "Protección",
-        "Equipos",
-        "Medicamentos",
-        "Cuidado Personal"
-    ],
-
-    // Pedidos (simulados)
-    pedidos: [
-        {
-            id: 1,
-            numero: "ORD-001",
-            clienteId: 1,
-            clienteNombre: "María García",
-            telefono: "999888777",
-            direccion: "Av. Brasil 123, Breña",
-            productos: [
-                {id: 1, nombre: "Paracetamol 500mg", cantidad: 2, precio: 5.50, subtotal: 11.00},
-                {id: 3, nombre: "Vitamina C 1000mg", cantidad: 1, precio: 12.00, subtotal: 12.00}
-            ],
-            total: 23.00,
-            estado: "PENDIENTE",
-            fecha: "2024-12-20 10:30",
-            repartidorId: 3
-        },
-        {
-            id: 2,
-            numero: "ORD-002",
-            clienteId: 1,
-            clienteNombre: "María García",
-            telefono: "999888777",
-            direccion: "Av. Brasil 123, Breña",
-            productos: [
-                {id: 5, nombre: "Alcohol 70°", cantidad: 1, precio: 6.00, subtotal: 6.00}
-            ],
-            total: 6.00,
-            estado: "ENTREGADO",
-            fecha: "2024-12-19 15:45",
-            repartidorId: 3
-        }
-    ],
-
-    // Carrito actual (vacío al inicio)
-    carrito: [],
-
-    // Usuario logueado actual (null al inicio)
-    usuarioActual: null
-};
-
-// Clase para manejar los datos
+// Clase para manejar los datos con integración al backend
 class DataStore {
     constructor() {
-        this.initializeData();
+        // Cache local solo para carrito (temporal mientras el usuario navega)
+        this.carritoLocal = this.getCarritoLocal();
     }
 
-    // Inicializar datos en localStorage si no existen
-    initializeData() {
-        if (!localStorage.getItem('farmacia_data')) {
-            localStorage.setItem('farmacia_data', JSON.stringify(INITIAL_DATA));
+    // ============ PRODUCTOS ============
+    
+    // Obtener productos desde el backend
+    async getProductos() {
+        try {
+            return await ProductAPI.getAllProducts();
+        } catch (error) {
+            console.error('Error al obtener productos:', error);
+            return [];
         }
     }
 
-    // Obtener todos los datos
-    getData() {
-        return JSON.parse(localStorage.getItem('farmacia_data')) || INITIAL_DATA;productImages
+    // Obtener producto por ID desde el backend
+    async getProductoById(id) {
+        try {
+            return await ProductAPI.getProductById(id);
+        } catch (error) {
+            console.error('Error al obtener producto:', error);
+            return null;
+        }
     }
 
-    // Guardar datos
-    saveData(data) {
-        localStorage.setItem('farmacia_data', JSON.stringify(data));
+    // Buscar productos
+    async searchProductos(keyword) {
+        try {
+            return await ProductAPI.searchProducts(keyword);
+        } catch (error) {
+            console.error('Error al buscar productos:', error);
+            return [];
+        }
     }
 
-    // Obtener productos
-    getProductos() {
-        const data = this.getData();
-        return data.productos;
+    // Obtener productos por categoría
+    async getProductosByCategoria(categoria) {
+        try {
+            return await ProductAPI.getProductsByCategory(categoria);
+        } catch (error) {
+            console.error('Error al filtrar productos:', error);
+            return [];
+        }
     }
 
-    // Obtener producto por ID
-    getProductoById(id) {
-        const productos = this.getProductos();
-        return productos.find(p => p.id === parseInt(id));
+    // ============ CATEGORÍAS ============
+    
+    // Obtener categorías únicas desde los productos
+    async getCategorias() {
+        try {
+            const productos = await this.getProductos();
+            const categoriasSet = new Set(productos.map(p => p.categoria).filter(c => c));
+            return ['Todos', ...Array.from(categoriasSet).sort()];
+        } catch (error) {
+            console.error('Error al obtener categorías:', error);
+            return ['Todos'];
+        }
     }
 
-    // Obtener categorías
-    getCategorias() {
-        const data = this.getData();
-        return data.categorias;
+    // ============ CARRITO (LOCAL) ============
+    
+    // Obtener carrito local (para usuarios no autenticados)
+    getCarritoLocal() {
+        const carrito = localStorage.getItem('carrito_local');
+        return carrito ? JSON.parse(carrito) : [];
     }
 
-    // Obtener carrito
-    getCarrito() {
-        const data = this.getData();
-        return data.carrito || [];
+    // Guardar carrito local
+    saveCarritoLocal(carrito) {
+        localStorage.setItem('carrito_local', JSON.stringify(carrito));
+        this.carritoLocal = carrito;
+    }
+
+    // Obtener carrito (desde backend si está autenticado, local si no)
+    async getCarrito() {
+        const usuario = this.getCurrentUser();
+        
+        if (usuario) {
+            // Usuario autenticado: obtener carrito del backend
+            try {
+                const carritoBackend = await CartAPI.getCart();
+                // Convertir formato del backend al formato local
+                return carritoBackend.items?.map(item => ({
+                    id: item.product.id,
+                    nombre: item.product.nombre,
+                    precio: item.product.precio,
+                    cantidad: item.quantity,
+                    imagen: item.product.imagenUrl
+                })) || [];
+            } catch (error) {
+                console.error('Error al obtener carrito del backend:', error);
+                return this.carritoLocal;
+            }
+        } else {
+            // Usuario no autenticado: usar carrito local
+            return this.carritoLocal;
+        }
     }
 
     // Agregar al carrito
-    addToCarrito(productoId, cantidad = 1) {
-        const data = this.getData();
-        const producto = this.getProductoById(productoId);
+    async addToCarrito(productoId, cantidad = 1) {
+        const usuario = this.getCurrentUser();
         
-        if (!producto) return false;
-
-        const itemExistente = data.carrito.find(item => item.id === productoId);
-        
-        if (itemExistente) {
-            itemExistente.cantidad += cantidad;
+        if (usuario) {
+            // Usuario autenticado: agregar al carrito del backend
+            try {
+                await CartAPI.addToCart(productoId, cantidad);
+                return true;
+            } catch (error) {
+                console.error('Error al agregar al carrito:', error);
+                return false;
+            }
         } else {
-            data.carrito.push({
-                id: producto.id,
-                nombre: producto.nombre,
-                precio: producto.precio,
-                cantidad: cantidad,
-                imagen: producto.imagen
-            });
+            // Usuario no autenticado: agregar al carrito local
+            try {
+                const producto = await this.getProductoById(productoId);
+                if (!producto) return false;
+
+                const itemExistente = this.carritoLocal.find(item => item.id === productoId);
+                
+                if (itemExistente) {
+                    itemExistente.cantidad += cantidad;
+                } else {
+                    this.carritoLocal.push({
+                        id: producto.id,
+                        nombre: producto.nombre,
+                        precio: producto.precio,
+                        cantidad: cantidad,
+                        imagen: producto.imagenUrl
+                    });
+                }
+                
+                this.saveCarritoLocal(this.carritoLocal);
+                return true;
+            } catch (error) {
+                console.error('Error al agregar al carrito local:', error);
+                return false;
+            }
         }
-        
-        this.saveData(data);
-        return true;
     }
 
     // Actualizar cantidad en carrito
-    updateCarritoItem(productoId, cantidad) {
-        const data = this.getData();
-        const item = data.carrito.find(item => item.id === productoId);
+    async updateCarritoItem(productoId, cantidad) {
+        const usuario = this.getCurrentUser();
         
-        if (item) {
-            if (cantidad <= 0) {
-                data.carrito = data.carrito.filter(item => item.id !== productoId);
-            } else {
-                item.cantidad = cantidad;
+        if (usuario) {
+            // Usuario autenticado: actualizar en backend
+            try {
+                if (cantidad <= 0) {
+                    await CartAPI.removeFromCart(productoId);
+                } else {
+                    // Remover y volver a agregar con la nueva cantidad
+                    await CartAPI.removeFromCart(productoId);
+                    await CartAPI.addToCart(productoId, cantidad);
+                }
+            } catch (error) {
+                console.error('Error al actualizar carrito:', error);
             }
-            this.saveData(data);
+        } else {
+            // Usuario no autenticado: actualizar carrito local
+            const item = this.carritoLocal.find(item => item.id === productoId);
+            
+            if (item) {
+                if (cantidad <= 0) {
+                    this.carritoLocal = this.carritoLocal.filter(item => item.id !== productoId);
+                } else {
+                    item.cantidad = cantidad;
+                }
+                this.saveCarritoLocal(this.carritoLocal);
+            }
         }
     }
 
     // Limpiar carrito
-    clearCarrito() {
-        const data = this.getData();
-        data.carrito = [];
-        this.saveData(data);
-    }
-
-    // Login
-    login(email, password) {
-        const data = this.getData();
-        const usuario = data.usuarios.find(u => 
-            u.email === email && u.password === password
-        );
+    async clearCarrito() {
+        const usuario = this.getCurrentUser();
         
         if (usuario) {
-            data.usuarioActual = usuario;
-            this.saveData(data);
-            return usuario;
+            // Usuario autenticado: limpiar carrito del backend
+            try {
+                await CartAPI.clearCart();
+            } catch (error) {
+                console.error('Error al limpiar carrito:', error);
+            }
+        } else {
+            // Usuario no autenticado: limpiar carrito local
+            this.carritoLocal = [];
+            this.saveCarritoLocal(this.carritoLocal);
         }
-        return null;
+    }
+
+    // ============ USUARIO ============
+
+    // Obtener usuario actual (desde localStorage)
+    getCurrentUser() {
+        const usuario = localStorage.getItem('usuarioActual');
+        return usuario ? JSON.parse(usuario) : null;
     }
 
     // Logout
     logout() {
-        const data = this.getData();
-        data.usuarioActual = null;
-        this.saveData(data);
+        AuthAPI.logout();
+        this.carritoLocal = [];
+        this.saveCarritoLocal(this.carritoLocal);
     }
 
-    // Obtener usuario actual
-    getCurrentUser() {
-        const data = this.getData();
-        return data.usuarioActual;
-    }
+    // ============ PEDIDOS ============
 
     // Obtener pedidos del usuario actual
-    getMisPedidos() {
-        const data = this.getData();
-        const usuario = data.usuarioActual;
-        
-        if (!usuario || usuario.rol !== 'CLIENTE') return [];
-        
-        return data.pedidos.filter(p => p.clienteId === usuario.id);
+    async getMisPedidos() {
+        try {
+            return await OrderAPI.getUserOrders();
+        } catch (error) {
+            console.error('Error al obtener pedidos:', error);
+            return [];
+        }
     }
 
-    // Obtener todos los pedidos (admin/repartidor)
-    getAllPedidos() {
-        const data = this.getData();
-        return data.pedidos;
+    // Obtener todos los pedidos (admin)
+    async getAllPedidos() {
+        try {
+            // TODO: Implementar endpoint de admin para obtener todos los pedidos
+            return await OrderAPI.getUserOrders(); // Por ahora usa el mismo
+        } catch (error) {
+            console.error('Error al obtener todos los pedidos:', error);
+            return [];
+        }
     }
 
     // Crear nuevo pedido
-    createPedido(datosCliente) {
-        const data = this.getData();
-        const carrito = data.carrito;
-        
-        if (carrito.length === 0) return null;
-
-        const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
-        
-        const nuevoPedido = {
-            id: data.pedidos.length + 1,
-            numero: `ORD-${String(data.pedidos.length + 1).padStart(3, '0')}`,
-            clienteId: data.usuarioActual?.id || null,
-            clienteNombre: datosCliente.nombre,
-            telefono: datosCliente.telefono,
-            direccion: datosCliente.direccion,
-            productos: carrito.map(item => ({
-                ...item,
-                subtotal: item.precio * item.cantidad
-            })),
-            total: total,
-            estado: "PENDIENTE",
-            fecha: new Date().toLocaleString('es-PE'),
-            repartidorId: 3 // Auto-asignar al único repartidor
-        };
-
-        data.pedidos.push(nuevoPedido);
-        data.carrito = []; // Limpiar carrito después de crear pedido
-        this.saveData(data);
-        
-        return nuevoPedido;
+    async createPedido(datosCliente) {
+        try {
+            const orderData = {
+                shippingAddress: {
+                    direccionLinea: datosCliente.direccion,
+                    distrito: datosCliente.distrito || '',
+                    ciudad: datosCliente.ciudad || 'Lima',
+                    referencia: datosCliente.referencia || ''
+                }
+            };
+            
+            return await OrderAPI.createOrder(orderData);
+        } catch (error) {
+            console.error('Error al crear pedido:', error);
+            return null;
+        }
     }
 
-    // Actualizar estado de pedido
-    updatePedidoEstado(pedidoId, nuevoEstado) {
-        const data = this.getData();
-        const pedido = data.pedidos.find(p => p.id === pedidoId);
-        
-        if (pedido) {
-            pedido.estado = nuevoEstado;
-            this.saveData(data);
+    // Actualizar estado de pedido (admin)
+    async updatePedidoEstado(pedidoId, nuevoEstado) {
+        try {
+            await OrderAPI.updateOrderStatus(pedidoId, nuevoEstado);
             return true;
+        } catch (error) {
+            console.error('Error al actualizar estado del pedido:', error);
+            return false;
         }
-        return false;
     }
 }
 
