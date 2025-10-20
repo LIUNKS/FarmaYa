@@ -1,0 +1,447 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmacia Mery Salud - Tu salud es nuestra prioridad</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    
+    <style>
+        /* Estilos específicos para home */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+        }
+        
+        .category-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            border-color: #28a745;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .category-icon {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+        }
+        
+        .product-img {
+            height: 200px;
+            object-fit: cover;
+            background: #f8f9fa;
+        }
+        
+        .badge-stock {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        
+        .hero-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="./index.html">
+                <i class="fas fa-clinic-medical text-success me-2 fs-4"></i>
+                <span class="fw-bold text-success">Farmacia Mery Salud</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active fw-semibold" href="./index.html">
+                            <i class="fas fa-home"></i> Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./productos.html">
+                            <i class="fas fa-pills"></i> Productos
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="carrito.html">
+                            <i class="fas fa-shopping-cart fs-5"></i>
+                            <span class="cart-badge badge bg-danger rounded-pill">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown user-menu" style="display: none;">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle fs-5"></i> <span class="user-name"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="mis-pedidos.html">
+                                <i class="fas fa-box"></i> Mis Pedidos
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item btn-logout" href="#">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item btn-login">
+                        <a class="btn btn-outline-success ms-2" href="login.html">
+                            <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <h1 class="display-4 fw-bold mb-4">Tu salud es nuestra prioridad</h1>
+                    <p class="lead mb-4">Encuentra medicamentos y productos de salud con delivery gratuito a domicilio en Breña y alrededores.</p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="productos.html" class="btn btn-light btn-lg">
+                            <i class="fas fa-shopping-bag"></i> Ver Productos
+                        </a>
+                        <a href="#como-funciona" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-info-circle"></i> Cómo Funciona
+                        </a>
+                    </div>
+                    <div class="mt-4">
+                        <span class="badge bg-white text-dark p-2">
+                            <i class="fas fa-truck text-success"></i> Delivery Gratis
+                        </span>
+                        <span class="badge bg-white text-dark p-2 ms-2">
+                            <i class="fas fa-clock text-primary"></i> Entrega en 2-3 horas
+                        </span>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <img src="https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&h=400&fit=crop" 
+                         alt="Farmacia moderna" class="hero-image">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container my-5">
+        <!-- Search Bar -->
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-sm">
+                    <div class="card-body p-3">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white border-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" id="searchInput" class="form-control border-0" 
+                                   placeholder="Buscar medicamentos, vitaminas, equipos médicos...">
+                            <button class="btn btn-success btn-lg px-4" type="button" onclick="searchProducts()">
+                                Buscar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories -->
+        <section class="mb-5">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">Categorías</h2>
+                <p class="text-muted">Encuentra lo que necesitas por categoría</p>
+            </div>
+            <div class="row g-3" id="categoriesContainer">
+                <!-- Se llenará dinámicamente con imágenes reales -->
+            </div>
+        </section>
+
+        <!-- Featured Products -->
+        <section class="mb-5">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">Productos Destacados</h2>
+                <p class="text-muted">Los más vendidos esta semana</p>
+            </div>
+            <div class="row g-4" id="featuredProducts">
+                <!-- Se llenará dinámicamente con imágenes reales -->
+            </div>
+        </section>
+
+        <!-- How it Works -->
+        <section id="como-funciona" class="py-5 bg-light rounded-3">
+            <h2 class="text-center mb-5 fw-bold">¿Cómo Funciona?</h2>
+            <div class="row g-4">
+                <div class="col-md-3 text-center">
+                    <div class="bg-success bg-opacity-10 rounded-circle p-4 d-inline-block mb-3">
+                        <i class="fas fa-search fa-3x text-success"></i>
+                    </div>
+                    <h5 class="fw-bold">1. Busca</h5>
+                    <p class="text-muted">Encuentra el medicamento o producto que necesitas</p>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-4 d-inline-block mb-3">
+                        <i class="fas fa-shopping-cart fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold">2. Agrega al Carrito</h5>
+                    <p class="text-muted">Selecciona la cantidad y agrégalo a tu carrito</p>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="bg-warning bg-opacity-10 rounded-circle p-4 d-inline-block mb-3">
+                        <i class="fas fa-user-edit fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="fw-bold">3. Completa tus Datos</h5>
+                    <p class="text-muted">Ingresa tu información de contacto y dirección</p>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="bg-info bg-opacity-10 rounded-circle p-4 d-inline-block mb-3">
+                        <i class="fas fa-motorcycle fa-3x text-info"></i>
+                    </div>
+                    <h5 class="fw-bold">4. Recibe en Casa</h5>
+                    <p class="text-muted">Nuestro repartidor te contactará para la entrega</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trust Badges -->
+        <section class="py-5">
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
+                    <h5>100% Seguro</h5>
+                    <p class="text-muted">Productos garantizados y originales</p>
+                </div>
+                <div class="col-md-4">
+                    <i class="fas fa-headset fa-3x text-primary mb-3"></i>
+                    <h5>Atención Personalizada</h5>
+                    <p class="text-muted">Te asesoramos en tu compra</p>
+                </div>
+                <div class="col-md-4">
+                    <i class="fas fa-undo fa-3x text-warning mb-3"></i>
+                    <h5>Garantía de Satisfacción</h5>
+                    <p class="text-muted">Si no estás satisfecho, te devolvemos tu dinero</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white pt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-clinic-medical"></i> Farmacia Mery Salud
+                    </h5>
+                    <p class="text-white-50">Tu farmacia de confianza en Breña. Cuidamos tu salud con productos de calidad y el mejor servicio.</p>
+                    <div class="mt-3">
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-whatsapp fa-lg"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Contacto</h5>
+                    <p class="text-white-50">
+                        <i class="fas fa-map-marker-alt me-2"></i> Av. Brasil 123, Breña, Lima<br>
+                        <i class="fas fa-phone me-2"></i> (01) 234-5678<br>
+                        <i class="fas fa-envelope me-2"></i> info@farmaciamerysalud.com<br>
+                        <i class="fab fa-whatsapp me-2"></i> +51 999 888 777
+                    </p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Horario de Atención</h5>
+                    <p class="text-white-50">
+                        <strong>Lunes a Viernes:</strong> 8:00 AM - 10:00 PM<br>
+                        <strong>Sábados:</strong> 9:00 AM - 9:00 PM<br>
+                        <strong>Domingos:</strong> 10:00 AM - 6:00 PM
+                    </p>
+                    <p class="text-success">
+                        <i class="fas fa-truck"></i> Delivery disponible todos los días
+                    </p>
+                </div>
+            </div>
+            <hr class="bg-white opacity-25">
+            <div class="text-center py-3">
+                <p class="mb-0 text-white-50">&copy; 2024 Farmacia Mery Salud. Desarrollado con ❤️ para el curso de Desarrollo Web</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./assets/js/data.js"></script>
+    <script src="./assets/js/app.js"></script>
+    
+    <!-- Page Specific Script -->
+    <script>
+        // URLs de imágenes reales de medicamentos
+        const productImages = {
+            'Paracetamol 500mg': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
+            'Ibuprofeno 400mg': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
+            'Vitamina C 1000mg': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
+            'Complejo B': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
+            'Alcohol 70°': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
+            'Gasas estériles': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
+            'Mascarillas KN95': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
+            'Termómetro Digital': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
+            'Jarabe para la tos': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
+            'Crema antibiótica': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
+            'Pañales para adulto': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
+            'Glucómetro': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg'
+        };
+
+        const categoryImages = {
+            'Analgésicos': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=150&fit=crop',
+            'Vitaminas': 'https://images.unsplash.com/photo-1577401239170-897942555fb3?w=200&h=150&fit=crop',
+            'Primeros Auxilios': 'https://images.unsplash.com/photo-1603398938378-e54eab446dde?w=200&h=150&fit=crop',
+            'Protección': 'https://mockupgratis.com/wp-content/uploads/2021/08/Mockup_Envase_Cosme%CC%81tica_mockupgratis.com_-scaled.jpg',
+            'Equipos': 'https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=200&h=150&fit=crop',
+            'Medicamentos': 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=200&h=150&fit=crop',
+            'Cuidado Personal': 'https://mockupgratis.com/wp-content/uploads/2021/08/Mockup_Envase_Cosme%CC%81tica_mockupgratis.com_-scaled.jpg'
+        };
+
+        // Inicializar página home
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategories();
+            loadFeaturedProducts();
+        });
+
+        // Cargar categorías con imágenes
+        function loadCategories() {
+            const categorias = dataStore.getCategorias();
+            const container = document.getElementById('categoriesContainer');
+            
+            const categoryColors = {
+                'Analgésicos': 'bg-danger bg-opacity-10 text-danger',
+                'Vitaminas': 'bg-success bg-opacity-10 text-success',
+                'Primeros Auxilios': 'bg-warning bg-opacity-10 text-warning',
+                'Protección': 'bg-info bg-opacity-10 text-info',
+                'Equipos': 'bg-primary bg-opacity-10 text-primary',
+                'Medicamentos': 'bg-secondary bg-opacity-10 text-secondary',
+                'Cuidado Personal': 'bg-purple bg-opacity-10 text-purple'
+            };
+            
+            const categoryIcons = {
+                'Analgésicos': 'fa-pills',
+                'Vitaminas': 'fa-capsules',
+                'Primeros Auxilios': 'fa-first-aid',
+                'Protección': 'fa-shield-virus',
+                'Equipos': 'fa-thermometer',
+                'Medicamentos': 'fa-prescription-bottle',
+                'Cuidado Personal': 'fa-spa'
+            };
+            
+            let html = '';
+            categorias.forEach(categoria => {
+                if (categoria !== 'Todos') {
+                    const color = categoryColors[categoria] || 'bg-light';
+                    const icon = categoryIcons[categoria] || 'fa-medkit';
+                    const image = categoryImages[categoria] || 'https://via.placeholder.com/200x150';
+                    
+                    html += `
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <a href="productos.html?categoria=${encodeURIComponent(categoria)}" 
+                               class="text-decoration-none">
+                                <div class="card category-card h-100">
+                                    <img src="${image}" class="card-img-top" alt="${categoria}" style="height: 120px; object-fit: cover;">
+                                    <div class="card-body text-center">
+                                        <div class="category-icon ${color}">
+                                            <i class="fas ${icon} fa-2x"></i>
+                                        </div>
+                                        <h6 class="card-title mb-0">${categoria}</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                }
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Cargar productos destacados con imágenes reales
+        function loadFeaturedProducts() {
+            const productos = dataStore.getProductos();
+            const container = document.getElementById('featuredProducts');
+            
+            // Tomar los primeros 8 productos
+            const featured = productos.slice(0, 8);
+            
+            let html = '';
+            featured.forEach(producto => {
+                const imagen = productImages[producto.nombre] || 'https://via.placeholder.com/300x200';
+                const stockBadge = producto.stock > 20 ? 'success' : producto.stock > 10 ? 'warning' : 'danger';
+                
+                html += `
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card product-card h-100 position-relative">
+                            <span class="badge bg-${stockBadge} badge-stock">
+                                ${producto.stock > 0 ? `Stock: ${producto.stock}` : 'Agotado'}
+                            </span>
+                            <img src="${imagen}" 
+                                 class="card-img-top product-img" 
+                                 alt="${producto.nombre}"
+                                 onerror="this.src='https://via.placeholder.com/300x200/f8f9fa/6c757d?text=Sin+Imagen'">
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="card-title">${producto.nombre}</h6>
+                                <p class="text-muted small mb-2">${producto.descripcion}</p>
+                                <p class="price mb-auto fw-bold text-success fs-5">${App.formatPrice(producto.precio)}</p>
+                                <button class="btn btn-success btn-sm w-100 mt-2" 
+                                        onclick="App.addToCart(${producto.id})"
+                                        ${producto.stock === 0 ? 'disabled' : ''}>
+                                    <i class="fas fa-cart-plus"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Función de búsqueda
+        function searchProducts() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (searchTerm) {
+                window.location.href = `productos.html?search=${encodeURIComponent(searchTerm)}`;
+            }
+        }
+
+        // Permitir búsqueda con Enter
+        document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchProducts();
+            }
+        });
+    </script>
+</body>
+</html>

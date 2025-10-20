@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Pedidos - Farmacia Mery Salud</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    
+    <style>
+        .order-card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .order-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .order-header {
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        
+        .status-pendiente {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
+        .status-proceso {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .status-entregado {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .status-cancelado {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .product-list {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .empty-orders {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        
+        .order-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -21px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dee2e6;
+        }
+        
+        .timeline-item.active::before {
+            background: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="./index.html">
+                <i class="fas fa-clinic-medical text-success me-2 fs-4"></i>
+                <span class="fw-bold text-success">Farmacia Mery Salud</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./index.html">
+                            <i class="fas fa-home"></i> Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./productos.html">
+                            <i class="fas fa-pills"></i> Productos
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="./carrito.html">
+                            <i class="fas fa-shopping-cart fs-5"></i>
+                            <span class="cart-badge badge bg-danger rounded-pill">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown user-menu">
+                        <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle fs-5"></i> <span class="user-name"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item active" href="./mis-pedidos.html">
+                                <i class="fas fa-box"></i> Mis Pedidos
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item btn-logout" href="#">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb -->
+    <div class="bg-light py-2">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="./index.html">Inicio</a></li>
+                    <li class="breadcrumb-item active">Mis Pedidos</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        <div class="row">
+            <div class="col-lg-3">
+                <!-- User Sidebar -->
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-circle fa-4x text-success mb-3"></i>
+                        <h5 id="userName">Usuario</h5>
+                        <p class="text-muted" id="userEmail">email@ejemplo.com</p>
+                        <hr>
+                        <div class="d-grid gap-2">
+                            <a href="./mis-pedidos.html" class="btn btn-success btn-sm">
+                                <i class="fas fa-box"></i> Mis Pedidos
+                            </a>
+                            <button class="btn btn-outline-danger btn-sm btn-logout">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Resumen</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total pedidos:</span>
+                            <strong id="totalOrders">0</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Pendientes:</span>
+                            <strong class="text-warning" id="pendingOrders">0</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Entregados:</span>
+                            <strong class="text-success" id="deliveredOrders">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <h3 class="mb-4">
+                    <i class="fas fa-box text-success"></i> Mis Pedidos
+                </h3>
+
+                <!-- Orders Container -->
+                <div id="ordersContainer">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-orders" id="emptyOrders" style="display: none;">
+                    <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                    <h4>No tienes pedidos aún</h4>
+                    <p class="text-muted">Cuando realices tu primera compra, aparecerá aquí</p>
+                    <a href="./productos.html" class="btn btn-success btn-lg">
+                        <i class="fas fa-shopping-bag"></i> Ir de Compras
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white pt-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <p>&copy; 2024 Farmacia Mery Salud</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Verificar autenticación
+        const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual'));
+        
+        if (!usuarioActual || usuarioActual.rol !== 'CLIENTE') {
+            alert('Debes iniciar sesión para ver tus pedidos');
+            // window.location.href = './login.html';
+        }
+
+        // Productos de referencia
+        const productos = [
+            {id: 1, nombre: "Paracetamol 500mg", precio: 5.50},
+            {id: 2, nombre: "Ibuprofeno 400mg", precio: 8.00},
+            {id: 3, nombre: "Vitamina C 1000mg", precio: 12.00}
+        ];
+
+        // Cargar información del usuario
+        document.getElementById('userName').textContent = usuarioActual.nombre;
+        document.getElementById('userEmail').textContent = usuarioActual.email;
+        document.querySelector('.user-name').textContent = usuarioActual.nombre;
+        document.querySelector('.user-menu').style.display = 'block';
+
+        // Cargar pedidos
+        let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+        
+        // Agregar pedidos de ejemplo si no hay ninguno
+        if (pedidos.length === 0) {
+            pedidos = [
+                {
+                    numero: 'ORD-0001',
+                    cliente: {
+                        nombre: usuarioActual.nombre,
+                        telefono: usuarioActual.telefono,
+                        email: usuarioActual.email
+                    },
+                    direccion: {
+                        direccion: 'Av. Brasil 123',
+                        distrito: 'Breña',
+                        referencia: 'Cerca al parque'
+                    },
+                    productos: [
+                        {id: 1, cantidad: 2},
+                        {id: 3, cantidad: 1}
+                    ],
+                    total: 'S/. 23.00',
+                    estado: 'ENTREGADO',
+                    fecha: '2024-12-19 10:30'
+                },
+                {
+                    numero: 'ORD-0002',
+                    cliente: {
+                        nombre: usuarioActual.nombre,
+                        telefono: usuarioActual.telefono,
+                        email: usuarioActual.email
+                    },
+                    direccion: {
+                        direccion: 'Av. Brasil 123',
+                        distrito: 'Breña'
+                    },
+                    productos: [
+                        {id: 2, cantidad: 3}
+                    ],
+                    total: 'S/. 24.00',
+                    estado: 'PENDIENTE',
+                    fecha: '2024-12-20 14:45'
+                }
+            ];
+            localStorage.setItem('pedidos', JSON.stringify(pedidos));
+        }
+
+        // Filtrar pedidos del usuario actual
+        const misPedidos = pedidos.filter(p => 
+            p.cliente.email === usuarioActual.email || 
+            p.cliente.nombre === usuarioActual.nombre
+        );
+
+        // Renderizar pedidos
+        function renderOrders() {
+            const container = document.getElementById('ordersContainer');
+            const emptyState = document.getElementById('emptyOrders');
+            
+            if (misPedidos.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'block';
+            emptyState.style.display = 'none';
+            
+            let html = '';
+            misPedidos.forEach(pedido => {
+                const statusClass = pedido.estado.toLowerCase().replace('_', '');
+                const statusText = pedido.estado.replace('_', ' ');
+                
+                html += `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h5 class="mb-0">Pedido ${pedido.numero}</h5>
+                                    <small class="text-muted">${pedido.fecha}</small>
+                                </div>
+                                <div class="col-md-3 text-md-center">
+                                    <span class="status-badge status-${statusClass}">
+                                        ${statusText}
+                                    </span>
+                                </div>
+                                <div class="col-md-3 text-md-end">
+                                    <h5 class="mb-0 text-success">${pedido.total}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Productos:</h6>
+                                <div class="product-list">
+                                    ${pedido.productos.map(item => {
+                                        const prod = productos.find(p => p.id === item.id);
+                                        return `
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span>${prod ? prod.nombre : 'Producto'}</span>
+                                                <span>x${item.cantidad}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6>Dirección de entrega:</h6>
+                                <p class="mb-1">
+                                    <i class="fas fa-map-marker-alt text-muted"></i> 
+                                    ${pedido.direccion.direccion}, ${pedido.direccion.distrito}
+                                </p>
+                                ${pedido.direccion.referencia ? 
+                                    `<small class="text-muted">Ref: ${pedido.direccion.referencia}</small>` : ''}
+                                
+                                <h6 class="mt-3">Estado del pedido:</h6>
+                                <div class="order-timeline">
+                                    <div class="timeline-item ${pedido.estado !== 'CANCELADO' ? 'active' : ''}">
+                                        <small>Pedido recibido</small>
+                                    </div>
+                                    <div class="timeline-item ${pedido.estado === 'EN_PROCESO' || pedido.estado === 'ENTREGADO' ? 'active' : ''}">
+                                        <small>En proceso</small>
+                                    </div>
+                                    <div class="timeline-item ${pedido.estado === 'ENTREGADO' ? 'active' : ''}">
+                                        <small>Entregado</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            updateStats();
+        }
+
+        // Actualizar estadísticas
+        function updateStats() {
+            const total = misPedidos.length;
+            const pendientes = misPedidos.filter(p => p.estado === 'PENDIENTE').length;
+            const entregados = misPedidos.filter(p => p.estado === 'ENTREGADO').length;
+            
+            document.getElementById('totalOrders').textContent = total;
+            document.getElementById('pendingOrders').textContent = pendientes;
+            document.getElementById('deliveredOrders').textContent = entregados;
+        }
+
+        // Logout
+        document.querySelectorAll('.btn-logout').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('¿Deseas cerrar sesión?')) {
+                    localStorage.removeItem('usuarioActual');
+                    window.location.href = './index.html';
+                }
+            });
+        });
+
+        // Renderizar al cargar
+        renderOrders();
+    </script>
+</body>
+</html>

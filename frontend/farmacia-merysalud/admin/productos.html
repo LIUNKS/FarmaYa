@@ -1,0 +1,377 @@
+<!-- productos.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Productos - Farmacia Mery Salud</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        .sidebar {
+            background: #343a40;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .sidebar .nav-link {
+            color: #adb5bd;
+            padding: 10px 20px;
+            margin: 5px 0;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar .nav-link.active {
+            color: white;
+            background: #007bff;
+        }
+        
+        .top-navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 p-0 sidebar">
+                <div class="text-center text-white py-3">
+                    <i class="fas fa-clinic-medical fa-2x mb-2"></i>
+                    <h5>Farmacia Admin</h5>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="./dashboard.html">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a class="nav-link active" href="./productos.html">
+                        <i class="fas fa-pills"></i> Productos
+                    </a>
+                    <a class="nav-link" href="./pedidos.html">
+                        <i class="fas fa-shopping-cart"></i> Pedidos
+                    </a>
+                    <a class="nav-link" href="./usuarios.html">
+                        <i class="fas fa-users"></i> Usuarios
+                    </a>
+                    <a class="nav-link" href="./perfil.html">
+                        <i class="fas fa-user-cog"></i> Mi Perfil
+                    </a>
+                    <hr class="bg-secondary">
+                    <a class="nav-link" href="#" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 pt-4">
+                <!-- Top Bar -->
+                <div class="top-navbar">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="h3 mb-3 fw-bold">
+                            <i class="fas fa-pills text-success"></i> Gestión de Productos
+                        </h1>
+                        <div>
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-user"></i> <span id="adminName">Admin</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="p-4">
+                    <div class="content-card">
+                        <!-- Actions -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <input type="text" class="form-control" id="searchProduct" 
+                                       placeholder="Buscar producto..." style="width: 300px;">
+                            </div>
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#productModal">
+                                <i class="fas fa-plus"></i> Nuevo Producto
+                            </button>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Imagen</th>
+                                        <th>Nombre</th>
+                                        <th>Categoría</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTable">
+                                    <!-- Se llenará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Producto -->
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Nuevo Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm">
+                        <input type="hidden" id="productId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre *</label>
+                                    <input type="text" class="form-control" id="productName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">SKU</label>
+                                    <input type="text" class="form-control" id="productSku">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Categoría *</label>
+                                    <select class="form-select" id="productCategory" required>
+                                        <option value="">Seleccionar</option>
+                                        <option value="Analgésicos">Analgésicos</option>
+                                        <option value="Vitaminas">Vitaminas</option>
+                                        <option value="Primeros Auxilios">Primeros Auxilios</option>
+                                        <option value="Protección">Protección</option>
+                                        <option value="Equipos">Equipos</option>
+                                        <option value="Medicamentos">Medicamentos</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Presentación</label>
+                                    <input type="text" class="form-control" id="productPresentation" 
+                                           placeholder="Ej: Caja x 10 tabletas">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Precio *</label>
+                                    <input type="number" class="form-control" id="productPrice" 
+                                           step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Stock *</label>
+                                    <input type="number" class="form-control" id="productStock" 
+                                           min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Estado</label>
+                                    <select class="form-select" id="productStatus">
+                                        <option value="true">Activo</option>
+                                        <option value="false">Inactivo</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea class="form-control" id="productDescription" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">URL de Imagen</label>
+                            <input type="url" class="form-control" id="productImage" 
+                                   placeholder="https://ejemplo.com/imagen.jpg">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProduct()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Check auth
+        const adminUser = JSON.parse(sessionStorage.getItem('adminUser'));
+        // if (!adminUser || adminUser.rol !== 'ADMIN') {
+        //     window.location.href = './index.html';
+        // }
+        document.getElementById('adminName').textContent = adminUser.nombre;
+
+        // Productos simulados
+        let productos = JSON.parse(localStorage.getItem('productos_admin')) || [
+            {id: 1, sku: 'PAR001', nombre: 'Paracetamol 500mg', categoria: 'Analgésicos', precio: 5.50, stock: 100, activo: true, imagen: 'https://via.placeholder.com/50'},
+            {id: 2, sku: 'IBU001', nombre: 'Ibuprofeno 400mg', categoria: 'Analgésicos', precio: 8.00, stock: 75, activo: true, imagen: 'https://via.placeholder.com/50'},
+            {id: 3, sku: 'VIT001', nombre: 'Vitamina C 1000mg', categoria: 'Vitaminas', precio: 12.00, stock: 50, activo: true, imagen: 'https://via.placeholder.com/50'}
+        ];
+
+        // Cargar tabla
+        function loadProducts() {
+            const tbody = document.getElementById('productsTable');
+            const searchTerm = document.getElementById('searchProduct').value.toLowerCase();
+            
+            const filteredProducts = productos.filter(p => 
+                p.nombre.toLowerCase().includes(searchTerm) || 
+                p.categoria.toLowerCase().includes(searchTerm)
+            );
+            
+            tbody.innerHTML = filteredProducts.map(producto => `
+                <tr>
+                    <td>${producto.id}</td>
+                    <td><img src="${producto.imagen}" class="product-img" alt="${producto.nombre}"></td>
+                    <td>${producto.nombre}</td>
+                    <td><span class="badge bg-secondary">${producto.categoria}</span></td>
+                    <td>S/. ${producto.precio.toFixed(2)}</td>
+                    <td>
+                        <span class="badge ${producto.stock > 10 ? 'bg-success' : 'bg-warning'}">
+                            ${producto.stock}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge ${producto.activo ? 'bg-success' : 'bg-danger'}">
+                            ${producto.activo ? 'Activo' : 'Inactivo'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editProduct(${producto.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteProduct(${producto.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Editar producto
+        function editProduct(id) {
+            const producto = productos.find(p => p.id === id);
+            if (producto) {
+                document.getElementById('productId').value = producto.id;
+                document.getElementById('productName').value = producto.nombre;
+                document.getElementById('productSku').value = producto.sku || '';
+                document.getElementById('productCategory').value = producto.categoria;
+                document.getElementById('productPrice').value = producto.precio;
+                document.getElementById('productStock').value = producto.stock;
+                document.getElementById('productStatus').value = producto.activo;
+                document.getElementById('productDescription').value = producto.descripcion || '';
+                document.getElementById('productImage').value = producto.imagen || '';
+                document.getElementById('modalTitle').textContent = 'Editar Producto';
+                new bootstrap.Modal(document.getElementById('productModal')).show();
+            }
+        }
+
+        // Guardar producto
+        function saveProduct() {
+            const id = document.getElementById('productId').value;
+            const producto = {
+                id: id ? parseInt(id) : productos.length + 1,
+                nombre: document.getElementById('productName').value,
+                sku: document.getElementById('productSku').value,
+                categoria: document.getElementById('productCategory').value,
+                precio: parseFloat(document.getElementById('productPrice').value),
+                stock: parseInt(document.getElementById('productStock').value),
+                activo: document.getElementById('productStatus').value === 'true',
+                descripcion: document.getElementById('productDescription').value,
+                imagen: document.getElementById('productImage').value || 'https://via.placeholder.com/50'
+            };
+            
+            if (id) {
+                const index = productos.findIndex(p => p.id === parseInt(id));
+                productos[index] = producto;
+            } else {
+                productos.push(producto);
+            }
+            
+            localStorage.setItem('productos_admin', JSON.stringify(productos));
+            loadProducts();
+            bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+            document.getElementById('productForm').reset();
+            alert('Producto guardado exitosamente');
+        }
+
+        // Eliminar producto
+        function deleteProduct(id) {
+            if (confirm('¿Está seguro de eliminar este producto?')) {
+                productos = productos.filter(p => p.id !== id);
+                localStorage.setItem('productos_admin', JSON.stringify(productos));
+                loadProducts();
+            }
+        }
+
+        // Reset modal
+        document.getElementById('productModal').addEventListener('hidden.bs.modal', function() {
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = '';
+            document.getElementById('modalTitle').textContent = 'Nuevo Producto';
+        });
+
+        // Search
+        document.getElementById('searchProduct').addEventListener('input', loadProducts);
+
+        // Logout
+        function logout() {
+            sessionStorage.removeItem('adminUser');
+            window.location.href = './index.html';
+        }
+
+        // Load on init
+        loadProducts();
+    </script>
+</body>
+</html>

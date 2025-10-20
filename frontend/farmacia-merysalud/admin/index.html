@@ -1,0 +1,178 @@
+<!-- admin/index.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Admin - Farmacia Mery Salud</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .login-header {
+            background: linear-gradient(135deg, #343a40 0%, #212529 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .login-body {
+            padding: 40px 30px;
+        }
+        
+        .admin-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .form-control:focus {
+            border-color: #343a40;
+            box-shadow: 0 0 0 0.2rem rgba(52, 58, 64, 0.25);
+        }
+        
+        .btn-admin {
+            background: #343a40;
+            color: white;
+            border: none;
+        }
+        
+        .btn-admin:hover {
+            background: #212529;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-card mx-auto">
+            <!-- Header -->
+            <div class="login-header">
+                <div class="admin-icon">
+                    <i class="fas fa-user-shield fa-2x"></i>
+                </div>
+                <h3>Panel Administrativo</h3>
+                <p class="mb-0">Farmacia Mery Salud</p>
+            </div>
+
+            <!-- Body -->
+            <div class="login-body">
+                <form id="adminLoginForm">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope"></i> Correo Electrónico
+                        </label>
+                        <input type="email" class="form-control" id="email" required 
+                               placeholder="admin@farmacia.com">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock"></i> Contraseña
+                        </label>
+                        <input type="password" class="form-control" id="password" required 
+                               placeholder="••••••••">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-admin btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Ingresar
+                        </button>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <small class="text-muted">
+                            Solo personal autorizado
+                        </small>
+                        <br>
+                        <a href="../index.html" class="text-muted">
+                            <i class="fas fa-arrow-left"></i> Volver al sitio público
+                        </a>
+                    </div>
+                </form>
+
+                <!-- Demo Users Info -->
+                <div class="alert alert-info mt-3" style="font-size: 0.875rem;">
+                    <strong>Usuarios de prueba:</strong><br>
+                    Admin: admin@farmacia.com / admin123<br>
+                    Repartidor: delivery@farmacia.com / delivery123
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Usuarios del sistema
+        const usuarios = [
+            {
+                id: 2,
+                rol: 'ADMIN',
+                nombre: 'Administrador',
+                email: 'admin@farmacia.com',
+                password: 'admin123'
+            },
+            {
+                id: 3,
+                rol: 'REPARTIDOR',
+                nombre: 'Pedro Repartidor',
+                email: 'delivery@farmacia.com',
+                password: 'delivery123'
+            }
+        ];
+
+        // Login Form
+        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const usuario = usuarios.find(u => u.email === email && u.password === password);
+            
+            if (usuario) {
+                // Guardar sesión
+                sessionStorage.setItem('adminUser', JSON.stringify(usuario));
+                
+                // Redirigir según rol
+                if (usuario.rol === 'ADMIN') {
+                    console.log("ingrese al admin");
+                    
+                    window.location.href = './dashboard.html';
+                } else if (usuario.rol === 'REPARTIDOR') {
+                    window.location.href = '../delivery/index.html';
+                }
+            } else {
+                alert('Credenciales incorrectas');
+            }
+        });
+    </script>
+</body>
+</html>
