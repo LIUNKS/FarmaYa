@@ -165,6 +165,15 @@ FarmaYa/
     └── farmaYa.sql
 ```
 
-## 📝 Licencia
+## � Documentación Técnica
+
+Para el informe académico, se han creado documentos detallados sobre la implementación:
+
+- **[Principios de Diseño](principios-diseno.md)**: Aplicación de MVC, TDD, DAO y SOLID
+- **[Librerías y Dependencias](librerias-dependencias.md)**: Recursos Java utilizados
+- **[Porcentaje del Proyecto](porcentaje-proyecto.md)**: Distribución del código fuente
+- **[Control de Versiones](control-versiones.md)**: Análisis del repositorio Git
+
+## �📝 Licencia
 
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
