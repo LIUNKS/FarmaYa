@@ -3,11 +3,77 @@
 // Objeto principal de la aplicación
 const App = {
     // Inicializar la aplicación
-    init() {
-        this.loadComponents();
-        this.updateCartBadge();
-        this.checkAuth();
+    async init() {
+        console.log('Inicializando aplicación...');
+        
+        // Restaurar sesión si existe
+        await this.restoreSession();
+        
+        // Cargar componentes HTML
+        await this.loadComponents();
+        
+        // Verificar autenticación
+        await this.checkAuth();
+        
+        // Actualizar badge del carrito
+        await this.updateCartBadge();
+        
+        // Iniciar validación automática de token
+        this.startTokenValidationTimer();
+        
+        // Eventos globales
         this.bindGlobalEvents();
+        
+        console.log('Aplicación inicializada correctamente');
+    },
+
+    // Restaurar sesión desde localStorage
+    async restoreSession() {
+        const token = localStorage.getItem('accessToken');
+        const usuario = localStorage.getItem('usuarioActual');
+        
+        if (token && usuario) {
+            try {
+                // Configurar token en ApiService
+                if (window.ApiService) {
+                    const apiService = new window.ApiService();
+                    apiService.setToken(token);
+                }
+                
+                console.log('Sesión restaurada desde localStorage');
+            } catch (error) {
+                console.warn('Error al restaurar sesión:', error);
+                // Limpiar sesión corrupta
+                this.clearSession();
+            }
+        }
+    },
+
+    // Limpiar sesión completamente
+    clearSession() {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('usuarioActual');
+        localStorage.removeItem('userData');
+    },
+
+    // Iniciar timer para validar token periódicamente (cada 2 minutos)
+    startTokenValidationTimer() {
+        // Validar token cada 2 minutos (menos que la expiración de 5 minutos)
+        setInterval(async () => {
+            const token = localStorage.getItem('accessToken');
+            const usuario = dataStore.getCurrentUser();
+            
+            if (token && usuario) {
+                try {
+                    await AuthAPI.getCurrentUser();
+                    console.log('Token validado automáticamente');
+                } catch (error) {
+                    console.warn('Token expirado durante validación automática:', error.message);
+                    this.showSessionExpiredModal();
+                }
+            }
+        }, 2 * 60 * 1000); // 2 minutos
     },
 
     // Cargar componentes HTML reutilizables
@@ -60,8 +126,9 @@ const App = {
     },
 
     // Verificar autenticación
-    checkAuth() {
+    async checkAuth() {
         const usuario = dataStore.getCurrentUser();
+        const token = localStorage.getItem('accessToken');
         const path = window.location.pathname;
         
         // Páginas que requieren autenticación
@@ -74,12 +141,27 @@ const App = {
         // Verificar si la página actual requiere autenticación
         const needsAuth = protectedPaths.some(p => path.includes(p));
         
+        // Si hay token, validar con el backend
+        if (token && usuario) {
+            try {
+                // Validar token llamando a una API que requiere autenticación
+                await AuthAPI.getCurrentUser();
+                console.log('Token válido, usuario autenticado');
+            } catch (error) {
+                console.warn('Token inválido o expirado:', error.message);
+                // Limpiar sesión si el token no es válido
+                dataStore.logout();
+                this.showSessionExpiredModal();
+                return false;
+            }
+        }
+        
         if (needsAuth && !usuario) {
             // Redirigir al login apropiado
             if (path.includes('/admin/') || path.includes('/delivery/')) {
                 window.location.href = '/admin/index.html';
             } else {
-                window.location.href = '/login.html';
+                window.location.href = './login.html';
             }
             return false;
         }
@@ -135,7 +217,7 @@ const App = {
     logout() {
         if (confirm('¿Desea cerrar sesión?')) {
             dataStore.logout();
-            window.location.href = '/';
+            window.location.href = './index.html';
         }
     },
 
@@ -173,28 +255,48 @@ const App = {
         }, 3000);
     },
 
-    // Agregar al carrito (función global)
-    async addToCart(productoId, cantidad = 1) {
-        const success = await dataStore.addToCarrito(productoId, cantidad);
-        
-        if (success) {
-            await this.updateCartBadge();
-            this.showNotification('Producto agregado al carrito', 'success');
+    // Mostrar modal de sesión expirada
+    showSessionExpiredModal() {
+        // Crear modal si no existe
+        let modal = document.getElementById('sessionExpiredModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'sessionExpiredModal';
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Sesión Expirada</h5>
+                        </div>
+                        <div class="modal-body">
+                            <p>El tiempo de sesión ha expirado. Por favor, inicia sesión nuevamente.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="sessionExpiredBtn">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
             
-            // Animar el botón del carrito
-            const cartIcon = document.querySelector('.navbar .fa-shopping-cart');
-            if (cartIcon) {
-                cartIcon.parentElement.classList.add('animate-bounce');
-                setTimeout(() => {
-                    cartIcon.parentElement.classList.remove('animate-bounce');
-                }, 500);
-            }
-        } else {
-            this.showNotification('Error al agregar el producto', 'danger');
+            // Evento para el botón aceptar
+            document.getElementById('sessionExpiredBtn').addEventListener('click', () => {
+                const bsModal = bootstrap.Modal.getInstance(modal);
+                bsModal.hide();
+                // Limpiar sesión y redirigir al login
+                dataStore.logout();
+                window.location.href = './login.html';
+            });
         }
         
-        return success;
-    }
+        // Mostrar modal
+        const bsModal = new bootstrap.Modal(modal, {
+            backdrop: 'static',
+            keyboard: false
+        });
+        bsModal.show();
+    },
 };
 
 // Utilidades globales
@@ -261,8 +363,8 @@ const Utils = {
 };
 
 // Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
-    App.init();
+document.addEventListener('DOMContentLoaded', async () => {
+    await App.init();
 });
 
 // Hacer disponibles globalmente
