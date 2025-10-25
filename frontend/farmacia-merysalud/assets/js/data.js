@@ -81,31 +81,38 @@ class DataStore {
     // Obtener carrito (desde backend si está autenticado, local si no)
     async getCarrito() {
         const usuario = this.getCurrentUser();
+        const token = localStorage.getItem('accessToken');
         
-        if (usuario) {
-            // Usuario autenticado: obtener carrito del backend
+        if (usuario && token) {
+            // Usuario autenticado con token: obtener carrito del backend
             try {
                 const carritoBackend = await CartAPI.getCart();
                 // Convertir formato del backend al formato local
                 return carritoBackend.items?.map(item => ({
                     id: item.product.id,
-                    nombre: item.product.nombre,
-                    precio: item.product.precio,
+                    nombre: item.product.name,
+                    precio: item.product.price,
                     cantidad: item.quantity,
-                    imagen: item.product.imagenUrl
+                    imagen: item.product.imageUrl ? `assets/images${item.product.imageUrl}` : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNENBRjUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWN0bzwvdGV4dD48L3N2Zz4='
                 })) || [];
             } catch (error) {
                 console.error('Error al obtener carrito del backend:', error);
+                // Si es error 401 (token inválido), limpiar usuario y usar carrito local
+                if (error.message.includes('401') || error.message.includes('500')) {
+                    console.log('Token inválido o error del servidor, limpiando sesión y usando carrito local');
+                    this.logout();
+                }
                 return this.carritoLocal;
             }
         } else {
-            // Usuario no autenticado: usar carrito local
+            // Usuario no autenticado o sin token: usar carrito local
             return this.carritoLocal;
         }
     }
 
     // Agregar al carrito
     async addToCarrito(productoId, cantidad = 1) {
+        console.log('DataStore.addToCarrito llamado con ID:', productoId);
         const usuario = this.getCurrentUser();
         
         if (usuario) {
@@ -120,7 +127,9 @@ class DataStore {
         } else {
             // Usuario no autenticado: agregar al carrito local
             try {
+                console.log('Obteniendo producto por ID:', productoId);
                 const producto = await this.getProductoById(productoId);
+                console.log('Producto obtenido:', producto);
                 if (!producto) return false;
 
                 const itemExistente = this.carritoLocal.find(item => item.id === productoId);
@@ -130,10 +139,10 @@ class DataStore {
                 } else {
                     this.carritoLocal.push({
                         id: producto.id,
-                        nombre: producto.nombre,
-                        precio: producto.precio,
+                        nombre: producto.name,
+                        precio: producto.price,
                         cantidad: cantidad,
-                        imagen: producto.imagenUrl
+                        imagen: producto.imageUrl ? `assets/images${producto.imageUrl}` : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNENBRjUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWN0bzwvdGV4dD48L3N2Zz4='
                     });
                 }
                 
@@ -206,7 +215,18 @@ class DataStore {
 
     // Logout
     logout() {
-        AuthAPI.logout();
+        // Limpiar sesión usando App.clearSession si está disponible
+        if (window.App && window.App.clearSession) {
+            window.App.clearSession();
+        } else {
+            // Fallback: limpiar manualmente
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('usuarioActual');
+            localStorage.removeItem('userData');
+        }
+        
+        // Limpiar carrito local
         this.carritoLocal = [];
         this.saveCarritoLocal(this.carritoLocal);
     }
