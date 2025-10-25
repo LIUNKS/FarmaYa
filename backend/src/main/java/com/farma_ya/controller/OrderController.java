@@ -14,11 +14,13 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Pedidos", description = "Gestión de pedidos y órdenes de compra")
 @SecurityRequirement(name = "Bearer Authentication")
@@ -42,9 +44,10 @@ public class OrderController {
             @ApiResponse(responseCode = "401", description = "Usuario no autenticado")
     })
     @PostMapping
-    public ResponseEntity<Order> createOrder(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<Order> createOrder(@AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody Map<String, String> shippingData) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
-        Order newOrder = orderService.createOrderFromCart(currentUser);
+        Order newOrder = orderService.createOrderFromCart(currentUser, shippingData);
         return new ResponseEntity<>(newOrder, HttpStatus.CREATED);
     }
 
@@ -87,11 +90,25 @@ public class OrderController {
             @ApiResponse(responseCode = "403", description = "Acceso denegado - Solo administradores"),
             @ApiResponse(responseCode = "404", description = "Pedido no encontrado")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/status")
     public ResponseEntity<Order> updateOrderStatus(
             @Parameter(description = "ID del pedido", required = true) @PathVariable Long id,
             @Parameter(description = "Nuevo estado del pedido (PENDING, PROCESSING, DELIVERED, CANCELLED)", required = true) @RequestParam String status) {
         Order updatedOrder = orderService.updateOrderStatus(id, status);
         return ResponseEntity.ok(updatedOrder);
+    }
+
+    @Operation(summary = "Obtener todos los pedidos", description = "Retorna todos los pedidos del sistema (solo administradores)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de pedidos obtenida exitosamente", content = @Content(schema = @Schema(implementation = Order.class))),
+            @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
+            @ApiResponse(responseCode = "403", description = "Acceso denegado - Solo administradores")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/all")
+    public ResponseEntity<List<Order>> getAllOrders() {
+        List<Order> orders = orderService.getAllOrders();
+        return ResponseEntity.ok(orders);
     }
 }
