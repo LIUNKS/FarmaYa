@@ -236,89 +236,68 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/api-config.js"></script>
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/app.js"></script>
     
     <script>
-        // Verificar autenticación
-        const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual'));
-        
-        if (!usuarioActual || usuarioActual.rol !== 'CLIENTE') {
-            alert('Debes iniciar sesión para ver tus pedidos');
-            // window.location.href = './login.html';
-        }
+        // Variables globales
+        let pedidos = [];
+        let productos = [];
 
-        // Productos de referencia
-        const productos = [
-            {id: 1, nombre: "Paracetamol 500mg", precio: 5.50},
-            {id: 2, nombre: "Ibuprofeno 400mg", precio: 8.00},
-            {id: 3, nombre: "Vitamina C 1000mg", precio: 12.00}
-        ];
-
-        // Cargar información del usuario
-        document.getElementById('userName').textContent = usuarioActual.nombre;
-        document.getElementById('userEmail').textContent = usuarioActual.email;
-        document.querySelector('.user-name').textContent = usuarioActual.nombre;
-        document.querySelector('.user-menu').style.display = 'block';
-
-        // Cargar pedidos
-        let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-        
-        // Agregar pedidos de ejemplo si no hay ninguno
-        if (pedidos.length === 0) {
-            pedidos = [
-                {
-                    numero: 'ORD-0001',
-                    cliente: {
-                        nombre: usuarioActual.nombre,
-                        telefono: usuarioActual.telefono,
-                        email: usuarioActual.email
-                    },
-                    direccion: {
-                        direccion: 'Av. Brasil 123',
-                        distrito: 'Breña',
-                        referencia: 'Cerca al parque'
-                    },
-                    productos: [
-                        {id: 1, cantidad: 2},
-                        {id: 3, cantidad: 1}
-                    ],
-                    total: 'S/. 23.00',
-                    estado: 'ENTREGADO',
-                    fecha: '2024-12-19 10:30'
-                },
-                {
-                    numero: 'ORD-0002',
-                    cliente: {
-                        nombre: usuarioActual.nombre,
-                        telefono: usuarioActual.telefono,
-                        email: usuarioActual.email
-                    },
-                    direccion: {
-                        direccion: 'Av. Brasil 123',
-                        distrito: 'Breña'
-                    },
-                    productos: [
-                        {id: 2, cantidad: 3}
-                    ],
-                    total: 'S/. 24.00',
-                    estado: 'PENDIENTE',
-                    fecha: '2024-12-20 14:45'
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Inicializar aplicación
+                await App.init().catch(error => console.error('Error initializing app:', error));
+                
+                // Verificar autenticación
+                const usuario = dataStore.getCurrentUser();
+                if (!usuario) {
+                    App.showNotification('Debes iniciar sesión para ver tus pedidos', 'warning');
+                    window.location.href = './login.html';
+                    return;
                 }
-            ];
-            localStorage.setItem('pedidos', JSON.stringify(pedidos));
-        }
 
-        // Filtrar pedidos del usuario actual
-        const misPedidos = pedidos.filter(p => 
-            p.cliente.email === usuarioActual.email || 
-            p.cliente.nombre === usuarioActual.nombre
-        );
+                // Mostrar información del usuario
+                document.getElementById('userName').textContent = usuario.nombre || usuario.username;
+                document.getElementById('userEmail').textContent = usuario.email;
+                document.querySelector('.user-name').textContent = usuario.nombre || usuario.username;
+                document.querySelector('.user-menu').style.display = 'block';
+
+                // Cargar productos disponibles (para mostrar nombres)
+                productos = await dataStore.getProductos();
+                
+                // Cargar pedidos del usuario
+                await loadUserOrders();
+                
+                // Renderizar pedidos
+                renderOrders();
+                
+            } catch (error) {
+                console.error('Error al inicializar mis pedidos:', error);
+                App.showNotification('Error al cargar tus pedidos', 'danger');
+            }
+        });
+
+        // Cargar pedidos del usuario desde el backend
+        async function loadUserOrders() {
+            try {
+                pedidos = await dataStore.getMisPedidos();
+                console.log('Pedidos cargados:', pedidos);
+            } catch (error) {
+                console.error('Error al cargar pedidos:', error);
+                pedidos = [];
+                App.showNotification('Error al cargar pedidos', 'danger');
+            }
+        }
 
         // Renderizar pedidos
         function renderOrders() {
             const container = document.getElementById('ordersContainer');
             const emptyState = document.getElementById('emptyOrders');
             
-            if (misPedidos.length === 0) {
+            if (pedidos.length === 0) {
                 container.style.display = 'none';
                 emptyState.style.display = 'block';
                 return;
@@ -328,25 +307,25 @@
             emptyState.style.display = 'none';
             
             let html = '';
-            misPedidos.forEach(pedido => {
-                const statusClass = pedido.estado.toLowerCase().replace('_', '');
-                const statusText = pedido.estado.replace('_', ' ');
+            pedidos.forEach(pedido => {
+                // Determinar clase y texto del estado
+                const statusInfo = getStatusInfo(pedido.status || pedido.estado);
                 
                 html += `
                     <div class="order-card">
                         <div class="order-header">
                             <div class="row align-items-center">
                                 <div class="col-md-6">
-                                    <h5 class="mb-0">Pedido ${pedido.numero}</h5>
-                                    <small class="text-muted">${pedido.fecha}</small>
+                                    <h5 class="mb-0">Pedido #${pedido.id || pedido.numero || pedido.orderNumber}</h5>
+                                    <small class="text-muted">${formatDate(pedido.createdAt || pedido.fecha)}</small>
                                 </div>
                                 <div class="col-md-3 text-md-center">
-                                    <span class="status-badge status-${statusClass}">
-                                        ${statusText}
+                                    <span class="status-badge status-${statusInfo.class}">
+                                        ${statusInfo.text}
                                     </span>
                                 </div>
                                 <div class="col-md-3 text-md-end">
-                                    <h5 class="mb-0 text-success">${pedido.total}</h5>
+                                    <h5 class="mb-0 text-success">S/. ${(pedido.calculatedTotalAmount || pedido.totalAmount || 0).toFixed(2)}</h5>
                                 </div>
                             </div>
                         </div>
@@ -355,15 +334,7 @@
                             <div class="col-md-6">
                                 <h6>Productos:</h6>
                                 <div class="product-list">
-                                    ${pedido.productos.map(item => {
-                                        const prod = productos.find(p => p.id === item.id);
-                                        return `
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <span>${prod ? prod.nombre : 'Producto'}</span>
-                                                <span>x${item.cantidad}</span>
-                                            </div>
-                                        `;
-                                    }).join('')}
+                                    ${renderOrderItems(pedido.items || pedido.productos || [])}
                                 </div>
                             </div>
                             
@@ -371,22 +342,14 @@
                                 <h6>Dirección de entrega:</h6>
                                 <p class="mb-1">
                                     <i class="fas fa-map-marker-alt text-muted"></i> 
-                                    ${pedido.direccion.direccion}, ${pedido.direccion.distrito}
+                                    ${pedido.shippingAddress || 'Dirección no especificada'}
                                 </p>
-                                ${pedido.direccion.referencia ? 
-                                    `<small class="text-muted">Ref: ${pedido.direccion.referencia}</small>` : ''}
+                                ${pedido.shippingDistrict ? `<small class="text-muted">Distrito: ${pedido.shippingDistrict}</small><br>` : ''}
+                                ${pedido.shippingReference ? `<small class="text-muted">Ref: ${pedido.shippingReference}</small>` : ''}
                                 
                                 <h6 class="mt-3">Estado del pedido:</h6>
                                 <div class="order-timeline">
-                                    <div class="timeline-item ${pedido.estado !== 'CANCELADO' ? 'active' : ''}">
-                                        <small>Pedido recibido</small>
-                                    </div>
-                                    <div class="timeline-item ${pedido.estado === 'EN_PROCESO' || pedido.estado === 'ENTREGADO' ? 'active' : ''}">
-                                        <small>En proceso</small>
-                                    </div>
-                                    <div class="timeline-item ${pedido.estado === 'ENTREGADO' ? 'active' : ''}">
-                                        <small>Entregado</small>
-                                    </div>
+                                    ${renderOrderTimeline(pedido.status || pedido.estado)}
                                 </div>
                             </div>
                         </div>
@@ -398,29 +361,104 @@
             updateStats();
         }
 
+        // Renderizar items del pedido
+        function renderOrderItems(items) {
+            if (!items || items.length === 0) {
+                return '<small class="text-muted">No hay productos</small>';
+            }
+
+            return items.map(item => {
+                // Si el item tiene información completa del producto
+                if (item.product) {
+                    return `
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>${item.product.name}</span>
+                            <span>x${item.quantity} - S/. ${(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+                // Si solo tiene ID, buscar en productos disponibles
+                else if (item.id) {
+                    const prod = productos.find(p => p.id === item.id);
+                    return `
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>${prod ? prod.name : 'Producto'}</span>
+                            <span>x${item.cantidad || item.quantity} - S/. ${(prod ? prod.price : 0) * (item.cantidad || item.quantity).toFixed(2)}</span>
+                        </div>
+                    `;
+                }
+                return '';
+            }).join('');
+        }
+
+        // Renderizar timeline del pedido
+        function renderOrderTimeline(status) {
+            const statusLower = (status || '').toLowerCase();
+            const isReceived = true; // Siempre recibido si existe
+            const isProcessing = ['procesando', 'en_proceso', 'processing'].includes(statusLower);
+            const isDelivered = ['entregado', 'delivered'].includes(statusLower);
+            
+            return `
+                <div class="timeline-item ${isReceived ? 'active' : ''}">
+                    <small>Pedido recibido</small>
+                </div>
+                <div class="timeline-item ${isProcessing || isDelivered ? 'active' : ''}">
+                    <small>En proceso</small>
+                </div>
+                <div class="timeline-item ${isDelivered ? 'active' : ''}">
+                    <small>Entregado</small>
+                </div>
+            `;
+        }
+
+        // Obtener información del estado
+        function getStatusInfo(status) {
+            const statusLower = (status || '').toLowerCase();
+            
+            if (['pendiente', 'pending'].includes(statusLower)) {
+                return { class: 'pendiente', text: 'Pendiente' };
+            }
+            if (['procesando', 'en_proceso', 'processing'].includes(statusLower)) {
+                return { class: 'proceso', text: 'En Proceso' };
+            }
+            if (['entregado', 'delivered'].includes(statusLower)) {
+                return { class: 'entregado', text: 'Entregado' };
+            }
+            if (['cancelado', 'cancelled'].includes(statusLower)) {
+                return { class: 'cancelado', text: 'Cancelado' };
+            }
+            
+            return { class: 'pendiente', text: status || 'Pendiente' };
+        }
+
+        // Formatear fecha
+        function formatDate(dateString) {
+            if (!dateString) return 'Fecha no disponible';
+            
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleString('es-PE');
+            } catch (error) {
+                return dateString;
+            }
+        }
+
         // Actualizar estadísticas
         function updateStats() {
-            const total = misPedidos.length;
-            const pendientes = misPedidos.filter(p => p.estado === 'PENDIENTE').length;
-            const entregados = misPedidos.filter(p => p.estado === 'ENTREGADO').length;
+            const total = pedidos.length;
+            const pendientes = pedidos.filter(p => {
+                const status = (p.status || p.estado || '').toLowerCase();
+                return ['pendiente', 'pending'].includes(status);
+            }).length;
+            const entregados = pedidos.filter(p => {
+                const status = (p.status || p.estado || '').toLowerCase();
+                return ['entregado', 'delivered'].includes(status);
+            }).length;
             
             document.getElementById('totalOrders').textContent = total;
             document.getElementById('pendingOrders').textContent = pendientes;
             document.getElementById('deliveredOrders').textContent = entregados;
         }
-
-        // Logout
-        document.querySelectorAll('.btn-logout').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (confirm('¿Deseas cerrar sesión?')) {
-                    localStorage.removeItem('usuarioActual');
-                    window.location.href = './index.html';
-                }
-            });
-        });
-
-        // Renderizar al cargar
-        renderOrders();
     </script>
 </body>
 </html>
