@@ -117,10 +117,21 @@ class ApiService {
     handleError(error) {
         console.error('API Error:', error);
         
-        // Si es error 401, redirigir a login
+        // Si es error 401, mostrar modal de expiración de sesión
         if (error.message.includes('401')) {
+            // Limpiar sesión
             this.clearToken();
-            window.location.href = '/login.html';
+            
+            // Mostrar modal de expiración de sesión
+            if (window.App && window.App.showSessionExpiredModal) {
+                window.App.showSessionExpiredModal();
+            } else {
+                // Fallback si App no está disponible
+                alert('Tu sesión ha expirado. Serás redirigido al login.');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
+            }
         }
         
         throw error;
@@ -224,13 +235,17 @@ const OrderAPI = {
     api: new ApiService(),
 
     // Crear orden
-    async createOrder(orderData) {
-        return await this.api.post('/orders', orderData, true);
+    async createOrder(orderData = null) {
+        if (orderData) {
+            return await this.api.post('/orders', orderData, true);
+        } else {
+            return await this.api.post('/orders', null, true);
+        }
     },
 
     // Obtener órdenes del usuario
     async getUserOrders() {
-        return await this.api.get('/orders/user', true);
+        return await this.api.get('/orders', true);
     },
 
     // Obtener orden por ID
