@@ -25,34 +25,41 @@
             transition: all 0.3s ease;
             cursor: pointer;
             border: 2px solid transparent;
+            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,249,250,0.9) 100%);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
         .category-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px) scale(1.02);
             border-color: #28a745;
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 15px 35px rgba(40, 167, 69, 0.3);
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(34, 197, 94, 0.1) 100%);
         }
         
         .category-icon {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            margin: 0 auto 10px;
+            margin: 0 auto 15px;
+            color: white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
         }
         
-        .product-img {
-            height: 200px;
-            object-fit: cover;
-            background: #f8f9fa;
+        .category-card:hover .category-icon {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
         }
         
         .badge-stock {
             position: absolute;
             top: 10px;
             right: 10px;
+            z-index: 10;
         }
         
         .hero-image {
@@ -296,56 +303,32 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/api-config.js"></script>
     <script src="./assets/js/data.js"></script>
     <script src="./assets/js/app.js"></script>
     
     <!-- Page Specific Script -->
     <script>
-        // URLs de imágenes reales de medicamentos
-        const productImages = {
-            'Paracetamol 500mg': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
-            'Ibuprofeno 400mg': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
-            'Vitamina C 1000mg': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
-            'Complejo B': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
-            'Alcohol 70°': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
-            'Gasas estériles': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
-            'Mascarillas KN95': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
-            'Termómetro Digital': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
-            'Jarabe para la tos': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
-            'Crema antibiótica': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
-            'Pañales para adulto': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg',
-            'Glucómetro': 'https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg'
-        };
-
-        const categoryImages = {
-            'Analgésicos': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&h=150&fit=crop',
-            'Vitaminas': 'https://images.unsplash.com/photo-1577401239170-897942555fb3?w=200&h=150&fit=crop',
-            'Primeros Auxilios': 'https://images.unsplash.com/photo-1603398938378-e54eab446dde?w=200&h=150&fit=crop',
-            'Protección': 'https://mockupgratis.com/wp-content/uploads/2021/08/Mockup_Envase_Cosme%CC%81tica_mockupgratis.com_-scaled.jpg',
-            'Equipos': 'https://images.unsplash.com/photo-1581595220892-b0739db3ba8c?w=200&h=150&fit=crop',
-            'Medicamentos': 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=200&h=150&fit=crop',
-            'Cuidado Personal': 'https://mockupgratis.com/wp-content/uploads/2021/08/Mockup_Envase_Cosme%CC%81tica_mockupgratis.com_-scaled.jpg'
-        };
-
         // Inicializar página home
         document.addEventListener('DOMContentLoaded', function() {
-            loadCategories();
-            loadFeaturedProducts();
+            App.init().catch(error => console.error('Error initializing app:', error));
+            loadCategories().catch(error => console.error('Error loading categories:', error));
+            loadFeaturedProducts().catch(error => console.error('Error loading featured products:', error));
         });
 
         // Cargar categorías con imágenes
-        function loadCategories() {
-            const categorias = dataStore.getCategorias();
+        async function loadCategories() {
+            const categorias = await dataStore.getCategorias();
             const container = document.getElementById('categoriesContainer');
             
-            const categoryColors = {
-                'Analgésicos': 'bg-danger bg-opacity-10 text-danger',
-                'Vitaminas': 'bg-success bg-opacity-10 text-success',
-                'Primeros Auxilios': 'bg-warning bg-opacity-10 text-warning',
-                'Protección': 'bg-info bg-opacity-10 text-info',
-                'Equipos': 'bg-primary bg-opacity-10 text-primary',
-                'Medicamentos': 'bg-secondary bg-opacity-10 text-secondary',
-                'Cuidado Personal': 'bg-purple bg-opacity-10 text-purple'
+            const categoryGradients = {
+                'Analgésicos': 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)',
+                'Vitaminas': 'linear-gradient(135deg, #51cf66 0%, #40c057 100%)',
+                'Primeros Auxilios': 'linear-gradient(135deg, #ffd43b 0%, #fab005 100%)',
+                'Protección': 'linear-gradient(135deg, #74c0fc 0%, #339af0 100%)',
+                'Equipos': 'linear-gradient(135deg, #9775fa 0%, #845ef7 100%)',
+                'Medicamentos': 'linear-gradient(135deg, #f783ac 0%, #e64980 100%)',
+                'Cuidado Personal': 'linear-gradient(135deg, #ffd43b 0%, #fab005 100%)'
             };
             
             const categoryIcons = {
@@ -361,21 +344,19 @@
             let html = '';
             categorias.forEach(categoria => {
                 if (categoria !== 'Todos') {
-                    const color = categoryColors[categoria] || 'bg-light';
+                    const gradient = categoryGradients[categoria] || 'linear-gradient(135deg, #6c757d 0%, #495057 100%)';
                     const icon = categoryIcons[categoria] || 'fa-medkit';
-                    const image = categoryImages[categoria] || 'https://via.placeholder.com/200x150';
                     
                     html += `
                         <div class="col-6 col-md-4 col-lg-3">
                             <a href="productos.html?categoria=${encodeURIComponent(categoria)}" 
                                class="text-decoration-none">
                                 <div class="card category-card h-100">
-                                    <img src="${image}" class="card-img-top" alt="${categoria}" style="height: 120px; object-fit: cover;">
-                                    <div class="card-body text-center">
-                                        <div class="category-icon ${color}">
-                                            <i class="fas ${icon} fa-2x"></i>
+                                    <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 200px;">
+                                        <div class="category-icon" style="background: ${gradient};">
+                                            <i class="fas ${icon} fa-3x"></i>
                                         </div>
-                                        <h6 class="card-title mb-0">${categoria}</h6>
+                                        <h6 class="card-title mb-0 fw-bold">${categoria}</h6>
                                     </div>
                                 </div>
                             </a>
@@ -388,44 +369,77 @@
         }
 
         // Cargar productos destacados con imágenes reales
-        function loadFeaturedProducts() {
-            const productos = dataStore.getProductos();
-            const container = document.getElementById('featuredProducts');
-            
-            // Tomar los primeros 8 productos
-            const featured = productos.slice(0, 8);
-            
-            let html = '';
-            featured.forEach(producto => {
-                const imagen = productImages[producto.nombre] || 'https://via.placeholder.com/300x200';
-                const stockBadge = producto.stock > 20 ? 'success' : producto.stock > 10 ? 'warning' : 'danger';
+        async function loadFeaturedProducts() {
+            try {
+                const productos = await dataStore.getProductos();
+                const container = document.getElementById('featuredProducts');
                 
-                html += `
-                    <div class="col-6 col-md-4 col-lg-3">
-                        <div class="card product-card h-100 position-relative">
-                            <span class="badge bg-${stockBadge} badge-stock">
-                                ${producto.stock > 0 ? `Stock: ${producto.stock}` : 'Agotado'}
-                            </span>
-                            <img src="${imagen}" 
-                                 class="card-img-top product-img" 
-                                 alt="${producto.nombre}"
-                                 onerror="this.src='https://via.placeholder.com/300x200/f8f9fa/6c757d?text=Sin+Imagen'">
-                            <div class="card-body d-flex flex-column">
-                                <h6 class="card-title">${producto.nombre}</h6>
-                                <p class="text-muted small mb-2">${producto.descripcion}</p>
-                                <p class="price mb-auto fw-bold text-success fs-5">${App.formatPrice(producto.precio)}</p>
-                                <button class="btn btn-success btn-sm w-100 mt-2" 
-                                        onclick="App.addToCart(${producto.id})"
-                                        ${producto.stock === 0 ? 'disabled' : ''}>
-                                    <i class="fas fa-cart-plus"></i> Agregar
-                                </button>
+                console.log('Productos obtenidos:', productos); // Debug
+                
+                if (!productos || productos.length === 0) {
+                    container.innerHTML = '<div class="col-12"><p class="text-center text-muted">No hay productos disponibles</p></div>';
+                    return;
+                }
+                
+                // Seleccionar 8 productos al azar
+                let featured = [];
+                if (productos.length > 8) {
+                    const productosAleatorios = [];
+                    const indicesUsados = new Set();
+                    
+                    while (productosAleatorios.length < 8) {
+                        const indiceAleatorio = Math.floor(Math.random() * productos.length);
+                        if (!indicesUsados.has(indiceAleatorio)) {
+                            indicesUsados.add(indiceAleatorio);
+                            productosAleatorios.push(productos[indiceAleatorio]);
+                        }
+                    }
+                    
+                    featured = productosAleatorios;
+                } else {
+                    featured = productos;
+                }
+                
+                console.log('Productos destacados seleccionados:', featured); // Debug
+                
+                let html = '';
+                featured.forEach(producto => {
+                    const stockBadge = producto.stock > 20 ? 'success' : producto.stock > 10 ? 'warning' : 'danger';
+                    const nombreCorto = producto.name.substring(0, 15);
+                    const imagenUrl = producto.imageUrl ? `assets/images${producto.imageUrl}` : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNENBRjUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWN0bzwvdGV4dD48L3N2Zz4=';
+                    
+                    html += `
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="card product-card h-100 position-relative">
+                                <span class="badge bg-${stockBadge} badge-stock">
+                                    ${producto.stock > 0 ? `Stock: ${producto.stock}` : 'Agotado'}
+                                </span>
+                                <img src="${imagenUrl}" 
+                                     class="card-img-top" 
+                                     alt="${producto.name}"
+                                     style="height: 150px; object-fit: cover;"
+                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzZjNzU3ZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkNpbiBJbWFnZW48L3RleHQ+PC9zdmc+'; this.onerror=null;">
+                                <div class="card-body d-flex flex-column">
+                                    <h6 class="card-title">${producto.name}</h6>
+                                    <p class="text-muted small mb-2">${producto.presentacion || 'N/A'}</p>
+                                    <p class="price mb-auto fw-bold text-success fs-5">${App.formatPrice(producto.price)}</p>
+                                    <button class="btn btn-success btn-sm w-100 mt-2" 
+                                            onclick="addToCart(${producto.id})"
+                                            ${producto.stock === 0 ? 'disabled' : ''}>
+                                        <i class="fas fa-cart-plus"></i> Agregar
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
+                    `;
+                });
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error al cargar productos destacados:', error);
+                const container = document.getElementById('featuredProducts');
+                container.innerHTML = '<div class="col-12"><p class="text-center text-danger">Error al cargar productos</p></div>';
+            }
         }
 
         // Función de búsqueda
@@ -442,6 +456,37 @@
                 searchProducts();
             }
         });
+
+        // Función para agregar al carrito
+        async function addToCart(productoId) {
+            try {
+                const producto = await dataStore.getProductoById(productoId);
+                if (!producto) {
+                    showNotification('Producto no encontrado', 'danger');
+                    return;
+                }
+
+                const success = await dataStore.addToCarrito(productoId);
+                if (success) {
+                    showNotification(`"${producto.name}" agregado al carrito`, 'success');
+                    await App.updateCartBadge();
+                } else {
+                    showNotification('Error al agregar al carrito', 'danger');
+                }
+            } catch (error) {
+                console.error('Error al agregar al carrito:', error);
+                showNotification('Error al agregar al carrito', 'danger');
+            }
+        }
+
+        // Función auxiliar para mostrar notificaciones
+        function showNotification(message, type = 'success') {
+            if (window.App && window.App.showNotification) {
+                window.App.showNotification(message, type);
+            } else {
+                alert(message);
+            }
+        }
     </script>
 </body>
 </html>
