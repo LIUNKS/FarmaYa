@@ -28,64 +28,84 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
-    private UserService userService;
+        @Autowired
+        private UserService userService;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+        @Autowired
+        private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private JwtTokenProvider tokenProvider;
+        @Autowired
+        private JwtTokenProvider tokenProvider;
 
-    @Operation(summary = "Registrar nuevo usuario", description = "Crea una nueva cuenta de usuario en el sistema")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Usuario registrado exitosamente", content = @Content(schema = @Schema(implementation = User.class))),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos o usuario ya existe"),
-            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
-        User registeredUser = userService.registerUser(registrationDTO);
-        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
-    }
+        @Operation(summary = "Registrar nuevo usuario", description = "Crea una nueva cuenta de usuario en el sistema")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "201", description = "Usuario registrado exitosamente", content = @Content(schema = @Schema(implementation = User.class))),
+                        @ApiResponse(responseCode = "400", description = "Datos inválidos o usuario ya existe"),
+                        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+        })
+        @PostMapping("/register")
+        public ResponseEntity<User> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
+                User registeredUser = userService.registerUser(registrationDTO);
+                return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+        }
 
-    @Operation(summary = "Iniciar sesión", description = "Autentica al usuario y devuelve tokens JWT")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Login exitoso", content = @Content(schema = @Schema(implementation = JwtResponseDTO.class))),
-            @ApiResponse(responseCode = "401", description = "Credenciales inválidas"),
-            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos")
-    })
-    @PostMapping("/login")
-    public ResponseEntity<JwtResponseDTO> authenticateUser(@Valid @RequestBody LoginRequestDTO loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        @Operation(summary = "Iniciar sesión", description = "Autentica al usuario y devuelve tokens JWT")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Login exitoso", content = @Content(schema = @Schema(implementation = JwtResponseDTO.class))),
+                        @ApiResponse(responseCode = "401", description = "Credenciales inválidas"),
+                        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos")
+        })
+        @PostMapping("/login")
+        public ResponseEntity<JwtResponseDTO> authenticateUser(@Valid @RequestBody LoginRequestDTO loginRequest) {
+                // Buscar usuario por username o email
+                User user = null;
+                try {
+                        user = userService.getUserByUsername(loginRequest.getUsername());
+                } catch (Exception e) {
+                        // Si no se encuentra por username, intentar por email
+                        try {
+                                user = userService.getUserByEmail(loginRequest.getUsername());
+                        } catch (Exception ex) {
+                                // Usuario no encontrado
+                                throw new IllegalArgumentException("Usuario o email no encontrado");
+                        }
+                }
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String accessToken = tokenProvider.generateToken(authentication);
-        String refreshToken = tokenProvider.generateRefreshToken(authentication);
+                // Autenticar con el username real del usuario encontrado
+                Authentication authentication = authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(user.getUsername(),
+                                                loginRequest.getPassword()));
 
-        User user = userService.getUserByUsername(loginRequest.getUsername());
-        JwtResponseDTO response = new JwtResponseDTO(
-                accessToken,
-                refreshToken,
-                user.getUsername(),
-                user.getRole().name(),
-                tokenProvider.getExpirationTime());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                String accessToken = tokenProvider.generateToken(authentication);
+                String refreshToken = tokenProvider.generateRefreshToken(authentication);
 
-        return ResponseEntity.ok(response);
-    }
+                JwtResponseDTO response = new JwtResponseDTO(
+                                accessToken,
+                                refreshToken,
+                                user.getUsername(),
+                                user.getRole().name(),
+                                tokenProvider.getExpirationTime());
 
-    @Operation(summary = "Obtener usuario actual", description = "Obtiene la información del usuario autenticado")
-    @SecurityRequirement(name = "Bearer Authentication")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Usuario obtenido exitosamente", content = @Content(schema = @Schema(implementation = User.class))),
-            @ApiResponse(responseCode = "401", description = "Token JWT inválido o expirado"),
-            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
-    })
-    @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userService.getUserByUsername(username);
-        return ResponseEntity.ok(user);
-    }
+                return ResponseEntity.ok(response);
+        }
+
+        @Operation(summary = "Obtener usuario actual", description = "Obtiene la información del usuario autenticado")
+        @SecurityRequirement(name = "Bearer Authentication")
+        @ApiResponses(value = {
+                        @ApiResponse(responseCode = "200", description = "Usuario obtenido exitosamente", content = @Content(schema = @Schema(implementation = User.class))),
+                        @ApiResponse(responseCode = "401", description = "Token JWT inválido o expirado"),
+                        @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+        })
+        @GetMapping("/me")
+        public ResponseEntity<User> getCurrentUser() {
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                User user = userService.getUserByUsername(username);
+                return ResponseEntity.ok(user);
+        }
+
+        @GetMapping("/test")
+        public ResponseEntity<String> test() {
+                return ResponseEntity.ok("Backend funcionando correctamente");
+        }
 }
