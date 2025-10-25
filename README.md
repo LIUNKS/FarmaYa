@@ -165,7 +165,7 @@ FarmaYa/
     └── farmaYa.sql
 ```
 
-## � Documentación Técnica
+## Documentación Técnica
 
 Para el informe académico, se han creado documentos detallados sobre la implementación:
 
@@ -174,6 +174,6 @@ Para el informe académico, se han creado documentos detallados sobre la impleme
 - **[Porcentaje del Proyecto](porcentaje-proyecto.md)**: Distribución del código fuente
 - **[Control de Versiones](control-versiones.md)**: Análisis del repositorio Git
 
-## �📝 Licencia
+## 📝 Licencia
 
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
