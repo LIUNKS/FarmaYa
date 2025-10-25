@@ -24,7 +24,7 @@ public class CartService implements ICartService {
     }
 
     public Cart getCartByUser(User user) {
-        return cartRepository.findByUser(user)
+        return cartRepository.findByUserWithItemsAndProducts(user)
                 .orElseGet(() -> createCartForUser(user));
     }
 
