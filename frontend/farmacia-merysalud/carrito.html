@@ -225,34 +225,57 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/api-config.js"></script>
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/app.js"></script>
     
     <!-- Script específico del carrito -->
     <script>
-        // Carrito simulado en localStorage
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        // Variables globales
+        let cart = [];
+        let productos = [];
 
-        // Productos de ejemplo (mismo que productos.html)
-        const productos = [
-            {id: 1, nombre: "Paracetamol 500mg", precio: 5.50, imagen: "https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg"},
-            {id: 2, nombre: "Ibuprofeno 400mg", precio: 8.00, imagen: "https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg"},
-            {id: 3, nombre: "Vitamina C 1000mg", precio: 12.00, imagen: "https://plazavea.vteximg.com.br/arquivos/ids/554421-1000-1000/20101183.jpg"},
-        ];
-
-        // Inicializar con datos de ejemplo si el carrito está vacío
-        if (cart.length === 0) {
-            cart = [
-                {id: 1, cantidad: 2},
-                {id: 2, cantidad: 1},
-                {id: 3, cantidad: 3}
-            ];
-            localStorage.setItem('cart', JSON.stringify(cart));
-        }
-
-        // Cargar carrito al iniciar
-        document.addEventListener('DOMContentLoaded', function() {
-            renderCart();
-            updateCartBadge();
+        // Cargar productos y carrito al iniciar
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Inicializar aplicación
+                await App.init().catch(error => console.error('Error initializing app:', error));
+                
+                // Cargar productos disponibles
+                productos = await dataStore.getProductos();
+                
+                // Cargar carrito del usuario
+                await loadCart();
+                
+                // Renderizar carrito
+                renderCart();
+                
+                // Actualizar badge del carrito
+                await App.updateCartBadge();
+                
+            } catch (error) {
+                console.error('Error al inicializar carrito:', error);
+                showNotification('Error al cargar el carrito', 'danger');
+            }
         });
+
+        // Cargar carrito desde el backend
+        async function loadCart() {
+            try {
+                cart = await dataStore.getCarrito();
+                console.log('Carrito cargado:', cart);
+            } catch (error) {
+                console.error('Error al cargar carrito:', error);
+                
+                // Si es error de autenticación, mostrar mensaje pero no redirigir automáticamente
+                if (error.message && error.message.includes('401')) {
+                    console.log('Token expirado al cargar carrito');
+                    showNotification('Tu sesión ha expirado. Los cambios no se guardarán hasta que inicies sesión nuevamente.', 'warning');
+                }
+                
+                cart = [];
+            }
+        }
 
         // Renderizar carrito
         function renderCart() {
@@ -271,45 +294,42 @@
             
             let html = '';
             cart.forEach(item => {
-                const producto = productos.find(p => p.id === item.id);
-                if (producto) {
-                    const subtotal = producto.precio * item.cantidad;
-                    html += `
-                        <div class="cart-item">
-                            <div class="row align-items-center">
-                                <div class="col-md-2">
-                                    <img src="${producto.imagen}" alt="${producto.nombre}" 
-                                         class="product-thumbnail"
-                                         onerror="this.src='https://via.placeholder.com/100'">
-                                </div>
-                                <div class="col-md-4">
-                                    <h6 class="mb-1">${producto.nombre}</h6>
-                                    <small class="text-muted">Precio unitario: S/. ${producto.precio.toFixed(2)}</small>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="quantity-control">
-                                        <button class="btn btn-outline-secondary" onclick="updateQuantity(${producto.id}, -1)">
-                                            <i class="fas fa-minus"></i>
-                                        </button>
-                                        <input type="number" class="form-control" value="${item.cantidad}" 
-                                               min="1" onchange="setQuantity(${producto.id}, this.value)">
-                                        <button class="btn btn-outline-secondary" onclick="updateQuantity(${producto.id}, 1)">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 text-end">
-                                    <strong class="text-success">S/. ${subtotal.toFixed(2)}</strong>
-                                </div>
-                                <div class="col-md-1 text-end">
-                                    <button class="btn btn-danger btn-sm" onclick="removeFromCart(${producto.id})">
-                                        <i class="fas fa-trash"></i>
+                const subtotal = item.precio * item.cantidad;
+                html += `
+                    <div class="cart-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-2">
+                                <img src="${item.imagen || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNENBRjUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWN0bzwvdGV4dD48L3N2Zz4='}" 
+                                     alt="${item.nombre}" 
+                                     class="product-thumbnail">
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="mb-1">${item.nombre}</h6>
+                                <small class="text-muted">Precio unitario: S/. ${parseFloat(item.precio).toFixed(2)}</small>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="quantity-control">
+                                    <button class="btn btn-outline-secondary" onclick="updateQuantity(${item.id}, -1)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" class="form-control" value="${item.cantidad}" 
+                                           min="1" onchange="setQuantity(${item.id}, this.value)">
+                                    <button class="btn btn-outline-secondary" onclick="updateQuantity(${item.id}, 1)">
+                                        <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
                             </div>
+                            <div class="col-md-2 text-end">
+                                <strong class="text-success">S/. ${subtotal.toFixed(2)}</strong>
+                            </div>
+                            <div class="col-md-1 text-end">
+                                <button class="btn btn-danger btn-sm" onclick="removeFromCart(${item.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
-                    `;
-                }
+                    </div>
+                `;
             });
             
             container.innerHTML = html;
@@ -317,70 +337,173 @@
         }
 
         // Actualizar cantidad
-        function updateQuantity(productId, change) {
-            const item = cart.find(i => i.id === productId);
-            if (item) {
-                item.cantidad = Math.max(1, item.cantidad + change);
-                saveCart();
+        async function updateQuantity(productId, change) {
+            try {
+                // Verificar si el usuario está autenticado
+                const usuario = dataStore.getCurrentUser();
+                const token = localStorage.getItem('accessToken');
+                
+                if (!usuario || !token) {
+                    showNotification('Debes iniciar sesión para modificar el carrito', 'warning');
+                    window.location.href = './login.html';
+                    return;
+                }
+                
+                const item = cart.find(i => i.id === productId);
+                if (!item) return;
+                
+                const newQuantity = Math.max(1, item.cantidad + change);
+                
+                // Actualizar en el backend
+                await dataStore.updateCarritoItem(productId, newQuantity);
+                
+                // Actualizar localmente
+                item.cantidad = newQuantity;
+                
+                // Re-renderizar
                 renderCart();
+                await App.updateCartBadge();
+                
+                showNotification('Cantidad actualizada', 'success');
+                
+            } catch (error) {
+                console.error('Error al actualizar cantidad:', error);
+                
+                // Si es error de autenticación, redirigir al login
+                if (error.message && error.message.includes('401')) {
+                    showNotification('Tu sesión ha expirado. Inicia sesión nuevamente.', 'warning');
+                    setTimeout(() => {
+                        window.location.href = './login.html';
+                    }, 2000);
+                } else {
+                    showNotification('Error al actualizar cantidad', 'danger');
+                }
             }
         }
 
         // Establecer cantidad específica
-        function setQuantity(productId, quantity) {
-            const item = cart.find(i => i.id === productId);
-            if (item) {
-                item.cantidad = Math.max(1, parseInt(quantity) || 1);
-                saveCart();
+        async function setQuantity(productId, quantity) {
+            try {
+                // Verificar si el usuario está autenticado
+                const usuario = dataStore.getCurrentUser();
+                const token = localStorage.getItem('accessToken');
+                
+                if (!usuario || !token) {
+                    showNotification('Debes iniciar sesión para modificar el carrito', 'warning');
+                    window.location.href = './login.html';
+                    return;
+                }
+                
+                const newQuantity = Math.max(1, parseInt(quantity) || 1);
+                
+                // Actualizar en el backend
+                await dataStore.updateCarritoItem(productId, newQuantity);
+                
+                // Actualizar localmente
+                const item = cart.find(i => i.id === productId);
+                if (item) {
+                    item.cantidad = newQuantity;
+                }
+                
+                // Re-renderizar
                 renderCart();
+                await App.updateCartBadge();
+                
+                showNotification('Cantidad actualizada', 'success');
+                
+            } catch (error) {
+                console.error('Error al establecer cantidad:', error);
+                
+                // Si es error de autenticación, redirigir al login
+                if (error.message && error.message.includes('401')) {
+                    showNotification('Tu sesión ha expirado. Inicia sesión nuevamente.', 'warning');
+                    setTimeout(() => {
+                        window.location.href = './login.html';
+                    }, 2000);
+                } else {
+                    showNotification('Error al actualizar cantidad', 'danger');
+                }
             }
         }
 
         // Eliminar del carrito
-        function removeFromCart(productId) {
-            if (confirm('¿Eliminar este producto del carrito?')) {
+        async function removeFromCart(productId) {
+            try {
+                // Verificar si el usuario está autenticado
+                const usuario = dataStore.getCurrentUser();
+                const token = localStorage.getItem('accessToken');
+                
+                if (!usuario || !token) {
+                    showNotification('Debes iniciar sesión para eliminar productos', 'warning');
+                    window.location.href = './login.html';
+                    return;
+                }
+                
+                console.log('Eliminando producto del carrito:', productId);
+                
+                // Remover del backend
+                await CartAPI.removeFromCart(productId);
+                
+                // Remover localmente
                 cart = cart.filter(i => i.id !== productId);
-                saveCart();
+                
+                // Re-renderizar
                 renderCart();
+                await App.updateCartBadge();
+                
+                showNotification('Producto eliminado del carrito', 'success');
+                
+            } catch (error) {
+                console.error('Error al eliminar producto:', error);
+                
+                // Si es error de autenticación, redirigir al login
+                if (error.message && error.message.includes('401')) {
+                    showNotification('Tu sesión ha expirado. Inicia sesión nuevamente.', 'warning');
+                    setTimeout(() => {
+                        window.location.href = './login.html';
+                    }, 2000);
+                } else {
+                    showNotification('Error al eliminar producto', 'danger');
+                }
             }
-        }
-
-        // Guardar carrito
-        function saveCart() {
-            localStorage.setItem('cart', JSON.stringify(cart));
-            updateCartBadge();
         }
 
         // Actualizar totales
         function updateTotals() {
             let subtotal = 0;
             cart.forEach(item => {
-                const producto = productos.find(p => p.id === item.id);
-                if (producto) {
-                    subtotal += producto.precio * item.cantidad;
-                }
+                subtotal += item.precio * item.cantidad;
             });
             
             document.getElementById('subtotal').textContent = `S/. ${subtotal.toFixed(2)}`;
             document.getElementById('total').textContent = `S/. ${subtotal.toFixed(2)}`;
         }
 
-        // Actualizar badge del carrito
-        function updateCartBadge() {
-            const totalItems = cart.reduce((sum, item) => sum + item.cantidad, 0);
-            document.querySelectorAll('.cart-badge').forEach(badge => {
-                badge.textContent = totalItems;
-                badge.style.display = totalItems > 0 ? 'inline-block' : 'none';
-            });
-        }
-
         // Proceder al checkout
         function proceedToCheckout() {
             if (cart.length === 0) {
-                alert('Tu carrito está vacío');
+                showNotification('Tu carrito está vacío', 'warning');
                 return;
             }
+            
+            // Verificar si el usuario está autenticado
+            const usuario = dataStore.getCurrentUser();
+            if (!usuario) {
+                showNotification('Debes iniciar sesión para continuar', 'warning');
+                window.location.href = './login.html';
+                return;
+            }
+            
             window.location.href = './checkout.html';
+        }
+
+        // Función auxiliar para mostrar notificaciones
+        function showNotification(message, type = 'success') {
+            if (window.App && window.App.showNotification) {
+                window.App.showNotification(message, type);
+            } else {
+                console.log(`Notificación (${type}): ${message}`);
+            }
         }
     </script>
 </body>
