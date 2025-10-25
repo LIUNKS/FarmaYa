@@ -1,11 +1,12 @@
 package com.farma_ya.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "ItemCarrito")
+@Table(name = "itemcarrito")
 public class CartItem {
     public CartItem() {
     }
@@ -25,6 +26,7 @@ public class CartItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "carrito_id")
+    @JsonBackReference
     private Cart cart;
 
     @ManyToOne(fetch = FetchType.LAZY)
