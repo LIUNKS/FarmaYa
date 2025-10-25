@@ -1,7 +1,14 @@
 package com.farma_ya.service;
 
-import com.farma_ya.model.*;
-import com.farma_ya.repository.*;
+import com.farma_ya.model.DetalleVentaSemanalProducto;
+import com.farma_ya.model.Order;
+import com.farma_ya.model.OrderItem;
+import com.farma_ya.model.Product;
+import com.farma_ya.model.ReporteVentaSemanal;
+import com.farma_ya.repository.DetalleVentaSemanalProductoRepository;
+import com.farma_ya.repository.OrderRepository;
+import com.farma_ya.repository.ProductRepository;
+import com.farma_ya.repository.ReporteVentaSemanalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
