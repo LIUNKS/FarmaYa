@@ -1,6 +1,10 @@
 package com.farma_ya.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Convert;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -35,12 +39,13 @@ public class Order {
     @JoinColumn(name = "usuario_id")
     private User user;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<OrderItem> items = new ArrayList<>();
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = OrderStatusConverter.class)
     @Column(name = "estado")
-    private OrderStatus status = OrderStatus.PENDING;
+    private OrderStatus status = OrderStatus.PENDIENTE;
 
     @Column(name = "subtotal", precision = 10, scale = 2)
     private BigDecimal subtotal = BigDecimal.ZERO;
@@ -51,7 +56,12 @@ public class Order {
     @Column(name = "creado_en")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public double getTotalAmount() {
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "direccion_entrega_id")
+    @JsonIgnore
+    private Direccion shippingAddress;
+
+    public double getCalculatedTotalAmount() {
         return items.stream()
                 .mapToDouble(item -> item.getPrice().doubleValue() * item.getQuantity())
                 .sum();
@@ -83,6 +93,10 @@ public class Order {
 
     public BigDecimal getTotalAmountValue() {
         return totalAmount;
+    }
+
+    public double getTotalAmount() {
+        return this.totalAmount != null ? this.totalAmount.doubleValue() : 0.0;
     }
 
     public void setTotalAmount(BigDecimal totalAmount) {
@@ -119,5 +133,37 @@ public class Order {
 
     public void setCreatedAt(java.time.LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Direccion getShippingAddress() {
+        return shippingAddress;
+    }
+
+    public void setShippingAddress(Direccion shippingAddress) {
+        this.shippingAddress = shippingAddress;
+    }
+
+    @JsonProperty("shippingAddress")
+    public String getShippingAddressLine() {
+        return shippingAddress != null ? shippingAddress.getDireccionLinea() : null;
+    }
+
+    @JsonProperty("shippingDistrict")
+    public String getShippingDistrict() {
+        return shippingAddress != null ? shippingAddress.getDistrito() : null;
+    }
+
+    @JsonProperty("shippingReference")
+    public String getShippingReference() {
+        return shippingAddress != null ? shippingAddress.getReferencia() : null;
+    }
+
+    public void setShippingAddress(String address, String district, String reference) {
+        if (this.shippingAddress == null) {
+            this.shippingAddress = new Direccion();
+        }
+        this.shippingAddress.setDireccionLinea(address);
+        this.shippingAddress.setDistrito(district);
+        this.shippingAddress.setReferencia(reference);
     }
 }
