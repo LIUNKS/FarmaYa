@@ -30,6 +30,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             java.time.LocalDate fechaFin) {
         LocalDateTime inicioDateTime = fechaInicio.atStartOfDay();
         LocalDateTime finDateTime = fechaFin.atTime(23, 59, 59);
-        return findByStatusAndCreatedAtBetween(OrderStatus.DELIVERED, inicioDateTime, finDateTime);
+        return findByStatusAndCreatedAtBetween(OrderStatus.ENTREGADO, inicioDateTime, finDateTime);
     }
 }
