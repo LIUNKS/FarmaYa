@@ -8,6 +8,8 @@ import com.farma_ya.exception.ResourceNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -51,5 +53,49 @@ public class UserService {
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + username));
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public List<User> getUsersByRole(Role role) {
+        Integer rolId = roleToRolId(role);
+        return userRepository.findByRole(rolId);
+    }
+
+    public long countUsersByRole(Role role) {
+        Integer rolId = roleToRolId(role);
+        return userRepository.countByRole(rolId);
+    }
+
+    public User updateUserRole(Long userId, Role newRole) {
+        User user = getUserById(userId);
+        user.setRole(newRole);
+        return userRepository.save(user);
+    }
+
+    public boolean passwordMatches(String rawPassword, String encodedPassword) {
+        return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
+
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
+
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+
+    private Integer roleToRolId(Role role) {
+        switch (role) {
+            case ADMIN:
+                return 1;
+            case DELIVERY:
+                return 3;
+            case USER:
+            default:
+                return 2;
+        }
     }
 }
