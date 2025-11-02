@@ -74,12 +74,14 @@ CREATE TABLE IF NOT EXISTS Pedido (
   numero_pedido VARCHAR(50) NOT NULL UNIQUE,
   usuario_id INT NULL,
   direccion_entrega_id INT NULL,
+  repartidor_id INT NULL,
   estado ENUM('Pendiente','Procesando','Entregado','Cancelado') DEFAULT 'Pendiente',
   subtotal DECIMAL(10,2) DEFAULT 0,
   total DECIMAL(10,2) DEFAULT 0,
   creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (usuario_id) REFERENCES Usuario(usuario_id) ON DELETE SET NULL,
-  FOREIGN KEY (direccion_entrega_id) REFERENCES Direccion(direccion_id) ON DELETE SET NULL
+  FOREIGN KEY (direccion_entrega_id) REFERENCES Direccion(direccion_id) ON DELETE SET NULL,
+  FOREIGN KEY (repartidor_id) REFERENCES Usuario(usuario_id) ON DELETE SET NULL
 );
 
 -- Detalle de pedido
