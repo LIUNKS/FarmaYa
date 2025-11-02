@@ -1,6 +1,8 @@
 package com.farma_ya.controller;
 
 import com.farma_ya.model.Order;
+import com.farma_ya.model.OrderStatus;
+import com.farma_ya.model.Role;
 import com.farma_ya.model.User;
 import com.farma_ya.service.IOrderService;
 import com.farma_ya.service.UserService;
@@ -110,5 +112,115 @@ public class OrderController {
     public ResponseEntity<List<Order>> getAllOrders() {
         List<Order> orders = orderService.getAllOrders();
         return ResponseEntity.ok(orders);
+    }
+
+    @Operation(summary = "Asignar repartidor a pedido", description = "Asigna un repartidor a un pedido (solo administradores)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/assign-delivery")
+    public ResponseEntity<Order> assignDelivery(
+            @PathVariable Long id,
+            @RequestParam Long repartidorId) {
+        User repartidor = userService.getUserById(repartidorId);
+        if (repartidor.getRole() != Role.DELIVERY) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        Order updatedOrder = orderService.assignRepartidor(id, repartidor);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
+    @Operation(summary = "Obtener pedidos por repartidor", description = "Retorna pedidos asignados a un repartidor (admin o el repartidor mismo)")
+    @GetMapping("/delivery/{repartidorId}")
+    public ResponseEntity<List<Order>> getOrdersByDelivery(
+            @PathVariable Long repartidorId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User currentUser = userService.getUserByUsername(userDetails.getUsername());
+        User repartidor = userService.getUserById(repartidorId);
+
+        // Solo admin puede ver pedidos de otros repartidores
+        if (!currentUser.getId().equals(repartidorId) && currentUser.getRole() != Role.ADMIN) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        List<Order> orders = orderService.getOrdersByRepartidor(repartidor);
+        return ResponseEntity.ok(orders);
+    }
+
+    @Operation(summary = "Actualizar estado por repartidor", description = "Permite a un repartidor actualizar el estado de sus pedidos asignados")
+    @PreAuthorize("hasRole('DELIVERY')")
+    @PutMapping("/{id}/delivery-status")
+    public ResponseEntity<Order> updateDeliveryStatus(
+            @PathVariable Long id,
+            @RequestParam String status,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User currentUser = userService.getUserByUsername(userDetails.getUsername());
+        Order order = orderService.getOrderById(id);
+
+        // Verificar que el pedido esté asignado a este repartidor
+        if (order.getRepartidor() == null || !order.getRepartidor().getId().equals(currentUser.getId())) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        Order updatedOrder = orderService.updateOrderStatus(id, status);
+        return ResponseEntity.ok(updatedOrder);
+    }
+
+    @Operation(summary = "Obtener pedidos sin asignar", description = "Retorna pedidos pendientes sin repartidor asignado (solo administradores)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/unassigned")
+    public ResponseEntity<List<Order>> getUnassignedOrders() {
+        List<Order> orders = orderService.getUnassignedOrdersByStatus(OrderStatus.PENDIENTE);
+        return ResponseEntity.ok(orders);
+    }
+
+    @Operation(summary = "Obtener repartidores disponibles", description = "Retorna lista de repartidores para asignar pedidos (solo administradores)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/delivery/available")
+    public ResponseEntity<List<User>> getAvailableDeliveryUsers() {
+        List<User> deliveryUsers = userService.getUsersByRole(Role.DELIVERY);
+        return ResponseEntity.ok(deliveryUsers);
+    }
+
+    @Operation(summary = "Obtener pedidos de un usuario", description = "Retorna todos los pedidos de un usuario específico (solo administradores)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Order>> getOrdersByUserId(@PathVariable Long userId) {
+        User user = userService.getUserById(userId);
+        List<Order> orders = orderService.getOrdersByUser(user);
+        return ResponseEntity.ok(orders);
+    }
+
+    @Operation(summary = "Obtener mis pedidos asignados", description = "Retorna pedidos asignados al repartidor autenticado")
+    @PreAuthorize("hasRole('DELIVERY')")
+    @GetMapping("/delivery/my-orders")
+    public ResponseEntity<List<Order>> getMyAssignedOrders(@AuthenticationPrincipal UserDetails userDetails) {
+        User currentUser = userService.getUserByUsername(userDetails.getUsername());
+        List<Order> orders = orderService.getOrdersByRepartidor(currentUser);
+        return ResponseEntity.ok(orders);
+    }
+
+    @Operation(summary = "Obtener estadísticas del repartidor", description = "Retorna estadísticas de entregas del repartidor autenticado")
+    @PreAuthorize("hasRole('DELIVERY')")
+    @GetMapping("/delivery/stats")
+    public ResponseEntity<Map<String, Object>> getDeliveryStats(@AuthenticationPrincipal UserDetails userDetails) {
+        User currentUser = userService.getUserByUsername(userDetails.getUsername());
+        Map<String, Object> stats = orderService.getDeliveryStats(currentUser);
+        return ResponseEntity.ok(stats);
+    }
+
+    @Operation(summary = "Obtener detalle de pedido asignado", description = "Permite a un repartidor ver detalles de un pedido que le está asignado")
+    @PreAuthorize("hasRole('DELIVERY')")
+    @GetMapping("/delivery/order/{id}")
+    public ResponseEntity<Order> getAssignedOrderDetail(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User currentUser = userService.getUserByUsername(userDetails.getUsername());
+        Order order = orderService.getOrderById(id);
+
+        // Verificar que el pedido esté asignado a este repartidor
+        if (order.getRepartidor() == null || !order.getRepartidor().getId().equals(currentUser.getId())) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        return ResponseEntity.ok(order);
     }
 }
