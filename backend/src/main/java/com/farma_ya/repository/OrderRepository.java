@@ -32,4 +32,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         LocalDateTime finDateTime = fechaFin.atTime(23, 59, 59);
         return findByStatusAndCreatedAtBetween(OrderStatus.ENTREGADO, inicioDateTime, finDateTime);
     }
+
+    long countByStatus(OrderStatus status);
+
+    List<Order> findByRepartidor(User repartidor);
+
+    List<Order> findByRepartidorId(Long repartidorId);
+
+    @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC")
+    List<Order> findRecentOrders();
+
+    @Query("SELECT o FROM Order o WHERE o.repartidor IS NULL AND o.status = :status")
+    List<Order> findUnassignedOrdersByStatus(@Param("status") OrderStatus status);
 }
