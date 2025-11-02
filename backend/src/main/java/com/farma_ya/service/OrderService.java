@@ -1,4 +1,3 @@
-
 package com.farma_ya.service;
 
 import com.farma_ya.model.Direccion;
@@ -116,7 +115,12 @@ public class OrderService implements IOrderService {
     public Order updateOrderStatus(Long id, String status) {
         Order order = getOrderById(id);
         try {
-            order.setStatus(OrderStatus.valueOf(status.toUpperCase()));
+            // Convertir "EN_PROCESO" a "PROCESANDO" para compatibilidad con frontend
+            String normalizedStatus = status.toUpperCase();
+            if ("EN_PROCESO".equals(normalizedStatus)) {
+                normalizedStatus = "PROCESANDO";
+            }
+            order.setStatus(OrderStatus.valueOf(normalizedStatus));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Estado de orden inválido: " + status);
         }
@@ -126,6 +130,57 @@ public class OrderService implements IOrderService {
     @Override
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
+    }
+
+    public long countOrdersByStatus(OrderStatus status) {
+        return orderRepository.countByStatus(status);
+    }
+
+    public List<Order> getOrdersByRepartidor(User repartidor) {
+        return orderRepository.findByRepartidor(repartidor);
+    }
+
+    public List<Order> getRecentOrders(int limit) {
+        List<Order> orders = orderRepository.findRecentOrders();
+        return orders.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    public Order assignRepartidor(Long orderId, User repartidor) {
+        Order order = getOrderById(orderId);
+        order.setRepartidor(repartidor);
+        return orderRepository.save(order);
+    }
+
+    public List<Order> getUnassignedOrdersByStatus(OrderStatus status) {
+        return orderRepository.findUnassignedOrdersByStatus(status);
+    }
+
+    @Override
+    public Map<String, Object> getDeliveryStats(User repartidor) {
+        List<Order> orders = getOrdersByRepartidor(repartidor);
+
+        Map<String, Object> stats = new java.util.HashMap<>();
+
+        // Contar pedidos por estado
+        long pendientes = orders.stream().filter(o -> o.getStatus() == OrderStatus.PENDIENTE).count();
+        long enProceso = orders.stream().filter(o -> o.getStatus() == OrderStatus.PROCESANDO).count();
+        long entregados = orders.stream().filter(o -> o.getStatus() == OrderStatus.ENTREGADO).count();
+
+        stats.put("pedidosPendientes", pendientes);
+        stats.put("pedidosEnProceso", enProceso);
+        stats.put("pedidosEntregados", entregados);
+
+        // Calcular total de ganancias del día (pedidos entregados hoy)
+        java.time.LocalDate today = java.time.LocalDate.now();
+        double totalGanancias = orders.stream()
+                .filter(o -> o.getStatus() == OrderStatus.ENTREGADO)
+                .filter(o -> o.getCreatedAt().toLocalDate().equals(today))
+                .mapToDouble(Order::getTotalAmount)
+                .sum();
+
+        stats.put("totalGanancias", totalGanancias);
+
+        return stats;
     }
 
     private String generateOrderNumber() {
