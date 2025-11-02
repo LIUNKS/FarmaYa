@@ -57,14 +57,33 @@ public class User implements UserDetails {
     }
 
     public Role getRole() {
-        // Determinar el rol basado en rolId: 1 = ADMIN, 2 = CLIENTE/USER
-        return (rolId != null && rolId == 1) ? Role.ADMIN : Role.USER;
+        // Determinar el rol basado en rolId: 1 = ADMIN, 2 = CLIENTE/USER, 3 = DELIVERY
+        if (rolId == null)
+            return Role.USER;
+        switch (rolId) {
+            case 1:
+                return Role.ADMIN;
+            case 3:
+                return Role.DELIVERY;
+            default:
+                return Role.USER;
+        }
     }
 
     public void setRole(Role role) {
         this.role = role;
         // Actualizar rolId basado en el role
-        this.rolId = (role == Role.ADMIN) ? 1 : 2;
+        switch (role) {
+            case ADMIN:
+                this.rolId = 1;
+                break;
+            case DELIVERY:
+                this.rolId = 3;
+                break;
+            default:
+                this.rolId = 2;
+                break;
+        }
     }
 
     public Integer getRolId() {
@@ -120,7 +139,15 @@ public class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Determinar el rol basado en rolId
-        Role currentRole = (rolId != null && rolId == 1) ? Role.ADMIN : Role.USER;
+        Role currentRole;
+        if (rolId == null)
+            currentRole = Role.USER;
+        else if (rolId == 1)
+            currentRole = Role.ADMIN;
+        else if (rolId == 3)
+            currentRole = Role.DELIVERY;
+        else
+            currentRole = Role.USER;
         return List.of(new SimpleGrantedAuthority("ROLE_" + currentRole.name()));
     }
 
