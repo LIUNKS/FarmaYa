@@ -39,6 +39,10 @@ public class Order {
     @JoinColumn(name = "usuario_id")
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "repartidor_id")
+    private User repartidor;
+
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<OrderItem> items = new ArrayList<>();
@@ -165,5 +169,13 @@ public class Order {
         this.shippingAddress.setDireccionLinea(address);
         this.shippingAddress.setDistrito(district);
         this.shippingAddress.setReferencia(reference);
+    }
+
+    public User getRepartidor() {
+        return repartidor;
+    }
+
+    public void setRepartidor(User repartidor) {
+        this.repartidor = repartidor;
     }
 }
