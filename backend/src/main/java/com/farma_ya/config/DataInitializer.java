@@ -7,12 +7,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * Inicializador de datos para crear el usuario administrador por defecto
+ * Solo se ejecuta en perfiles que NO sean "test"
  */
 @Configuration
+@Profile("!test & !acceptance")
 public class DataInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
