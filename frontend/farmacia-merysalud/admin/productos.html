@@ -1,4 +1,4 @@
-<!-- productos.html -->
+<!-- admin/productos.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -20,12 +20,15 @@
             background: #343a40;
             min-height: 100vh;
             padding: 20px 0;
+            position: fixed;
+            width: 16.666667%;
         }
         
         .sidebar .nav-link {
             color: #adb5bd;
             padding: 10px 20px;
             margin: 5px 0;
+            cursor: pointer;
         }
         
         .sidebar .nav-link:hover {
@@ -57,9 +60,41 @@
             object-fit: cover;
             border-radius: 5px;
         }
+
+        .main-content {
+            margin-left: 16.666667%;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .spinner-border-lg {
+            width: 3rem;
+            height: 3rem;
+        }
     </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="text-center">
+            <div class="spinner-border spinner-border-lg text-light" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="text-white mt-3">Cargando...</p>
+        </div>
+    </div>
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
@@ -85,14 +120,14 @@
                         <i class="fas fa-user-cog"></i> Mi Perfil
                     </a>
                     <hr class="bg-secondary">
-                    <a class="nav-link" href="#" onclick="logout()">
+                    <a class="nav-link" id="logoutBtn">
                         <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                     </a>
                 </nav>
             </div>
 
             <!-- Main Content -->
-            <div class="col-md-10 pt-4">
+            <div class="col-md-10 main-content pt-4">
                 <!-- Top Bar -->
                 <div class="top-navbar">
                     <div class="d-flex justify-content-between align-items-center">
@@ -110,13 +145,52 @@
                 <!-- Content -->
                 <div class="p-4">
                     <div class="content-card">
+                        <!-- Stats -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Total Productos</h6>
+                                        <h3 id="totalProducts">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Productos Activos</h6>
+                                        <h3 id="activeProducts">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Stock Bajo</h6>
+                                        <h3 id="lowStock">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Sin Stock</h6>
+                                        <h3 id="outOfStock">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Actions -->
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div>
+                            <div class="d-flex gap-2">
                                 <input type="text" class="form-control" id="searchProduct" 
-                                       placeholder="Buscar producto..." style="width: 300px;">
+                                       placeholder="Buscar por nombre o categoría..." style="width: 300px;">
+                                <select class="form-select" id="filterCategory" style="width: 200px;">
+                                    <option value="">Todas las categorías</option>
+                                </select>
                             </div>
-                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#productModal">
+                            <button class="btn btn-success" id="btnNuevoProducto">
                                 <i class="fas fa-plus"></i> Nuevo Producto
                             </button>
                         </div>
@@ -124,10 +198,11 @@
                         <!-- Table -->
                         <div class="table-responsive">
                             <table class="table table-hover">
-                                <thead>
+                                <thead class="table-light">
                                     <tr>
                                         <th>ID</th>
                                         <th>Imagen</th>
+                                        <th>SKU</th>
                                         <th>Nombre</th>
                                         <th>Categoría</th>
                                         <th>Precio</th>
@@ -137,7 +212,13 @@
                                     </tr>
                                 </thead>
                                 <tbody id="productsTable">
-                                    <!-- Se llenará dinámicamente -->
+                                    <tr>
+                                        <td colspan="9" class="text-center">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Cargando...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -156,19 +237,24 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Alert container -->
+                    <div id="modalAlertContainer"></div>
+
                     <form id="productForm">
                         <input type="hidden" id="productId">
+                        
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-8">
                                 <div class="mb-3">
-                                    <label class="form-label">Nombre *</label>
+                                    <label class="form-label">Nombre del Producto *</label>
                                     <input type="text" class="form-control" id="productName" required>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">SKU</label>
-                                    <input type="text" class="form-control" id="productSku">
+                                    <input type="text" class="form-control" id="productSku" 
+                                           placeholder="PROD-001">
                                 </div>
                             </div>
                         </div>
@@ -178,13 +264,17 @@
                                 <div class="mb-3">
                                     <label class="form-label">Categoría *</label>
                                     <select class="form-select" id="productCategory" required>
-                                        <option value="">Seleccionar</option>
+                                        <option value="">Seleccionar categoría</option>
                                         <option value="Analgésicos">Analgésicos</option>
                                         <option value="Vitaminas">Vitaminas</option>
                                         <option value="Primeros Auxilios">Primeros Auxilios</option>
                                         <option value="Protección">Protección</option>
                                         <option value="Equipos">Equipos</option>
                                         <option value="Medicamentos">Medicamentos</option>
+                                        <option value="Gastroenterología">Gastroenterología</option>
+                                        <option value="Respiratorio">Respiratorio</option>
+                                        <option value="Antivirales">Antivirales</option>
+                                        <option value="Dermatología">Dermatología</option>
                                     </select>
                                 </div>
                             </div>
@@ -200,7 +290,7 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label class="form-label">Precio *</label>
+                                    <label class="form-label">Precio (S/.) *</label>
                                     <input type="number" class="form-control" id="productPrice" 
                                            step="0.01" min="0" required>
                                 </div>
@@ -224,154 +314,438 @@
                         </div>
                         
                         <div class="mb-3">
+                            <label class="form-label">Principio Activo</label>
+                            <input type="text" class="form-control" id="productPrincipioActivo" 
+                                   placeholder="Ej: PARACETAMOL">
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Descripción</label>
                             <textarea class="form-control" id="productDescription" rows="3"></textarea>
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">URL de Imagen</label>
-                            <input type="url" class="form-control" id="productImage" 
-                                   placeholder="https://ejemplo.com/imagen.jpg">
+                            <input type="text" class="form-control" id="productImage" 
+                                   placeholder="/img_1.png">
+                            <small class="text-muted">Ruta relativa de la imagen (ej: /img_1.png)</small>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="saveProduct()">Guardar</button>
+                    <button type="button" class="btn btn-primary" id="saveBtn">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Scripts - ORDEN IMPORTANTE -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/api-config.js"></script>
+    <script src="../assets/js/data.js"></script>
+    <script src="../assets/js/app.js"></script>
+    
     <script>
-        // Check auth
-        const adminUser = JSON.parse(sessionStorage.getItem('adminUser'));
-        // if (!adminUser || adminUser.rol !== 'ADMIN') {
-        //     window.location.href = './index.html';
-        // }
-        document.getElementById('adminName').textContent = adminUser.nombre;
+        console.log('=== INICIO DE productos.html ===');
+        console.log('Verificando APIs cargadas...');
+        console.log('ProductAPI:', typeof ProductAPI !== 'undefined' ? 'OK' : 'ERROR');
+        console.log('AuthAPI:', typeof AuthAPI !== 'undefined' ? 'OK' : 'ERROR');
 
-        // Productos simulados
-        let productos = JSON.parse(localStorage.getItem('productos_admin')) || [
-            {id: 1, sku: 'PAR001', nombre: 'Paracetamol 500mg', categoria: 'Analgésicos', precio: 5.50, stock: 100, activo: true, imagen: 'https://via.placeholder.com/50'},
-            {id: 2, sku: 'IBU001', nombre: 'Ibuprofeno 400mg', categoria: 'Analgésicos', precio: 8.00, stock: 75, activo: true, imagen: 'https://via.placeholder.com/50'},
-            {id: 3, sku: 'VIT001', nombre: 'Vitamina C 1000mg', categoria: 'Vitaminas', precio: 12.00, stock: 50, activo: true, imagen: 'https://via.placeholder.com/50'}
-        ];
+        // Variables globales
+        let productos = [];
+        let productosFiltrados = [];
+        let productModal;
 
-        // Cargar tabla
-        function loadProducts() {
+        // Verificar autenticación al cargar
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOMContentLoaded - Iniciando verificación de sesión...');
+            
+            // Verificar sesión
+            const token = localStorage.getItem('accessToken');
+            const usuario = localStorage.getItem('usuarioActual');
+            
+            console.log('Token presente:', !!token);
+            console.log('Usuario presente:', !!usuario);
+            
+            if (!token || !usuario) {
+                console.error('Sesión no encontrada');
+                alert('Sesión no encontrada. Redirigiendo al login...');
+                window.location.href = './index.html';
+                return;
+            }
+
+            const userData = JSON.parse(usuario);
+            console.log('Usuario:', userData);
+            
+            // Verificar que sea ADMIN
+            if (userData.rol !== 'ADMIN') {
+                console.error('Usuario no es ADMIN:', userData.rol);
+                alert('Acceso denegado. Solo administradores pueden acceder a esta sección.');
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // Mostrar nombre del admin
+            document.getElementById('adminName').textContent = userData.nombre;
+
+            // Inicializar modal
+            productModal = new bootstrap.Modal(document.getElementById('productModal'));
+
+            // Configurar event listeners
+            setupEventListeners();
+
+            // Cargar productos desde el backend
+            console.log('Cargando productos desde backend...');
+            await loadProducts();
+
+            // Cargar categorías para el filtro
+            loadCategories();
+        });
+
+        // Configurar todos los event listeners
+        function setupEventListeners() {
+            // Búsqueda y filtros
+            document.getElementById('searchProduct').addEventListener('input', filterProducts);
+            document.getElementById('filterCategory').addEventListener('change', filterProducts);
+
+            // Botón nuevo producto
+            document.getElementById('btnNuevoProducto').addEventListener('click', openNewProductModal);
+
+            // Botón guardar en modal
+            document.getElementById('saveBtn').addEventListener('click', saveProduct);
+
+            // Botón logout
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        }
+
+        // Mostrar/ocultar loading overlay
+        function showLoading(show = true) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        // Mostrar alertas en el modal
+        function showModalAlert(message, type = 'danger') {
+            const container = document.getElementById('modalAlertContainer');
+            container.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${type === 'danger' ? 'exclamation-circle' : 'check-circle'}"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+
+        // Mostrar notificación toast
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px;';
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // Cargar productos desde el backend
+        async function loadProducts() {
+            try {
+                console.log('Llamando a ProductAPI.getAllProducts()...');
+                showLoading(true);
+                
+                productos = await ProductAPI.getAllProducts();
+                productosFiltrados = productos;
+                
+                console.log('✓ Productos cargados exitosamente:', productos.length);
+                console.log('Primeros 3 productos:', productos.slice(0, 3));
+                
+                renderProducts();
+                updateStats();
+                showLoading(false);
+            } catch (error) {
+                console.error('✗ Error al cargar productos:', error);
+                showLoading(false);
+                
+                const tbody = document.getElementById('productsTable');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            Error al cargar productos: ${error.message}
+                            <br>
+                            <small>Verifica que el backend esté corriendo en http://localhost:8080</small>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Renderizar productos en la tabla
+        function renderProducts() {
             const tbody = document.getElementById('productsTable');
+            
+            if (productosFiltrados.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">
+                            <i class="fas fa-inbox"></i> No se encontraron productos
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = productosFiltrados.map(producto => {
+                const imagenUrl = producto.imageUrl 
+                    ? `../assets/images${producto.imageUrl}` 
+                    : 'https://via.placeholder.com/50?text=Sin+Imagen';
+                
+                return `
+                    <tr>
+                        <td>${producto.id}</td>
+                        <td>
+                            <img src="${imagenUrl}" 
+                                 class="product-img" 
+                                 alt="${producto.name}"
+                                 onerror="this.src='https://via.placeholder.com/50?text=Error'">
+                        </td>
+                        <td>${producto.sku || '-'}</td>
+                        <td>${producto.name}</td>
+                        <td><span class="badge bg-secondary">${producto.categoria}</span></td>
+                        <td class="fw-bold">S/. ${producto.price.toFixed(2)}</td>
+                        <td>
+                            <span class="badge ${getStockBadgeClass(producto.stock)}">
+                                ${producto.stock}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge ${producto.activo ? 'bg-success' : 'bg-danger'}">
+                                ${producto.activo ? 'Activo' : 'Inactivo'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="editProduct(${producto.id})" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${producto.id})" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Obtener clase de badge según el stock
+        function getStockBadgeClass(stock) {
+            if (stock === 0) return 'bg-danger';
+            if (stock < 10) return 'bg-warning text-dark';
+            return 'bg-success';
+        }
+
+        // Actualizar estadísticas
+        function updateStats() {
+            document.getElementById('totalProducts').textContent = productos.length;
+            document.getElementById('activeProducts').textContent = 
+                productos.filter(p => p.activo).length;
+            document.getElementById('lowStock').textContent = 
+                productos.filter(p => p.stock > 0 && p.stock < 10).length;
+            document.getElementById('outOfStock').textContent = 
+                productos.filter(p => p.stock === 0).length;
+        }
+
+        // Cargar categorías únicas para el filtro
+        function loadCategories() {
+            const categoriasSet = new Set(productos.map(p => p.categoria));
+            const select = document.getElementById('filterCategory');
+            
+            // Limpiar opciones excepto la primera
+            select.innerHTML = '<option value="">Todas las categorías</option>';
+            
+            Array.from(categoriasSet).sort().forEach(categoria => {
+                const option = document.createElement('option');
+                option.value = categoria;
+                option.textContent = categoria;
+                select.appendChild(option);
+            });
+        }
+
+        // Filtrar productos
+        function filterProducts() {
             const searchTerm = document.getElementById('searchProduct').value.toLowerCase();
+            const selectedCategory = document.getElementById('filterCategory').value;
             
-            const filteredProducts = productos.filter(p => 
-                p.nombre.toLowerCase().includes(searchTerm) || 
-                p.categoria.toLowerCase().includes(searchTerm)
-            );
+            productosFiltrados = productos.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
+                                     p.categoria.toLowerCase().includes(searchTerm) ||
+                                     (p.sku && p.sku.toLowerCase().includes(searchTerm));
+                const matchesCategory = !selectedCategory || p.categoria === selectedCategory;
+                
+                return matchesSearch && matchesCategory;
+            });
             
-            tbody.innerHTML = filteredProducts.map(producto => `
-                <tr>
-                    <td>${producto.id}</td>
-                    <td><img src="${producto.imagen}" class="product-img" alt="${producto.nombre}"></td>
-                    <td>${producto.nombre}</td>
-                    <td><span class="badge bg-secondary">${producto.categoria}</span></td>
-                    <td>S/. ${producto.precio.toFixed(2)}</td>
-                    <td>
-                        <span class="badge ${producto.stock > 10 ? 'bg-success' : 'bg-warning'}">
-                            ${producto.stock}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge ${producto.activo ? 'bg-success' : 'bg-danger'}">
-                            ${producto.activo ? 'Activo' : 'Inactivo'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="editProduct(${producto.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteProduct(${producto.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            renderProducts();
         }
 
-        // Editar producto
-        function editProduct(id) {
-            const producto = productos.find(p => p.id === id);
-            if (producto) {
-                document.getElementById('productId').value = producto.id;
-                document.getElementById('productName').value = producto.nombre;
-                document.getElementById('productSku').value = producto.sku || '';
-                document.getElementById('productCategory').value = producto.categoria;
-                document.getElementById('productPrice').value = producto.precio;
-                document.getElementById('productStock').value = producto.stock;
-                document.getElementById('productStatus').value = producto.activo;
-                document.getElementById('productDescription').value = producto.descripcion || '';
-                document.getElementById('productImage').value = producto.imagen || '';
-                document.getElementById('modalTitle').textContent = 'Editar Producto';
-                new bootstrap.Modal(document.getElementById('productModal')).show();
-            }
-        }
-
-        // Guardar producto
-        function saveProduct() {
-            const id = document.getElementById('productId').value;
-            const producto = {
-                id: id ? parseInt(id) : productos.length + 1,
-                nombre: document.getElementById('productName').value,
-                sku: document.getElementById('productSku').value,
-                categoria: document.getElementById('productCategory').value,
-                precio: parseFloat(document.getElementById('productPrice').value),
-                stock: parseInt(document.getElementById('productStock').value),
-                activo: document.getElementById('productStatus').value === 'true',
-                descripcion: document.getElementById('productDescription').value,
-                imagen: document.getElementById('productImage').value || 'https://via.placeholder.com/50'
-            };
-            
-            if (id) {
-                const index = productos.findIndex(p => p.id === parseInt(id));
-                productos[index] = producto;
-            } else {
-                productos.push(producto);
-            }
-            
-            localStorage.setItem('productos_admin', JSON.stringify(productos));
-            loadProducts();
-            bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-            document.getElementById('productForm').reset();
-            alert('Producto guardado exitosamente');
-        }
-
-        // Eliminar producto
-        function deleteProduct(id) {
-            if (confirm('¿Está seguro de eliminar este producto?')) {
-                productos = productos.filter(p => p.id !== id);
-                localStorage.setItem('productos_admin', JSON.stringify(productos));
-                loadProducts();
-            }
-        }
-
-        // Reset modal
-        document.getElementById('productModal').addEventListener('hidden.bs.modal', function() {
+        // Abrir modal para nuevo producto
+        function openNewProductModal() {
             document.getElementById('productForm').reset();
             document.getElementById('productId').value = '';
             document.getElementById('modalTitle').textContent = 'Nuevo Producto';
-        });
+            document.getElementById('modalAlertContainer').innerHTML = '';
+            productModal.show();
+        }
 
-        // Search
-        document.getElementById('searchProduct').addEventListener('input', loadProducts);
+        // Editar producto
+        async function editProduct(id) {
+            try {
+                console.log('Editando producto ID:', id);
+                showLoading(true);
+                const producto = await ProductAPI.getProductById(id);
+                showLoading(false);
+                
+                console.log('Producto obtenido:', producto);
+                
+                document.getElementById('productId').value = producto.id;
+                document.getElementById('productName').value = producto.name;
+                document.getElementById('productSku').value = producto.sku || '';
+                document.getElementById('productCategory').value = producto.categoria;
+                document.getElementById('productPresentation').value = producto.presentacion || '';
+                document.getElementById('productPrice').value = producto.price;
+                document.getElementById('productStock').value = producto.stock;
+                document.getElementById('productStatus').value = producto.activo.toString();
+                document.getElementById('productPrincipioActivo').value = producto.principioActivo || '';
+                document.getElementById('productDescription').value = producto.description || '';
+                document.getElementById('productImage').value = producto.imageUrl || '';
+                
+                document.getElementById('modalTitle').textContent = 'Editar Producto';
+                document.getElementById('modalAlertContainer').innerHTML = '';
+                productModal.show();
+            } catch (error) {
+                console.error('Error al cargar producto:', error);
+                showLoading(false);
+                showNotification('Error al cargar el producto: ' + error.message, 'danger');
+            }
+        }
+
+        // Guardar producto (crear o actualizar)
+        async function saveProduct() {
+            console.log('Guardando producto...');
+            
+            // Limpiar alertas previas
+            document.getElementById('modalAlertContainer').innerHTML = '';
+            
+            // Validar formulario
+            const form = document.getElementById('productForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            const id = document.getElementById('productId').value;
+            const productData = {
+                name: document.getElementById('productName').value.trim(),
+                sku: document.getElementById('productSku').value.trim() || null,
+                categoria: document.getElementById('productCategory').value,
+                presentacion: document.getElementById('productPresentation').value.trim() || null,
+                price: parseFloat(document.getElementById('productPrice').value),
+                stock: parseInt(document.getElementById('productStock').value),
+                activo: document.getElementById('productStatus').value === 'true',
+                principioActivo: document.getElementById('productPrincipioActivo').value.trim() || null,
+                description: document.getElementById('productDescription').value.trim() || null,
+                imageUrl: document.getElementById('productImage').value.trim() || null
+            };
+            
+            console.log('Datos del producto:', productData);
+            
+            try {
+                // Deshabilitar botón mientras se procesa
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+                
+                if (id) {
+                    // Actualizar producto existente
+                    console.log('Actualizando producto ID:', id);
+                    await ProductAPI.updateProduct(id, productData);
+                    showNotification('Producto actualizado exitosamente', 'success');
+                } else {
+                    // Crear nuevo producto
+                    console.log('Creando nuevo producto');
+                    await ProductAPI.createProduct(productData);
+                    showNotification('Producto creado exitosamente', 'success');
+                }
+                
+                // Recargar productos
+                await loadProducts();
+                
+                // Cerrar modal
+                productModal.hide();
+                form.reset();
+                
+            } catch (error) {
+                console.error('Error al guardar producto:', error);
+                showModalAlert('Error al guardar producto: ' + error.message, 'danger');
+            } finally {
+                // Restaurar botón
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar';
+            }
+        }
+
+        // Eliminar producto
+        async function deleteProduct(id) {
+            const producto = productos.find(p => p.id === id);
+            if (!producto) return;
+            
+            if (!confirm(`¿Está seguro de eliminar el producto "${producto.name}"?\n\nEsta acción no se puede deshacer.`)) {
+                return;
+            }
+            
+            try {
+                console.log('Eliminando producto ID:', id);
+                showLoading(true);
+                await ProductAPI.deleteProduct(id);
+                showLoading(false);
+                
+                showNotification('Producto eliminado exitosamente', 'success');
+                await loadProducts();
+            } catch (error) {
+                console.error('Error al eliminar producto:', error);
+                showLoading(false);
+                showNotification('Error al eliminar producto: ' + error.message, 'danger');
+            }
+        }
 
         // Logout
         function logout() {
-            sessionStorage.removeItem('adminUser');
-            window.location.href = './index.html';
+            console.log('Cerrando sesión...');
+            if (confirm('¿Desea cerrar sesión?')) {
+                // Limpiar TODOS los datos de sesión
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('usuarioActual');
+                localStorage.removeItem('userData');
+                sessionStorage.removeItem('adminUser');
+                
+                console.log('Sesión cerrada. Redirigiendo al login...');
+                
+                // Redirigir al login del admin
+                window.location.href = './index.html';
+            }
         }
 
-        // Load on init
-        loadProducts();
+        // Hacer las funciones globales para que los onclick funcionen
+        window.editProduct = editProduct;
+        window.deleteProduct = deleteProduct;
+        window.logout = logout;
     </script>
 </body>
 </html>
