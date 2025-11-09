@@ -18,8 +18,8 @@ const App = {
         // Actualizar badge del carrito
         await this.updateCartBadge();
         
-        // Iniciar validación automática de token
-        this.startTokenValidationTimer();
+        // ⚠️ DESACTIVADO: Causaba modal de sesión expirada en modo público
+        // this.startTokenValidationTimer();
         
         // Eventos globales
         this.bindGlobalEvents();
@@ -57,23 +57,11 @@ const App = {
         localStorage.removeItem('userData');
     },
 
-    // Iniciar timer para validar token periódicamente (cada 2 minutos)
+    // ⚠️ MÉTODO DESACTIVADO - Causaba problemas en modo público
+    // Iniciar timer para validar token periódicamente
     startTokenValidationTimer() {
-        // Validar token cada 2 minutos (menos que la expiración de 5 minutos)
-        setInterval(async () => {
-            const token = localStorage.getItem('accessToken');
-            const usuario = dataStore.getCurrentUser();
-            
-            if (token && usuario) {
-                try {
-                    await AuthAPI.getCurrentUser();
-                    console.log('Token validado automáticamente');
-                } catch (error) {
-                    console.warn('Token expirado durante validación automática:', error.message);
-                    this.showSessionExpiredModal();
-                }
-            }
-        }, 2 * 60 * 1000); // 2 minutos
+        // NO hacer nada - método desactivado
+        console.log('⚠️ Validación automática de token DESACTIVADA');
     },
 
     // Cargar componentes HTML reutilizables
@@ -141,7 +129,7 @@ const App = {
         // Verificar si la página actual requiere autenticación
         const needsAuth = protectedPaths.some(p => path.includes(p));
         
-        // Si hay token, validar con el backend
+        // ✅ CORREGIDO: Solo validar token si el usuario ESTÁ logueado
         if (token && usuario) {
             try {
                 // Validar token llamando a una API que requiere autenticación
@@ -149,9 +137,15 @@ const App = {
                 console.log('Token válido, usuario autenticado');
             } catch (error) {
                 console.warn('Token inválido o expirado:', error.message);
-                // Limpiar sesión si el token no es válido
-                dataStore.logout();
-                this.showSessionExpiredModal();
+                
+                // ✅ SOLO mostrar modal si estamos en página protegida
+                if (needsAuth) {
+                    this.showSessionExpiredModal();
+                } else {
+                    // En página pública, solo limpiar sesión sin mostrar modal
+                    dataStore.logout();
+                    console.log('Sesión expirada limpiada silenciosamente (modo público)');
+                }
                 return false;
             }
         }
