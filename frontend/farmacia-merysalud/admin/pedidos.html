@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,8 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/styles.css">
+    
     <style>
         body {
             background-color: #f5f5f5;
@@ -21,12 +19,15 @@
             background: #343a40;
             min-height: 100vh;
             padding: 20px 0;
+            position: fixed;
+            width: 16.666667%;
         }
 
         .sidebar .nav-link {
             color: #adb5bd;
             padding: 10px 20px;
             margin: 5px 0;
+            cursor: pointer;
         }
 
         .sidebar .nav-link:hover {
@@ -58,13 +59,40 @@
             object-fit: cover;
             border-radius: 5px;
         }
+
+        .main-content {
+            margin-left: 16.666667%;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
     </style>
 </head>
 
 <body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="text-center">
+            <div class="spinner-border spinner-border-lg text-light" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="text-white mt-3">Cargando pedidos...</p>
+        </div>
+    </div>
+
     <div class="container-fluid">
-        <!-- Navbar Admin -->
         <div class="row">
+            <!-- Sidebar -->
             <div class="col-md-2 p-0 sidebar">
                 <div class="text-center text-white py-3">
                     <i class="fas fa-clinic-medical fa-2x mb-2"></i>
@@ -87,22 +115,28 @@
                         <i class="fas fa-user-cog"></i> Mi Perfil
                     </a>
                     <hr class="bg-secondary">
-                    <a class="nav-link" href="#" onclick="logout()">
+                    <a class="nav-link" id="logoutBtn">
                         <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                     </a>
                 </nav>
             </div>
 
-
             <!-- Main Content -->
-            <main class="container-fluid py-4">
+            <main class="col-md-10 main-content py-4">
                 <!-- Page Header -->
                 <div class="top-navbar mb-3">
-                    <div class="col">
-                        <h1 class="h3 mb-3 fw-bold">
-                            <i class="fas fa-box text-success"></i> Gestión de Pedidos
-                        </h1>
-                        <p class="text-muted">Monitoreo y administración de todos los pedidos</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1 class="h3 mb-2 fw-bold">
+                                <i class="fas fa-box text-success"></i> Gestión de Pedidos
+                            </h1>
+                            <p class="text-muted mb-0">Monitoreo y administración de todos los pedidos</p>
+                        </div>
+                        <div>
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-user"></i> <span id="adminName">Admin</span>
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -120,16 +154,17 @@
                     <div class="col-md-3">
                         <select class="form-select" id="estadoFilter">
                             <option value="">Todos los estados</option>
-                            <option value="PENDIENTE">Pendiente</option>
-                            <option value="EN_PROCESO">En Proceso</option>
-                            <option value="ENTREGADO">Entregado</option>
+                            <option value="PENDING">Pendiente</option>
+                            <option value="PROCESSING">En Proceso</option>
+                            <option value="DELIVERED">Entregado</option>
+                            <option value="CANCELLED">Cancelado</option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <input type="date" class="form-control" id="fechaFilter">
                     </div>
                     <div class="col-md-2">
-                        <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                        <button class="btn btn-outline-secondary w-100" id="btnClearFilters">
                             <i class="fas fa-times"></i> Limpiar
                         </button>
                     </div>
@@ -187,7 +222,7 @@
                                         <th>Cliente</th>
                                         <th>Teléfono</th>
                                         <th>Fecha</th>
-                                        <th>Productos</th>
+                                        <th>Items</th>
                                         <th>Total</th>
                                         <th>Estado</th>
                                         <th>Repartidor</th>
@@ -195,7 +230,13 @@
                                     </tr>
                                 </thead>
                                 <tbody id="pedidosTable">
-                                    <!-- Se llenará dinámicamente -->
+                                    <tr>
+                                        <td colspan="9" class="text-center">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Cargando...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -225,127 +266,161 @@
         </div>
     </div>
 
+    <!-- Modal Asignar Repartidor -->
+    <div class="modal fade" id="asignarRepartidorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-motorcycle"></i> Asignar Repartidor
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="pedidoIdAsignar">
+                    <div class="mb-3">
+                        <label class="form-label">Seleccionar Repartidor</label>
+                        <select class="form-select" id="selectRepartidor">
+                            <option value="">Seleccione un repartidor...</option>
+                            <!-- Se llenará dinámicamente con los repartidores disponibles -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmarAsignacion">Asignar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- <script src="../assets/js/data.js"></script> -->
-    <!-- <script src="../assets/js/app.js"></script> -->
+    <script src="../assets/js/api-config.js"></script>
+    <script src="../assets/js/data.js"></script>
+    <script src="../assets/js/app.js"></script>
 
     <script>
+        console.log('=== INICIO DE pedidos.html ===');
+        console.log('Verificando APIs cargadas...');
+        console.log('OrderAPI:', typeof OrderAPI !== 'undefined' ? 'OK' : 'ERROR');
+
+        // Variables globales
         let allPedidos = [];
         let filteredPedidos = [];
+        let detalleModal;
+        let asignarRepartidorModal;
 
-        document.addEventListener('DOMContentLoaded', function () {
-            checkAdminAuth();
-            loadPedidos();
+        // Verificar autenticación al cargar
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOMContentLoaded - Iniciando verificación de sesión...');
+            
+            // Verificar sesión
+            const token = localStorage.getItem('accessToken');
+            const usuario = localStorage.getItem('usuarioActual');
+            
+            if (!token || !usuario) {
+                alert('Sesión no encontrada. Redirigiendo al login...');
+                window.location.href = './index.html';
+                return;
+            }
+
+            const userData = JSON.parse(usuario);
+            
+            // Verificar que sea ADMIN
+            if (userData.rol !== 'ADMIN') {
+                alert('Acceso denegado. Solo administradores pueden acceder a esta sección.');
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // Mostrar nombre del admin
+            document.getElementById('adminName').textContent = userData.nombre;
+
+            // Inicializar modales
+            detalleModal = new bootstrap.Modal(document.getElementById('detallePedidoModal'));
+            asignarRepartidorModal = new bootstrap.Modal(document.getElementById('asignarRepartidorModal'));
+
+            // Configurar event listeners
             setupEventListeners();
+
+            // Cargar pedidos desde el backend
+            await loadPedidos();
+
+            // Cargar repartidores para el select
+            loadRepartidores();
         });
 
-        function checkAdminAuth() {
-            // const adminUser = JSON.parse(sessionStorage.getItem('adminUser') || 'null');
-
-            // if (!adminUser || adminUser.rol !== 'ADMIN') {
-            //     window.location.href = './index.html';
-            //     return;
-            // }
-
-            // document.getElementById('adminName').textContent = adminUser.nombre;
-        }
-
+        // Configurar event listeners
         function setupEventListeners() {
-            // Filtros en tiempo real
             document.getElementById('searchInput').addEventListener('input', applyFilters);
             document.getElementById('estadoFilter').addEventListener('change', applyFilters);
             document.getElementById('fechaFilter').addEventListener('change', applyFilters);
+            document.getElementById('btnClearFilters').addEventListener('click', clearFilters);
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            document.getElementById('btnConfirmarAsignacion').addEventListener('click', confirmarAsignacion);
         }
 
-        function loadPedidos() {
-    // Datos por defecto para demostración
-    const defaultData = {
-        pedidos: [
-            {
-                id: 1,
-                numero: "ORD-001",
-                clienteNombre: "María García",
-                telefono: "999888777",
-                direccion: "Av. Brasil 123, Breña",
-                productos: [
-                    {id: 1, nombre: "Paracetamol 500mg", cantidad: 2, precio: 5.50, subtotal: 11.00},
-                    {id: 3, nombre: "Vitamina C 1000mg", cantidad: 1, precio: 12.00, subtotal: 12.00}
-                ],
-                total: 23.00,
-                estado: "PENDIENTE",
-                fecha: "2024-12-20 10:30"
-            },
-            {
-                id: 2,
-                numero: "ORD-002",
-                clienteNombre: "Carlos Mendoza",
-                telefono: "987654321",
-                direccion: "Jr. Lampa 456, Cercado de Lima",
-                productos: [
-                    {id: 5, nombre: "Alcohol 70°", cantidad: 2, precio: 6.00, subtotal: 12.00}
-                ],
-                total: 12.00,
-                estado: "EN_PROCESO",
-                fecha: "2024-12-20 11:15"
-            },
-            {
-                id: 3,
-                numero: "ORD-003",
-                clienteNombre: "Ana López",
-                telefono: "945123789",
-                direccion: "Av. Universitaria 1245, San Miguel",
-                productos: [
-                    {id: 2, nombre: "Ibuprofeno 400mg", cantidad: 1, precio: 8.00, subtotal: 8.00},
-                    {id: 7, nombre: "Mascarillas KN95", cantidad: 10, precio: 2.00, subtotal: 20.00}
-                ],
-                total: 28.00,
-                estado: "ENTREGADO",
-                fecha: "2024-12-20 09:00"
-            },
-            {
-                id: 4,
-                numero: "ORD-004",
-                clienteNombre: "Roberto Silva",
-                telefono: "912345678",
-                direccion: "Av. Arequipa 2890, Lince",
-                productos: [
-                    {id: 8, nombre: "Termómetro Digital", cantidad: 1, precio: 25.00, subtotal: 25.00}
-                ],
-                total: 25.00,
-                estado: "PENDIENTE",
-                fecha: "2024-12-20 13:45"
-            }
-        ]
-    };
-
-    let data = defaultData;
-    
-    // Si dataStore está disponible, intentar usar datos reales
-    if (typeof dataStore !== 'undefined') {
-        try {
-            const realData = dataStore.getData();
-            if (realData && realData.pedidos && realData.pedidos.length > 0) {
-                data = realData;
-            }
-        } catch (error) {
-            console.log('Usando datos por defecto para demostración de pedidos');
+        // Mostrar/ocultar loading
+        function showLoading(show = true) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
-    }
 
-    allPedidos = data.pedidos;
-    filteredPedidos = [...allPedidos];
-    
-    updateStats();
-    renderPedidosTable();
-}
+        // Mostrar notificación
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px;';
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 3000);
+        }
 
+        // Cargar pedidos desde el backend
+        async function loadPedidos() {
+            try {
+                console.log('Llamando a OrderAPI.getAllOrders()...');
+                showLoading(true);
+                
+                allPedidos = await OrderAPI.getAllOrders();
+                filteredPedidos = [...allPedidos];
+                
+                console.log('✓ Pedidos cargados exitosamente:', allPedidos.length);
+                console.log('Primer pedido:', allPedidos[0]);
+                
+                updateStats();
+                renderPedidosTable();
+                showLoading(false);
+            } catch (error) {
+                console.error('✗ Error al cargar pedidos:', error);
+                showLoading(false);
+                
+                const tbody = document.getElementById('pedidosTable');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            Error al cargar pedidos: ${error.message}
+                            <br>
+                            <small>Verifica que el backend esté corriendo en http://localhost:8080</small>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Actualizar estadísticas
         function updateStats() {
             const stats = {
-                pendientes: allPedidos.filter(p => p.estado === 'PENDIENTE').length,
-                proceso: allPedidos.filter(p => p.estado === 'EN_PROCESO').length,
-                entregados: allPedidos.filter(p => p.estado === 'ENTREGADO').length,
-                totalVentas: allPedidos.reduce((sum, p) => sum + p.total, 0)
+                pendientes: allPedidos.filter(p => p.status === 'PENDING').length,
+                proceso: allPedidos.filter(p => p.status === 'PROCESSING').length,
+                entregados: allPedidos.filter(p => p.status === 'DELIVERED').length,
+                totalVentas: allPedidos.reduce((sum, p) => sum + (p.totalAmount || p.calculatedTotalAmount || 0), 0)
             };
 
             document.getElementById('totalPendientes').textContent = stats.pendientes;
@@ -354,6 +429,7 @@
             document.getElementById('totalVentas').textContent = `S/. ${stats.totalVentas.toFixed(2)}`;
         }
 
+        // Aplicar filtros
         function applyFilters() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const estadoFilter = document.getElementById('estadoFilter').value;
@@ -362,15 +438,19 @@
             filteredPedidos = allPedidos.filter(pedido => {
                 // Filtro de búsqueda
                 const matchSearch = !searchTerm ||
-                    pedido.numero.toLowerCase().includes(searchTerm) ||
-                    pedido.clienteNombre.toLowerCase().includes(searchTerm);
+                    pedido.numeroPedido.toLowerCase().includes(searchTerm) ||
+                    pedido.user.username.toLowerCase().includes(searchTerm) ||
+                    pedido.user.email.toLowerCase().includes(searchTerm);
 
                 // Filtro de estado
-                const matchEstado = !estadoFilter || pedido.estado === estadoFilter;
+                const matchEstado = !estadoFilter || pedido.status === estadoFilter;
 
                 // Filtro de fecha
-                const matchFecha = !fechaFilter ||
-                    pedido.fecha.split(' ')[0] === fechaFilter;
+                let matchFecha = true;
+                if (fechaFilter) {
+                    const pedidoFecha = formatDateArray(pedido.createdAt, 'date-only');
+                    matchFecha = pedidoFecha === fechaFilter;
+                }
 
                 return matchSearch && matchEstado && matchFecha;
             });
@@ -378,6 +458,7 @@
             renderPedidosTable();
         }
 
+        // Renderizar tabla de pedidos
         function renderPedidosTable() {
             const tbody = document.getElementById('pedidosTable');
 
@@ -393,155 +474,279 @@
                 return;
             }
 
-            let html = '';
-            filteredPedidos.forEach(pedido => {
-                const badgeClass = {
-                    'PENDIENTE': 'warning',
-                    'EN_PROCESO': 'info',
-                    'ENTREGADO': 'success'
-                }[pedido.estado] || 'secondary';
+            tbody.innerHTML = filteredPedidos.map(pedido => {
+                const badgeClass = getStatusBadgeClass(pedido.status);
+                const statusText = getStatusText(pedido.status);
+                const repartidorNombre = pedido.repartidor 
+                    ? pedido.repartidor.username 
+                    : '<em class="text-muted">Sin asignar</em>';
 
-                html += `
+                return `
                     <tr>
-                        <td><strong>${pedido.numero}</strong></td>
-                        <td>${pedido.clienteNombre}</td>
+                        <td><strong>${pedido.numeroPedido}</strong></td>
+                        <td>${pedido.user.username}</td>
                         <td>
-                            <a href="tel:${pedido.telefono}" class="text-decoration-none">
-                                <i class="fas fa-phone text-success"></i> ${pedido.telefono}
+                            <a href="tel:${pedido.user.telefono}" class="text-decoration-none">
+                                <i class="fas fa-phone text-success"></i> ${pedido.user.telefono}
                             </a>
                         </td>
-                        <td>${pedido.fecha}</td>
+                        <td>${formatDateArray(pedido.createdAt)}</td>
                         <td>
-                            <span class="badge bg-secondary">${pedido.productos.length} items</span>
+                            <span class="badge bg-secondary">${pedido.items.length} items</span>
                         </td>
-                        <td><strong>S/. ${pedido.total.toFixed(2)}</strong></td>
+                        <td><strong>S/. ${(pedido.totalAmount || pedido.calculatedTotalAmount || 0).toFixed(2)}</strong></td>
                         <td>
                             <select class="form-select form-select-sm" 
                                     onchange="cambiarEstado(${pedido.id}, this.value)">
-                                <option value="PENDIENTE" ${pedido.estado === 'PENDIENTE' ? 'selected' : ''}>Pendiente</option>
-                                <option value="EN_PROCESO" ${pedido.estado === 'EN_PROCESO' ? 'selected' : ''}>En Proceso</option>
-                                <option value="ENTREGADO" ${pedido.estado === 'ENTREGADO' ? 'selected' : ''}>Entregado</option>
+                                <option value="PENDING" ${pedido.status === 'PENDING' ? 'selected' : ''}>Pendiente</option>
+                                <option value="PROCESSING" ${pedido.status === 'PROCESSING' ? 'selected' : ''}>En Proceso</option>
+                                <option value="DELIVERED" ${pedido.status === 'DELIVERED' ? 'selected' : ''}>Entregado</option>
+                                <option value="CANCELLED" ${pedido.status === 'CANCELLED' ? 'selected' : ''}>Cancelado</option>
                             </select>
                         </td>
                         <td>
-                            <span class="text-info">
-                                <i class="fas fa-motorcycle"></i> Pedro Repartidor
-                            </span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="${pedido.repartidor ? 'text-info' : 'text-muted'}">
+                                    <i class="fas fa-motorcycle"></i> ${repartidorNombre}
+                                </span>
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick="abrirModalAsignarRepartidor(${pedido.id})"
+                                        title="Cambiar repartidor">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
                         </td>
                         <td>
                             <button class="btn btn-sm btn-outline-primary me-1" 
-                                    onclick="verDetalle(${pedido.id})">
+                                    onclick="verDetalle(${pedido.id})"
+                                    title="Ver detalle">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <a href="tel:${pedido.telefono}" class="btn btn-sm btn-outline-success">
+                            <a href="tel:${pedido.user.telefono}" class="btn btn-sm btn-outline-success"
+                               title="Llamar al cliente">
                                 <i class="fas fa-phone"></i>
                             </a>
                         </td>
                     </tr>
                 `;
-            });
-
-            tbody.innerHTML = html;
+            }).join('');
         }
 
-        function cambiarEstado(pedidoId, nuevoEstado) {
-    if (confirm(`¿Cambiar estado del pedido a "${nuevoEstado}"?`)) {
-        // Actualizar en datos locales
-        const pedido = allPedidos.find(p => p.id === pedidoId);
-        if (pedido) {
-            pedido.estado = nuevoEstado;
+        // Obtener clase de badge según estado
+        function getStatusBadgeClass(status) {
+            const classes = {
+                'PENDING': 'warning',
+                'PROCESSING': 'info',
+                'DELIVERED': 'success',
+                'CANCELLED': 'danger'
+            };
+            return classes[status] || 'secondary';
         }
-        
-        // Si dataStore está disponible, usarlo también
-        if (typeof dataStore !== 'undefined') {
+
+        // Obtener texto del estado en español
+        function getStatusText(status) {
+            const texts = {
+                'PENDING': 'Pendiente',
+                'PROCESSING': 'En Proceso',
+                'DELIVERED': 'Entregado',
+                'CANCELLED': 'Cancelado'
+            };
+            return texts[status] || status;
+        }
+
+        // Formatear array de fecha [2025, 11, 9, 0, 16, 46] a string
+        function formatDateArray(dateArray, format = 'full') {
+            if (!dateArray || dateArray.length < 3) return 'N/A';
+            
+            const [year, month, day, hour = 0, minute = 0, second = 0] = dateArray;
+            
+            if (format === 'date-only') {
+                // Formato: 2025-11-09 (para comparar con input date)
+                return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            }
+            
+            // Formato: 09/11/2025 00:16
+            return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year} ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        }
+
+        // Cambiar estado del pedido
+        async function cambiarEstado(pedidoId, nuevoEstado) {
+            const estadoTexto = getStatusText(nuevoEstado);
+            
+            if (!confirm(`¿Cambiar estado del pedido a "${estadoTexto}"?`)) {
+                // Revertir el select si cancela
+                await loadPedidos();
+                return;
+            }
+            
             try {
-                dataStore.updatePedidoEstado(pedidoId, nuevoEstado);
+                console.log(`Cambiando estado del pedido ${pedidoId} a ${nuevoEstado}`);
+                showLoading(true);
+                
+                await OrderAPI.updateOrderStatus(pedidoId, nuevoEstado);
+                
+                showLoading(false);
+                showNotification(`Estado actualizado a ${estadoTexto}`, 'success');
+                
+                // Recargar pedidos
+                await loadPedidos();
             } catch (error) {
-                console.log('Actualizando solo datos locales');
+                console.error('Error al cambiar estado:', error);
+                showLoading(false);
+                showNotification('Error al actualizar estado: ' + error.message, 'danger');
+                
+                // Recargar para revertir cambios
+                await loadPedidos();
             }
         }
-        
-        loadPedidos(); // Recargar datos
-        showNotification(`Estado actualizado a ${nuevoEstado}`, 'success');
-    }
-}
 
-        function verDetalle(pedidoId) {
-            const pedido = allPedidos.find(p => p.id === pedidoId);
-            if (!pedido) return;
-
-            const modal = new bootstrap.Modal(document.getElementById('detallePedidoModal'));
-            const content = document.getElementById('detallePedidoContent');
-
-            let productosHtml = '';
-            pedido.productos.forEach(producto => {
-                productosHtml += `
-                    <tr>
-                        <td>${producto.nombre}</td>
-                        <td class="text-center">${producto.cantidad}</td>
-                        <td class="text-end">S/. ${producto.precio.toFixed(2)}</td>
-                        <td class="text-end"><strong>S/. ${producto.subtotal.toFixed(2)}</strong></td>
-                    </tr>
-                `;
-            });
-
-            const badgeClass = {
-                'PENDIENTE': 'warning',
-                'EN_PROCESO': 'info',
-                'ENTREGADO': 'success'
-            }[pedido.estado] || 'secondary';
-
-            content.innerHTML = `
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6><i class="fas fa-info-circle"></i> Información del Pedido</h6>
-                        <table class="table table-sm">
-                            <tr><th>N° Pedido:</th><td>${pedido.numero}</td></tr>
-                            <tr><th>Fecha:</th><td>${pedido.fecha}</td></tr>
-                            <tr><th>Estado:</th><td><span class="badge bg-${badgeClass}">${pedido.estado}</span></td></tr>
-                            <tr><th>Total:</th><td><strong>S/. ${pedido.total.toFixed(2)}</strong></td></tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <h6><i class="fas fa-user"></i> Información del Cliente</h6>
-                        <table class="table table-sm">
-                            <tr><th>Nombre:</th><td>${pedido.clienteNombre}</td></tr>
-                            <tr><th>Teléfono:</th><td>
-                                <a href="tel:${pedido.telefono}">${pedido.telefono}</a>
-                            </td></tr>
-                            <tr><th>Dirección:</th><td>${pedido.direccion}</td></tr>
-                            <tr><th>Repartidor:</th><td>Pedro Repartidor</td></tr>
-                        </table>
-                    </div>
-                </div>
+        // Ver detalle del pedido
+        async function verDetalle(pedidoId) {
+            try {
+                console.log('Obteniendo detalle del pedido:', pedidoId);
+                showLoading(true);
                 
-                <h6 class="mt-4"><i class="fas fa-pills"></i> Productos del Pedido</h6>
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Producto</th>
-                                <th class="text-center">Cantidad</th>
-                                <th class="text-end">Precio Unit.</th>
-                                <th class="text-end">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${productosHtml}
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-success">
-                                <th colspan="3" class="text-end">TOTAL:</th>
-                                <th class="text-end">S/. ${pedido.total.toFixed(2)}</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            `;
+                const pedido = await OrderAPI.getOrderById(pedidoId);
+                
+                showLoading(false);
+                console.log('Detalle del pedido:', pedido);
+                
+                const content = document.getElementById('detallePedidoContent');
 
-            modal.show();
+                let productosHtml = '';
+                pedido.items.forEach(item => {
+                    productosHtml += `
+                        <tr>
+                            <td>${item.product.name}</td>
+                            <td class="text-center">${item.quantity}</td>
+                            <td class="text-end">S/. ${item.price.toFixed(2)}</td>
+                            <td class="text-end"><strong>S/. ${item.subtotal.toFixed(2)}</strong></td>
+                        </tr>
+                    `;
+                });
+
+                const badgeClass = getStatusBadgeClass(pedido.status);
+                const statusText = getStatusText(pedido.status);
+
+                content.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-info-circle"></i> Información del Pedido</h6>
+                            <table class="table table-sm">
+                                <tr><th>N° Pedido:</th><td>${pedido.numeroPedido}</td></tr>
+                                <tr><th>Fecha:</th><td>${formatDateArray(pedido.createdAt)}</td></tr>
+                                <tr><th>Estado:</th><td><span class="badge bg-${badgeClass}">${statusText}</span></td></tr>
+                                <tr><th>Total:</th><td><strong>S/. ${(pedido.totalAmount || pedido.calculatedTotalAmount).toFixed(2)}</strong></td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-user"></i> Información del Cliente</h6>
+                            <table class="table table-sm">
+                                <tr><th>Nombre:</th><td>${pedido.user.username}</td></tr>
+                                <tr><th>Email:</th><td>${pedido.user.email}</td></tr>
+                                <tr><th>Teléfono:</th><td>
+                                    <a href="tel:${pedido.user.telefono}">${pedido.user.telefono}</a>
+                                </td></tr>
+                                <tr><th>Repartidor:</th><td>${pedido.repartidor ? pedido.repartidor.username : '<em class="text-muted">Sin asignar</em>'}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <h6 class="mt-4"><i class="fas fa-map-marker-alt"></i> Dirección de Envío</h6>
+                    <p class="mb-1"><strong>Dirección:</strong> ${pedido.shippingAddress || 'No especificada'}</p>
+                    <p class="mb-1"><strong>Distrito:</strong> ${pedido.shippingDistrict || 'No especificado'}</p>
+                    <p class="mb-3"><strong>Referencia:</strong> ${pedido.shippingReference || 'Sin referencia'}</p>
+                    
+                    <h6 class="mt-4"><i class="fas fa-pills"></i> Productos del Pedido</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Producto</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-end">Precio Unit.</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${productosHtml}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-success">
+                                    <th colspan="3" class="text-end">TOTAL:</th>
+                                    <th class="text-end">S/. ${(pedido.totalAmount || pedido.calculatedTotalAmount).toFixed(2)}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+
+                detalleModal.show();
+            } catch (error) {
+                console.error('Error al obtener detalle:', error);
+                showLoading(false);
+                showNotification('Error al cargar detalle del pedido: ' + error.message, 'danger');
+            }
         }
 
+        // Cargar lista de repartidores
+        function loadRepartidores() {
+            // TODO: Implementar endpoint para obtener lista de repartidores
+            // Por ahora, agregamos opciones de ejemplo
+            const select = document.getElementById('selectRepartidor');
+            select.innerHTML = `
+                <option value="">Seleccione un repartidor...</option>
+                <option value="3">Pedro Repartidor</option>
+                <option value="4">Juan Delivery</option>
+                <option value="5">María Transport</option>
+            `;
+        }
+
+        // Abrir modal para asignar repartidor
+        function abrirModalAsignarRepartidor(pedidoId) {
+            document.getElementById('pedidoIdAsignar').value = pedidoId;
+            
+            // Buscar el pedido actual para preseleccionar el repartidor si ya tiene uno
+            const pedido = allPedidos.find(p => p.id === pedidoId);
+            if (pedido && pedido.repartidor) {
+                document.getElementById('selectRepartidor').value = pedido.repartidor.id;
+            } else {
+                document.getElementById('selectRepartidor').value = '';
+            }
+            
+            asignarRepartidorModal.show();
+        }
+
+        // Confirmar asignación de repartidor
+        async function confirmarAsignacion() {
+            const pedidoId = document.getElementById('pedidoIdAsignar').value;
+            const repartidorId = document.getElementById('selectRepartidor').value;
+            
+            if (!repartidorId) {
+                alert('Por favor seleccione un repartidor');
+                return;
+            }
+            
+            try {
+                console.log(`Asignando repartidor ${repartidorId} al pedido ${pedidoId}`);
+                showLoading(true);
+                
+                await OrderAPI.assignDelivery(pedidoId, repartidorId);
+                
+                showLoading(false);
+                asignarRepartidorModal.hide();
+                showNotification('Repartidor asignado exitosamente', 'success');
+                
+                // Recargar pedidos
+                await loadPedidos();
+            } catch (error) {
+                console.error('Error al asignar repartidor:', error);
+                showLoading(false);
+                showNotification('Error al asignar repartidor: ' + error.message, 'danger');
+            }
+        }
+
+        // Limpiar filtros
         function clearFilters() {
             document.getElementById('searchInput').value = '';
             document.getElementById('estadoFilter').value = '';
@@ -549,13 +754,24 @@
             applyFilters();
         }
 
+        // Logout
         function logout() {
             if (confirm('¿Desea cerrar sesión?')) {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('usuarioActual');
+                localStorage.removeItem('userData');
                 sessionStorage.removeItem('adminUser');
                 window.location.href = './index.html';
             }
         }
+
+        // Hacer funciones globales
+        window.cambiarEstado = cambiarEstado;
+        window.verDetalle = verDetalle;
+        window.abrirModalAsignarRepartidor = abrirModalAsignarRepartidor;
+        window.confirmarAsignacion = confirmarAsignacion;
+        window.logout = logout;
     </script>
 </body>
-
 </html>
