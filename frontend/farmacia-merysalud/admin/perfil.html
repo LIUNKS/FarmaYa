@@ -1,3 +1,4 @@
+<!-- admin/perfil.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,8 +10,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/styles.css">
     
     <style>
         body {
@@ -21,12 +20,15 @@
             background: #343a40;
             min-height: 100vh;
             padding: 20px 0;
+            position: fixed;
+            width: 16.666667%;
         }
         
         .sidebar .nav-link {
             color: #adb5bd;
             padding: 10px 20px;
             margin: 5px 0;
+            cursor: pointer;
         }
         
         .sidebar .nav-link:hover {
@@ -64,16 +66,41 @@
             font-size: 3rem;
             margin: 0 auto 20px;
         }
-        
-        .product-img {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 5px;
+
+        .main-content {
+            margin-left: 16.666667%;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .spinner-border-lg {
+            width: 3rem;
+            height: 3rem;
         }
     </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="text-center">
+            <div class="spinner-border spinner-border-lg text-light" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="text-white mt-3">Cargando...</p>
+        </div>
+    </div>
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
@@ -99,14 +126,14 @@
                         <i class="fas fa-user-cog"></i> Mi Perfil
                     </a>
                     <hr class="bg-secondary">
-                    <a class="nav-link" href="#" onclick="logout()">
+                    <a class="nav-link" id="logoutBtn">
                         <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                     </a>
                 </nav>
             </div>
 
             <!-- Main Content -->
-            <div class="col-md-10 pt-4">
+            <div class="col-md-10 main-content pt-4">
                 <!-- Top Bar -->
                 <div class="top-navbar">
                     <div class="d-flex justify-content-between align-items-center">
@@ -115,7 +142,7 @@
                         </h1>
                         <div>
                             <span class="badge bg-secondary">
-                                <i class="fas fa-user"></i> <span id="adminName">Juan Administrador</span>
+                                <i class="fas fa-user"></i> <span id="adminName">Admin</span>
                             </span>
                         </div>
                     </div>
@@ -130,50 +157,46 @@
                                 <div class="profile-avatar">
                                     <i class="fas fa-user-shield"></i>
                                 </div>
-                                <h4 id="profileName">Juan Administrador</h4>
+                                <h4 id="profileName">Cargando...</h4>
                                 <p class="text-muted" id="profileRole">Administrador del Sistema</p>
-                                <p class="text-muted" id="profileEmail">admin@farmacia.com</p>
+                                <p class="text-muted" id="profileEmail">...</p>
                                 
                                 <hr>
                                 
                                 <div class="row text-center">
                                     <div class="col">
-                                        <h5 class="text-primary" id="totalProductosAdmin">12</h5>
+                                        <h5 class="text-primary" id="totalProductosAdmin">-</h5>
                                         <small>Productos</small>
                                     </div>
                                     <div class="col">
-                                        <h5 class="text-success" id="totalPedidosAdmin">8</h5>
-                                        <small>Pedidos</small>
-                                    </div>
-                                    <div class="col">
-                                        <h5 class="text-info" id="totalUsuariosAdmin">3</h5>
+                                        <h5 class="text-success" id="totalUsuarios">-</h5>
                                         <small>Usuarios</small>
                                     </div>
                                 </div>
                                 
                                 <hr>
                                 
-                                <!-- Activity Summary -->
+                                <!-- Account Info -->
                                 <div class="text-start">
-                                    <h6 class="fw-bold mb-3">Actividad Reciente</h6>
-                                    <div class="mb-2">
-                                        <small class="text-muted">
-                                            <i class="fas fa-clock text-primary"></i>
-                                            Último login: Hoy 09:30
-                                        </small>
-                                    </div>
-                                    <div class="mb-2">
-                                        <small class="text-muted">
-                                            <i class="fas fa-edit text-success"></i>
-                                            Productos actualizados: 3
-                                        </small>
-                                    </div>
-                                    <div class="mb-2">
-                                        <small class="text-muted">
-                                            <i class="fas fa-check text-warning"></i>
-                                            Pedidos procesados: 5
-                                        </small>
-                                    </div>
+                                    <h6 class="fw-bold mb-3">Información de la Cuenta</h6>
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <th>ID Usuario:</th>
+                                            <td id="userId">#-</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Rol:</th>
+                                            <td><span class="badge bg-success" id="userRole">-</span></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Estado:</th>
+                                            <td><span class="badge bg-success" id="userStatus">-</span></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Registro:</th>
+                                            <td id="userCreatedAt">-</td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -186,137 +209,90 @@
                                 </h5>
                                 
                                 <!-- Change Password Form -->
-                                <form id="changePasswordForm">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">
-                                                    <i class="fas fa-lock"></i> Contraseña Actual
-                                                </label>
-                                                <input type="password" class="form-control" id="currentPassword" required>
-                                                <div class="form-text">Ingrese su contraseña actual</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">
-                                                    <i class="fas fa-key"></i> Nueva Contraseña
-                                                </label>
-                                                <input type="password" class="form-control" id="newPassword" required minlength="6">
-                                                <div class="form-text">Mínimo 6 caracteres</div>
-                                            </div>
-                                        </div>
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-lock"></i> Cambiar Contraseña</h6>
                                     </div>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">
-                                                    <i class="fas fa-check-circle"></i> Confirmar Nueva Contraseña
-                                                </label>
-                                                <input type="password" class="form-control" id="confirmPassword" required minlength="6">
-                                                <div class="form-text">Repita la nueva contraseña</div>
+                                    <div class="card-body">
+                                        <form id="changePasswordForm">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Contraseña Actual *</label>
+                                                        <input type="password" class="form-control" id="currentPassword" 
+                                                               required minlength="1">
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-6 d-flex align-items-end">
-                                            <button type="submit" class="btn btn-primary w-100">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Nueva Contraseña *</label>
+                                                        <input type="password" class="form-control" id="newPassword" 
+                                                               required minlength="6">
+                                                        <div class="form-text">Mínimo 6 caracteres</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Confirmar Nueva Contraseña *</label>
+                                                        <input type="password" class="form-control" id="confirmPassword" 
+                                                               required minlength="6">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <button type="submit" class="btn btn-primary">
                                                 <i class="fas fa-save"></i> Cambiar Contraseña
                                             </button>
-                                        </div>
+                                        </form>
                                     </div>
-                                </form>
-                                
-                                <hr class="my-4">
+                                </div>
                                 
                                 <!-- Personal Information Form -->
-                                <h5 class="mb-3">
-                                    <i class="fas fa-user"></i> Información Personal
-                                </h5>
-                                
-                                <form id="personalInfoForm">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">Nombre Completo</label>
-                                                <input type="text" class="form-control" id="fullName" value="Juan Administrador">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">Email</label>
-                                                <input type="email" class="form-control" id="email" value="admin@farmacia.com" readonly>
-                                                <div class="form-text">El email no se puede modificar</div>
-                                            </div>
-                                        </div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-user"></i> Información Personal</h6>
                                     </div>
-                                    
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">Teléfono</label>
-                                                <input type="tel" class="form-control" id="phone" value="999777666">
+                                    <div class="card-body">
+                                        <form id="personalInfoForm">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Nombre de Usuario *</label>
+                                                        <input type="text" class="form-control" id="fullName" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Email</label>
+                                                        <input type="email" class="form-control" id="email" readonly>
+                                                        <div class="form-text">El email no se puede modificar</div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label">Cargo</label>
-                                                <input type="text" class="form-control" value="Administrador General" readonly>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Teléfono</label>
+                                                        <input type="tel" class="form-control" id="phone" 
+                                                               pattern="[0-9]{9}" placeholder="999888777">
+                                                        <div class="form-text">9 dígitos</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Rol</label>
+                                                        <input type="text" class="form-control" id="roleDisplay" readonly>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <button type="submit" class="btn btn-success">
-                                        <i class="fas fa-save"></i> Actualizar Información
-                                    </button>
-                                </form>
-                                
-                                <hr class="my-4">
-                                
-                                <!-- Account Info -->
-                                <h5 class="mb-3">
-                                    <i class="fas fa-info-circle"></i> Información de la Cuenta
-                                </h5>
-                                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <table class="table table-sm">
-                                            <tr>
-                                                <th>ID de Usuario:</th>
-                                                <td id="adminId">#2</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Rol:</th>
-                                                <td><span class="badge bg-success">ADMIN</span></td>
-                                            </tr>
-                                            <tr>
-                                                <th>Estado:</th>
-                                                <td><span class="badge bg-success">Activo</span></td>
-                                            </tr>
-                                            <tr>
-                                                <th>Permisos:</th>
-                                                <td><span class="badge bg-primary">Completos</span></td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <table class="table table-sm">
-                                            <tr>
-                                                <th>Último Login:</th>
-                                                <td id="lastLogin">Hoy 09:30</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Fecha de Creación:</th>
-                                                <td>01/01/2024</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Sesiones Activas:</th>
-                                                <td>1</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Intentos de Login:</th>
-                                                <td class="text-success">Exitosos</td>
-                                            </tr>
-                                        </table>
+                                            
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-save"></i> Actualizar Información
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                                 
@@ -333,23 +309,17 @@
                                             <a href="../index.html" class="btn btn-outline-info">
                                                 <i class="fas fa-globe"></i> Ver Sitio Público
                                             </a>
-                                            <button class="btn btn-outline-warning" onclick="exportData()">
-                                                <i class="fas fa-download"></i> Exportar Datos
-                                            </button>
-                                            <button class="btn btn-outline-secondary" onclick="generateReport()">
-                                                <i class="fas fa-chart-bar"></i> Generar Reporte
-                                            </button>
+                                            <a href="./dashboard.html" class="btn btn-outline-primary">
+                                                <i class="fas fa-tachometer-alt"></i> Ir al Dashboard
+                                            </a>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="d-grid gap-2">
-                                            <button class="btn btn-outline-secondary" onclick="clearLogs()">
-                                                <i class="fas fa-trash"></i> Limpiar Logs
+                                            <button class="btn btn-outline-secondary" onclick="refreshProfile()">
+                                                <i class="fas fa-sync"></i> Recargar Perfil
                                             </button>
-                                            <button class="btn btn-outline-info" onclick="backupData()">
-                                                <i class="fas fa-database"></i> Backup Sistema
-                                            </button>
-                                            <button class="btn btn-outline-danger" onclick="logout()">
+                                            <button class="btn btn-outline-danger" id="logoutBtnAlt">
                                                 <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                                             </button>
                                         </div>
@@ -365,90 +335,62 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- <script src="../assets/js/data.js"></script> -->
-    <!-- <script src="../assets/js/app.js"></script> -->
+    <script src="../assets/js/api-config.js"></script>
+    <script src="../assets/js/data.js"></script>
+    <script src="../assets/js/app.js"></script>
 
     <script>
-        // Datos por defecto para demostración
-        const defaultAdminData = {
-            id: 2,
-            nombre: "Juan Administrador",
-            email: "admin@farmacia.com",
-            telefono: "999777666",
-            rol: "ADMIN",
-            totalProductos: 12,
-            totalPedidos: 8,
-            totalUsuarios: 3,
-            ultimoLogin: "Hoy 09:30",
-            fechaCreacion: "01/01/2024"
-        };
+        console.log('=== INICIO DE perfil.html ===');
+        console.log('Verificando APIs cargadas...');
+        console.log('UserAPI:', typeof UserAPI !== 'undefined' ? 'OK' : 'ERROR');
 
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAdminAuth();
-            loadProfileData();
-            setupFormValidation();
+        // Variable global para almacenar el perfil
+        let currentProfile = null;
+
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOMContentLoaded - Iniciando...');
+            
+            // Verificar sesión
+            const token = localStorage.getItem('accessToken');
+            const usuario = localStorage.getItem('usuarioActual');
+            
+            if (!token || !usuario) {
+                alert('Sesión no encontrada. Redirigiendo al login...');
+                window.location.href = './index.html';
+                return;
+            }
+
+            const userData = JSON.parse(usuario);
+            
+            // Verificar que sea ADMIN
+            if (userData.rol !== 'ADMIN') {
+                alert('Acceso denegado. Solo administradores pueden acceder a esta sección.');
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // Mostrar nombre del admin en navbar
+            document.getElementById('adminName').textContent = userData.nombre;
+
+            // Configurar event listeners
+            setupEventListeners();
+
+            // Cargar perfil desde backend
+            await loadProfile();
+
+            // Cargar estadísticas
+            await loadStats();
         });
 
-        function checkAdminAuth() {
-            let adminUser = JSON.parse(sessionStorage.getItem('adminUser') || 'null');
-            
-            // Si no hay usuario en sesión, usar datos por defecto para demostración
-            if (!adminUser) {
-                adminUser = defaultAdminData;
-                console.log('Usando datos por defecto para demostración del perfil');
-            }
-            
-            // Cargar información del usuario
-            document.getElementById('adminName').textContent = adminUser.nombre;
-            document.getElementById('profileName').textContent = adminUser.nombre;
-            document.getElementById('profileEmail').textContent = adminUser.email;
-            document.getElementById('adminId').textContent = `#${adminUser.id}`;
-            document.getElementById('fullName').value = adminUser.nombre;
-            document.getElementById('email').value = adminUser.email;
-            document.getElementById('phone').value = adminUser.telefono || "999777666";
-        }
-
-        function loadProfileData() {
-            // Cargar estadísticas del admin (datos por defecto o reales)
-            let stats = defaultAdminData;
-            
-            // Si dataStore está disponible, intentar usar datos reales
-            if (typeof dataStore !== 'undefined') {
-                try {
-                    const data = dataStore.getData();
-                    stats = {
-                        totalProductos: data.productos.length,
-                        totalPedidos: data.pedidos.length,
-                        totalUsuarios: data.usuarios.filter(u => u.rol === 'CLIENTE').length
-                    };
-                } catch (error) {
-                    console.log('Usando estadísticas por defecto');
-                }
-            }
-            
-            document.getElementById('totalProductosAdmin').textContent = stats.totalProductos;
-            document.getElementById('totalPedidosAdmin').textContent = stats.totalPedidos;
-            document.getElementById('totalUsuariosAdmin').textContent = stats.totalUsuarios;
-            
-            // Simular último login
-            document.getElementById('lastLogin').textContent = new Date().toLocaleDateString('es-PE') + ' 09:30';
-        }
-
-        function setupFormValidation() {
+        // Configurar event listeners
+        function setupEventListeners() {
             // Formulario de cambio de contraseña
-            const passwordForm = document.getElementById('changePasswordForm');
-            passwordForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                changePassword();
-            });
-            
+            document.getElementById('changePasswordForm').addEventListener('submit', changePassword);
+
             // Formulario de información personal
-            const personalForm = document.getElementById('personalInfoForm');
-            personalForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                updatePersonalInfo();
-            });
-            
+            document.getElementById('personalInfoForm').addEventListener('submit', updatePersonalInfo);
+
             // Validar que las contraseñas coincidan
             document.getElementById('confirmPassword').addEventListener('input', function() {
                 const newPassword = document.getElementById('newPassword').value;
@@ -460,125 +402,213 @@
                     this.setCustomValidity('');
                 }
             });
+
+            // Botones de logout
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            document.getElementById('logoutBtnAlt').addEventListener('click', logout);
         }
 
-        function changePassword() {
+        // Mostrar/ocultar loading
+        function showLoading(show = true) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        // Mostrar notificación
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px;';
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // Cargar perfil desde el backend
+        async function loadProfile() {
+            try {
+                console.log('Cargando perfil desde backend...');
+                showLoading(true);
+                
+                currentProfile = await UserAPI.getCurrentProfile();
+                
+                console.log('✓ Perfil cargado:', currentProfile);
+                
+                // Actualizar UI con los datos del perfil
+                document.getElementById('profileName').textContent = currentProfile.username;
+                document.getElementById('profileEmail').textContent = currentProfile.email;
+                document.getElementById('fullName').value = currentProfile.username;
+                document.getElementById('email').value = currentProfile.email;
+                document.getElementById('phone').value = currentProfile.telefono || '';
+                document.getElementById('userId').textContent = `#${currentProfile.id}`;
+                document.getElementById('userRole').textContent = currentProfile.role;
+                document.getElementById('roleDisplay').value = currentProfile.role;
+                
+                // Estado
+                const statusText = currentProfile.enabled ? 'Activo' : 'Inactivo';
+                const statusClass = currentProfile.enabled ? 'bg-success' : 'bg-danger';
+                document.getElementById('userStatus').textContent = statusText;
+                document.getElementById('userStatus').className = `badge ${statusClass}`;
+                
+                // Fecha de creación
+                const createdAt = formatDate(currentProfile.creadoEn);
+                document.getElementById('userCreatedAt').textContent = createdAt;
+                
+                showLoading(false);
+            } catch (error) {
+                console.error('✗ Error al cargar perfil:', error);
+                showLoading(false);
+                showNotification('Error al cargar el perfil: ' + error.message, 'danger');
+            }
+        }
+
+        // Cargar estadísticas
+        async function loadStats() {
+            try {
+                // Cargar productos
+                const productos = await ProductAPI.getAllProducts();
+                document.getElementById('totalProductosAdmin').textContent = productos.length;
+                
+                // Cargar usuarios
+                const usuarios = await UserAPI.getAllUsers();
+                document.getElementById('totalUsuarios').textContent = usuarios.length;
+            } catch (error) {
+                console.log('No se pudieron cargar las estadísticas:', error.message);
+            }
+        }
+
+        // Formatear fecha desde array
+        function formatDate(dateArray) {
+            if (!dateArray || dateArray.length < 3) return 'N/A';
+            
+            const [year, month, day, hour, minute] = dateArray;
+            const date = new Date(year, month - 1, day, hour || 0, minute || 0);
+            
+            const options = { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric'
+            };
+            
+            return date.toLocaleDateString('es-PE', options);
+        }
+
+        // Cambiar contraseña
+        async function changePassword(e) {
+            e.preventDefault();
+            
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             
-            // Validar contraseña actual (usando la por defecto)
-            if (currentPassword !== 'admin123') {
-                showAlert('La contraseña actual es incorrecta', 'danger');
-                return;
-            }
-            
             // Validar que las nuevas contraseñas coincidan
             if (newPassword !== confirmPassword) {
-                showAlert('Las contraseñas nuevas no coinciden', 'danger');
+                showNotification('Las contraseñas nuevas no coinciden', 'danger');
                 return;
             }
             
             // Validar longitud
             if (newPassword.length < 6) {
-                showAlert('La nueva contraseña debe tener al menos 6 caracteres', 'danger');
+                showNotification('La nueva contraseña debe tener al menos 6 caracteres', 'danger');
                 return;
             }
             
-            // Simular cambio de contraseña exitoso
-            showAlert('Contraseña actualizada exitosamente', 'success');
-            
-            // Limpiar formulario
-            document.getElementById('changePasswordForm').reset();
-        }
-
-        function updatePersonalInfo() {
-            const fullName = document.getElementById('fullName').value;
-            const phone = document.getElementById('phone').value;
-            
-            if (!fullName.trim()) {
-                showAlert('El nombre es requerido', 'warning');
-                return;
-            }
-            
-            // Simular actualización exitosa
-            showAlert('Información personal actualizada exitosamente', 'success');
-            
-            // Actualizar nombre en la UI
-            document.getElementById('adminName').textContent = fullName;
-            document.getElementById('profileName').textContent = fullName;
-        }
-
-        function exportData() {
-            // Datos de ejemplo para exportar
-            const exportData = {
-                perfil: defaultAdminData,
-                timestamp: new Date().toISOString(),
-                productos: 12,
-                pedidos: 8,
-                usuarios: 3
-            };
-            
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = `farmacia_backup_${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            showAlert('Datos exportados exitosamente', 'success');
-        }
-
-        function generateReport() {
-            showAlert('Generando reporte del sistema...', 'info');
-            
-            // Simular generación de reporte
-            setTimeout(() => {
-                showAlert('Reporte generado exitosamente', 'success');
-            }, 2000);
-        }
-
-        function backupData() {
-            if (confirm('¿Desea crear un backup completo del sistema?')) {
-                showAlert('Iniciando backup del sistema...', 'info');
+            try {
+                console.log('Cambiando contraseña...');
+                showLoading(true);
                 
-                setTimeout(() => {
-                    showAlert('Backup creado exitosamente', 'success');
-                }, 3000);
+                await UserAPI.changePassword(currentPassword, newPassword);
+                
+                showLoading(false);
+                showNotification('Contraseña actualizada exitosamente', 'success');
+                
+                // Limpiar formulario
+                document.getElementById('changePasswordForm').reset();
+            } catch (error) {
+                console.error('Error al cambiar contraseña:', error);
+                showLoading(false);
+                
+                // Mensajes específicos según el error
+                let errorMsg = error.message;
+                if (error.message.includes('incorrecta') || error.message.includes('400')) {
+                    errorMsg = 'La contraseña actual es incorrecta';
+                }
+                
+                showNotification(errorMsg, 'danger');
             }
         }
 
-        function clearLogs() {
-            if (confirm('¿Está seguro de limpiar todos los logs del sistema?')) {
-                showAlert('Logs del sistema limpiados', 'info');
+        // Actualizar información personal
+        async function updatePersonalInfo(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            
+            if (!name) {
+                showNotification('El nombre es requerido', 'warning');
+                return;
+            }
+            
+            try {
+                console.log('Actualizando información personal...');
+                showLoading(true);
+                
+                const updatedUser = await UserAPI.updateProfile({
+                    name: name,
+                    phone: phone
+                });
+                
+                console.log('✓ Perfil actualizado:', updatedUser);
+                
+                // Actualizar UI
+                document.getElementById('profileName').textContent = updatedUser.username;
+                document.getElementById('adminName').textContent = updatedUser.username;
+                
+                // Actualizar localStorage
+                const userData = JSON.parse(localStorage.getItem('usuarioActual'));
+                userData.nombre = updatedUser.username;
+                userData.telefono = updatedUser.telefono;
+                localStorage.setItem('usuarioActual', JSON.stringify(userData));
+                
+                showLoading(false);
+                showNotification('Información personal actualizada exitosamente', 'success');
+            } catch (error) {
+                console.error('Error al actualizar información:', error);
+                showLoading(false);
+                showNotification('Error al actualizar información: ' + error.message, 'danger');
             }
         }
 
-        function showAlert(message, type) {
-            // Crear alerta temporal
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            
-            document.body.appendChild(alertDiv);
-            
-            // Auto-remover después de 3 segundos
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 3000);
+        // Recargar perfil
+        async function refreshProfile() {
+            showNotification('Recargando perfil...', 'info');
+            await loadProfile();
+            await loadStats();
+            showNotification('Perfil recargado exitosamente', 'success');
         }
 
+        // Logout
         function logout() {
             if (confirm('¿Desea cerrar sesión?')) {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('usuarioActual');
+                localStorage.removeItem('userData');
                 sessionStorage.removeItem('adminUser');
+                
+                console.log('Sesión cerrada. Redirigiendo al login...');
                 window.location.href = './index.html';
             }
         }
+
+        // Hacer funciones globales
+        window.refreshProfile = refreshProfile;
+        window.logout = logout;
     </script>
 </body>
 </html>
