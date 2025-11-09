@@ -66,6 +66,12 @@
             background: #212529;
             color: white;
         }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.15em;
+        }
     </style>
 </head>
 <body>
@@ -82,13 +88,16 @@
 
             <!-- Body -->
             <div class="login-body">
+                <!-- Alert container -->
+                <div id="alertContainer"></div>
+
                 <form id="adminLoginForm">
                     <div class="mb-3">
-                        <label for="email" class="form-label">
-                            <i class="fas fa-envelope"></i> Correo Electrónico
+                        <label for="username" class="form-label">
+                            <i class="fas fa-user"></i> Usuario
                         </label>
-                        <input type="email" class="form-control" id="email" required 
-                               placeholder="admin@farmacia.com">
+                        <input type="text" class="form-control" id="username" required 
+                               placeholder="Admin123" autocomplete="username">
                     </div>
                     
                     <div class="mb-4">
@@ -96,11 +105,11 @@
                             <i class="fas fa-lock"></i> Contraseña
                         </label>
                         <input type="password" class="form-control" id="password" required 
-                               placeholder="••••••••">
+                               placeholder="••••••••" autocomplete="current-password">
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-admin btn-lg">
+                        <button type="submit" class="btn btn-admin btn-lg" id="loginBtn">
                             <i class="fas fa-sign-in-alt"></i> Ingresar
                         </button>
                     </div>
@@ -120,57 +129,139 @@
 
                 <!-- Demo Users Info -->
                 <div class="alert alert-info mt-3" style="font-size: 0.875rem;">
-                    <strong>Usuarios de prueba:</strong><br>
-                    Admin: admin@farmacia.com / admin123<br>
-                    Repartidor: delivery@farmacia.com / delivery123
+                    <strong>Usuario de prueba:</strong><br>
+                    Usuario: <code>Admin123</code><br>
+                    Contraseña: <code>Admin123</code>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/api-config.js"></script>
+    
     <script>
-        // Usuarios del sistema
-        const usuarios = [
-            {
-                id: 2,
-                rol: 'ADMIN',
-                nombre: 'Administrador',
-                email: 'admin@farmacia.com',
-                password: 'admin123'
-            },
-            {
-                id: 3,
-                rol: 'REPARTIDOR',
-                nombre: 'Pedro Repartidor',
-                email: 'delivery@farmacia.com',
-                password: 'delivery123'
-            }
-        ];
+        // Estado del botón de login
+        const loginBtn = document.getElementById('loginBtn');
+        const alertContainer = document.getElementById('alertContainer');
 
-        // Login Form
-        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+        // Función para mostrar alertas
+        function showAlert(message, type = 'danger') {
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${type === 'danger' ? 'exclamation-circle' : 'check-circle'}"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+
+        // Función para cambiar estado del botón
+        function setButtonLoading(loading) {
+            if (loading) {
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = `
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    Ingresando...
+                `;
+            } else {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = `
+                    <i class="fas fa-sign-in-alt"></i> Ingresar
+                `;
+            }
+        }
+
+        // Manejar el submit del formulario
+        document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const email = document.getElementById('email').value;
+            // Limpiar alertas previas
+            alertContainer.innerHTML = '';
+            
+            // Obtener valores del formulario
+            const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             
-            const usuario = usuarios.find(u => u.email === email && u.password === password);
+            // Validación básica
+            if (!username || !password) {
+                showAlert('Por favor complete todos los campos');
+                return;
+            }
             
-            if (usuario) {
-                // Guardar sesión
-                sessionStorage.setItem('adminUser', JSON.stringify(usuario));
+            // Mostrar loading
+            setButtonLoading(true);
+            
+            try {
+                console.log('Intentando login con:', { username });
                 
-                // Redirigir según rol
-                if (usuario.rol === 'ADMIN') {
-                    console.log("ingrese al admin");
+                // Llamar al endpoint de login
+                const response = await AuthAPI.login(username, password);
+                
+                console.log('Respuesta del login:', response);
+                
+                // Verificar que el usuario sea ADMIN
+                if (response.role !== 'ADMIN') {
+                    showAlert('Acceso denegado. Solo administradores pueden ingresar al panel.');
+                    setButtonLoading(false);
                     
-                    window.location.href = './dashboard.html';
-                } else if (usuario.rol === 'REPARTIDOR') {
-                    window.location.href = '../delivery/index.html';
+                    // Limpiar tokens si no es admin
+                    AuthAPI.logout();
+                    return;
                 }
-            } else {
-                alert('Credenciales incorrectas');
+                
+                // Login exitoso
+                console.log('Login exitoso. Usuario ADMIN autenticado');
+                
+                // Guardar datos adicionales en sessionStorage (opcional)
+                sessionStorage.setItem('adminUser', JSON.stringify({
+                    username: response.username,
+                    role: response.role
+                }));
+                
+                // Mostrar mensaje de éxito breve
+                showAlert('Ingreso exitoso. Redirigiendo...', 'success');
+                
+                // Redirigir al dashboard después de 1 segundo
+                setTimeout(() => {
+                    window.location.href = './dashboard.html';
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error en login:', error);
+                
+                // Mostrar mensaje de error específico
+                let errorMessage = 'Error al iniciar sesión. ';
+                
+                if (error.message.includes('401') || error.message.includes('403')) {
+                    errorMessage += 'Usuario o contraseña incorrectos.';
+                } else if (error.message.includes('Network') || error.message.includes('Failed to fetch')) {
+                    errorMessage += 'No se pudo conectar con el servidor. Verifique que el backend esté en ejecución.';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                showAlert(errorMessage);
+                setButtonLoading(false);
+            }
+        });
+
+        // Verificar si ya hay sesión activa al cargar la página
+        window.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('accessToken');
+            const usuario = localStorage.getItem('usuarioActual');
+            
+            if (token && usuario) {
+                try {
+                    const userData = JSON.parse(usuario);
+                    if (userData.rol === 'ADMIN') {
+                        console.log('Sesión activa detectada, redirigiendo al dashboard...');
+                        window.location.href = './dashboard.html';
+                    }
+                } catch (error) {
+                    console.log('Error al verificar sesión:', error);
+                }
             }
         });
     </script>
