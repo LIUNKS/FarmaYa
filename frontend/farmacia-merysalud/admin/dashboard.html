@@ -1,3 +1,4 @@
+<!-- admin/dashboard.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,8 +10,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/styles.css">
 
     <style>
         body {
@@ -21,12 +20,15 @@
             background: #343a40;
             min-height: 100vh;
             padding: 20px 0;
+            position: fixed;
+            width: 16.666667%;
         }
         
         .sidebar .nav-link {
             color: #adb5bd;
             padding: 10px 20px;
             margin: 5px 0;
+            cursor: pointer;
         }
         
         .sidebar .nav-link:hover {
@@ -58,10 +60,50 @@
             object-fit: cover;
             border-radius: 5px;
         }
+
+        .main-content {
+            margin-left: 16.666667%;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .spinner-border-lg {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .dashboard-card {
+            transition: transform 0.2s;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
     </style>
 </head>
 
 <body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="text-center">
+            <div class="spinner-border spinner-border-lg text-light" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="text-white mt-3">Cargando Dashboard...</p>
+        </div>
+    </div>
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
@@ -87,14 +129,14 @@
                         <i class="fas fa-user-cog"></i> Mi Perfil
                     </a>
                     <hr class="bg-secondary">
-                    <a class="nav-link" href="#" onclick="logout()">
+                    <a class="nav-link" id="logoutBtn">
                         <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                     </a>
                 </nav>
             </div>
 
             <!-- Main Content -->
-            <div class="col-md-10 pt-4">
+            <div class="col-md-10 main-content pt-4">
                 <!-- Top Bar -->
                 <div class="top-navbar">
                     <div class="d-flex justify-content-between align-items-center">
@@ -120,7 +162,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <div class="text-white-50 small">Total Productos</div>
-                                            <div class="h4 fw-bold" id="totalProductos">0</div>
+                                            <div class="h4 fw-bold" id="totalProductos">-</div>
                                         </div>
                                         <div class="icon">
                                             <i class="fas fa-pills fa-2x"></i>
@@ -142,7 +184,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <div class="text-white-50 small">Total Pedidos</div>
-                                            <div class="h4 fw-bold" id="totalPedidos">0</div>
+                                            <div class="h4 fw-bold" id="totalPedidos">-</div>
                                         </div>
                                         <div class="icon">
                                             <i class="fas fa-box fa-2x"></i>
@@ -164,7 +206,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <div class="text-dark small">Pedidos Pendientes</div>
-                                            <div class="h4 fw-bold text-dark" id="pedidosPendientes">0</div>
+                                            <div class="h4 fw-bold text-dark" id="pedidosPendientes">-</div>
                                         </div>
                                         <div class="icon">
                                             <i class="fas fa-clock fa-2x text-dark"></i>
@@ -186,7 +228,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <div class="text-white-50 small">Total Usuarios</div>
-                                            <div class="h4 fw-bold" id="totalUsuarios">0</div>
+                                            <div class="h4 fw-bold" id="totalUsuarios">-</div>
                                         </div>
                                         <div class="icon">
                                             <i class="fas fa-users fa-2x"></i>
@@ -226,9 +268,13 @@
                                         <i class="fas fa-exclamation-triangle text-warning"></i> Productos con Poco Stock
                                     </h5>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                                     <div id="lowStockProducts">
-                                        <!-- Se llenará dinámicamente -->
+                                        <div class="text-center text-muted">
+                                            <div class="spinner-border" role="status">
+                                                <span class="visually-hidden">Cargando...</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -247,18 +293,24 @@
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table class="table table-hover">
-                                            <thead>
+                                            <thead class="table-light">
                                                 <tr>
                                                     <th>N° Pedido</th>
                                                     <th>Cliente</th>
-                                                    <th>Fecha</th>
+                                                    <th>Productos</th>
                                                     <th>Total</th>
                                                     <th>Estado</th>
                                                     <th>Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="recentOrdersTable">
-                                                <!-- Se llenará dinámicamente -->
+                                                <tr>
+                                                    <td colspan="6" class="text-center">
+                                                        <div class="spinner-border text-primary" role="status">
+                                                            <span class="visually-hidden">Cargando...</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                             </tbody>
                                         </table>
                                     </div>
@@ -274,160 +326,154 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- <script src="../assets/js/data.js"></script> -->
-    <!-- <script src="../assets/js/app.js"></script> -->
+    <script src="../assets/js/api-config.js"></script>
+    <script src="../assets/js/data.js"></script>
+    <script src="../assets/js/app.js"></script>
 
     <script>
-        // Verificar autenticación al cargar
-        document.addEventListener('DOMContentLoaded', function () {
-            checkAdminAuth();
-            loadDashboardData();
-        });
+        console.log('=== INICIO DE dashboard.html ===');
+        console.log('Verificando APIs cargadas...');
+        console.log('DashboardAPI:', typeof DashboardAPI !== 'undefined' ? 'OK' : 'ERROR');
 
-        function checkAdminAuth() {
-            const adminUser = JSON.parse(sessionStorage.getItem('adminUser') || 'null');
+        // Variables globales
+        let dashboardData = null;
+        let estadoChart = null;
+
+        // Verificar autenticación al cargar
+        document.addEventListener('DOMContentLoaded', async function () {
+            console.log('DOMContentLoaded - Iniciando...');
             
-            // Usar datos por defecto si no hay usuario en sesión
-            if (!adminUser) {
-                const defaultAdmin = {
-                    id: 2,
-                    nombre: "Juan Administrador",
-                    rol: "ADMIN"
-                };
-                console.log('Usando datos por defecto para demostración del dashboard');
-                document.getElementById('adminName').textContent = defaultAdmin.nombre;
+            // Verificar sesión
+            const token = localStorage.getItem('accessToken');
+            const usuario = localStorage.getItem('usuarioActual');
+            
+            if (!token || !usuario) {
+                alert('Sesión no encontrada. Redirigiendo al login...');
+                window.location.href = './index.html';
                 return;
             }
 
-            // if (!adminUser || adminUser.rol !== 'ADMIN') {
-            //     window.location.href = './index.html';
-            //     return;
-            // }
-
-            document.getElementById('adminName').textContent = adminUser.nombre;
-        }
-
-        function loadDashboardData() {
-            // Datos por defecto para demostración
-            const defaultData = {
-                productos: [
-                    {id: 1, nombre: "Paracetamol 500mg", stock: 100, categoria: "Analgésicos"},
-                    {id: 2, nombre: "Ibuprofeno 400mg", stock: 75, categoria: "Analgésicos"},
-                    {id: 3, nombre: "Vitamina C 1000mg", stock: 50, categoria: "Vitaminas"},
-                    {id: 4, nombre: "Complejo B", stock: 40, categoria: "Vitaminas"},
-                    {id: 5, nombre: "Alcohol 70°", stock: 200, categoria: "Primeros Auxilios"},
-                    {id: 6, nombre: "Gasas estériles", stock: 150, categoria: "Primeros Auxilios"},
-                    {id: 7, nombre: "Mascarillas KN95", stock: 500, categoria: "Protección"},
-                    {id: 8, nombre: "Termómetro Digital", stock: 20, categoria: "Equipos"},
-                    {id: 9, nombre: "Jarabe para la tos", stock: 8, categoria: "Medicamentos"}, // Stock bajo
-                    {id: 10, nombre: "Crema antibiótica", stock: 5, categoria: "Medicamentos"}, // Stock bajo
-                    {id: 11, nombre: "Pañales para adulto", stock: 15, categoria: "Cuidado Personal"},
-                    {id: 12, nombre: "Glucómetro", stock: 10, categoria: "Equipos"}
-                ],
-                pedidos: [
-                    {
-                        id: 1,
-                        numero: "ORD-001",
-                        clienteNombre: "María García",
-                        telefono: "999888777",
-                        direccion: "Av. Brasil 123, Breña",
-                        total: 23.00,
-                        estado: "PENDIENTE",
-                        fecha: "2024-12-20 10:30"
-                    },
-                    {
-                        id: 2,
-                        numero: "ORD-002",
-                        clienteNombre: "Carlos Mendoza",
-                        total: 22.00,
-                        estado: "EN_PROCESO",
-                        fecha: "2024-12-20 11:15"
-                    },
-                    {
-                        id: 3,
-                        numero: "ORD-003",
-                        clienteNombre: "Ana López",
-                        total: 66.50,
-                        estado: "ENTREGADO",
-                        fecha: "2024-12-20 09:00"
-                    },
-                    {
-                        id: 4,
-                        numero: "ORD-004",
-                        clienteNombre: "Roberto Silva",
-                        total: 35.50,
-                        estado: "PENDIENTE",
-                        fecha: "2024-12-20 13:45"
-                    },
-                    {
-                        id: 5,
-                        numero: "ORD-005",
-                        clienteNombre: "Lucía Fernández",
-                        total: 18.00,
-                        estado: "EN_PROCESO",
-                        fecha: "2024-12-20 12:30"
-                    }
-                ],
-                usuarios: [
-                    {id: 1, rol: "CLIENTE", nombre: "María García"},
-                    {id: 2, rol: "ADMIN", nombre: "Juan Administrador"},
-                    {id: 3, rol: "REPARTIDOR", nombre: "Pedro Repartidor"},
-                    {id: 4, rol: "CLIENTE", nombre: "Carlos Mendoza"},
-                    {id: 5, rol: "CLIENTE", nombre: "Ana López"}
-                ]
-            };
-
-            let data = defaultData;
+            const userData = JSON.parse(usuario);
             
-            // Si dataStore está disponible, intentar usar datos reales
-            if (typeof dataStore !== 'undefined') {
-                try {
-                    const realData = dataStore.getData();
-                    if (realData && realData.productos && realData.productos.length > 0) {
-                        data = realData;
-                    }
-                } catch (error) {
-                    console.log('Usando datos por defecto para demostración del dashboard');
-                }
+            // Verificar que sea ADMIN
+            if (userData.rol !== 'ADMIN') {
+                alert('Acceso denegado. Solo administradores pueden acceder a esta sección.');
+                window.location.href = '../index.html';
+                return;
             }
 
-            // Cargar estadísticas
-            document.getElementById('totalProductos').textContent = data.productos.length;
-            document.getElementById('totalPedidos').textContent = data.pedidos.length;
-            document.getElementById('totalUsuarios').textContent = data.usuarios.filter(u => u.rol === 'CLIENTE').length;
+            // Mostrar nombre del admin
+            document.getElementById('adminName').textContent = userData.nombre;
 
-            const pedidosPendientes = data.pedidos.filter(p => p.estado === 'PENDIENTE').length;
-            document.getElementById('pedidosPendientes').textContent = pedidosPendientes;
+            // Configurar event listeners
+            document.getElementById('logoutBtn').addEventListener('click', logout);
 
-            // Cargar gráfico de estados
-            loadEstadoPedidosChart(data.pedidos);
+            // Cargar datos del dashboard
+            await loadDashboardData();
+        });
 
-            // Cargar productos con poco stock
-            loadLowStockProducts(data.productos);
-
-            // Cargar pedidos recientes
-            loadRecentOrders(data.pedidos);
+        // Mostrar/ocultar loading
+        function showLoading(show = true) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
 
-        function loadEstadoPedidosChart(pedidos) {
+        // Mostrar notificación
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px;';
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // Cargar datos del dashboard
+        async function loadDashboardData() {
+            try {
+                console.log('Cargando datos del dashboard desde backend...');
+                showLoading(true);
+                
+                dashboardData = await DashboardAPI.getDashboardData();
+                
+                console.log('✓ Datos del dashboard cargados:', dashboardData);
+                
+                // Actualizar estadísticas
+                loadStats(dashboardData.stats);
+                
+                // Cargar gráfico de estados
+                loadEstadoPedidosChart(dashboardData.stats.pedidosPorEstado);
+                
+                // Cargar productos con poco stock
+                loadLowStockProducts(dashboardData.lowStockProducts);
+                
+                // Cargar pedidos recientes
+                loadRecentOrders(dashboardData.recentOrders);
+                
+                showLoading(false);
+            } catch (error) {
+                console.error('✗ Error al cargar dashboard:', error);
+                showLoading(false);
+                showNotification('Error al cargar el dashboard: ' + error.message, 'danger');
+                
+                // Mostrar mensaje de error en las secciones
+                document.getElementById('lowStockProducts').innerHTML = 
+                    '<p class="text-danger">Error al cargar productos</p>';
+                document.getElementById('recentOrdersTable').innerHTML = 
+                    '<tr><td colspan="6" class="text-center text-danger">Error al cargar pedidos</td></tr>';
+            }
+        }
+
+        // Cargar estadísticas
+        function loadStats(stats) {
+            document.getElementById('totalProductos').textContent = stats.totalProductos || 0;
+            document.getElementById('totalPedidos').textContent = stats.totalPedidos || 0;
+            document.getElementById('totalUsuarios').textContent = stats.totalUsuarios || 0;
+            document.getElementById('pedidosPendientes').textContent = stats.pedidosPorEstado?.PENDIENTE || 0;
+        }
+
+        // Cargar gráfico de estados de pedidos
+        function loadEstadoPedidosChart(pedidosPorEstado) {
+            if (!pedidosPorEstado) return;
+            
             const estados = {
-                'PENDIENTE': 0,
-                'EN_PROCESO': 0,
-                'ENTREGADO': 0
+                'PENDIENTE': pedidosPorEstado.PENDIENTE || 0,
+                'PROCESANDO': pedidosPorEstado.PROCESANDO || 0,
+                'ENVIADO': pedidosPorEstado.ENVIADO || 0,
+                'ENTREGADO': pedidosPorEstado.ENTREGADO || 0,
+                'CANCELADO': pedidosPorEstado.CANCELADO || 0
             };
 
-            pedidos.forEach(pedido => {
-                estados[pedido.estado] = (estados[pedido.estado] || 0) + 1;
-            });
-
             const ctx = document.getElementById('estadoPedidosChart').getContext('2d');
-            new Chart(ctx, {
+            
+            // Destruir gráfico anterior si existe
+            if (estadoChart) {
+                estadoChart.destroy();
+            }
+            
+            estadoChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Pendiente', 'En Proceso', 'Entregado'],
+                    labels: ['Pendiente', 'Procesando', 'Enviado', 'Entregado', 'Cancelado'],
                     datasets: [{
-                        data: [estados.PENDIENTE, estados.EN_PROCESO, estados.ENTREGADO],
-                        backgroundColor: ['#ffc107', '#17a2b8', '#28a745'],
+                        data: [
+                            estados.PENDIENTE,
+                            estados.PROCESANDO,
+                            estados.ENVIADO,
+                            estados.ENTREGADO,
+                            estados.CANCELADO
+                        ],
+                        backgroundColor: [
+                            '#ffc107', // Pendiente - Amarillo
+                            '#17a2b8', // Procesando - Azul
+                            '#007bff', // Enviado - Azul oscuro
+                            '#28a745', // Entregado - Verde
+                            '#dc3545'  // Cancelado - Rojo
+                        ],
                         borderWidth: 2,
                         borderColor: '#fff'
                     }]
@@ -444,25 +490,37 @@
             });
         }
 
+        // Cargar productos con poco stock
         function loadLowStockProducts(productos) {
-            const lowStock = productos.filter(p => p.stock <= 20).sort((a, b) => a.stock - b.stock);
             const container = document.getElementById('lowStockProducts');
 
-            if (lowStock.length === 0) {
-                container.innerHTML = '<p class="text-muted">No hay productos con stock bajo</p>';
+            if (!productos || productos.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">No hay productos con stock bajo</p>';
                 return;
             }
 
             let html = '';
-            lowStock.slice(0, 5).forEach(producto => {
+            productos.forEach(producto => {
                 const alertClass = producto.stock <= 10 ? 'danger' : 'warning';
+                const imagenUrl = producto.imageUrl 
+                    ? `../assets/images${producto.imageUrl}` 
+                    : 'https://via.placeholder.com/50?text=Sin+Imagen';
+                
                 html += `
                     <div class="alert alert-${alertClass} d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <strong>${producto.nombre}</strong><br>
-                            <small>Stock: ${producto.stock} unidades</small>
+                        <div class="d-flex align-items-center">
+                            <img src="${imagenUrl}" 
+                                 class="product-img me-3" 
+                                 alt="${producto.name}"
+                                 onerror="this.src='https://via.placeholder.com/50?text=Error'">
+                            <div>
+                                <strong>${producto.name}</strong><br>
+                                <small>Stock: ${producto.stock} unidades - ${producto.categoria}</small>
+                            </div>
                         </div>
-                        <a href="./productos.html" class="btn btn-sm btn-outline-${alertClass}">Ver</a>
+                        <a href="./productos.html" class="btn btn-sm btn-outline-${alertClass}">
+                            <i class="fas fa-eye"></i>
+                        </a>
                     </div>
                 `;
             });
@@ -470,47 +528,96 @@
             container.innerHTML = html;
         }
 
+        // Formatear fecha desde array
+        function formatDate(dateArray) {
+            if (!dateArray || dateArray.length < 3) return 'N/A';
+            
+            const [year, month, day, hour, minute] = dateArray;
+            const date = new Date(year, month - 1, day, hour || 0, minute || 0);
+            
+            const options = { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            
+            return date.toLocaleDateString('es-PE', options);
+        }
+
+        // Cargar pedidos recientes
         function loadRecentOrders(pedidos) {
             const tbody = document.getElementById('recentOrdersTable');
-            const recent = pedidos.slice(-5).reverse(); // Últimos 5 pedidos
+
+            if (!pedidos || pedidos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No hay pedidos registrados</td></tr>';
+                return;
+            }
 
             let html = '';
-            recent.forEach(pedido => {
+            pedidos.forEach(pedido => {
                 const badgeClass = {
                     'PENDIENTE': 'warning',
-                    'EN_PROCESO': 'info',
-                    'ENTREGADO': 'success'
-                }[pedido.estado] || 'secondary';
+                    'PROCESANDO': 'info',
+                    'ENVIADO': 'primary',
+                    'ENTREGADO': 'success',
+                    'CANCELADO': 'danger'
+                }[pedido.status] || 'secondary';
+
+                const fecha = formatDate(pedido.createdAt);
+                const cantidadProductos = pedido.items?.length || 0;
 
                 html += `
                     <tr>
-                        <td><strong>${pedido.numero}</strong></td>
-                        <td>${pedido.clienteNombre}</td>
-                        <td>${pedido.fecha}</td>
-                        <td><strong>S/. ${pedido.total.toFixed(2)}</strong></td>
-                        <td><span class="badge bg-${badgeClass}">${pedido.estado}</span></td>
+                        <td><strong>${pedido.numeroPedido}</strong></td>
                         <td>
-                            <a href="./pedidos.html" class="btn btn-sm btn-outline-primary">
+                            ${pedido.user?.username || 'N/A'}<br>
+                            <small class="text-muted">${pedido.user?.email || ''}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">${cantidadProductos} items</span>
+                        </td>
+                        <td><strong>S/. ${pedido.totalAmount?.toFixed(2) || '0.00'}</strong></td>
+                        <td><span class="badge bg-${badgeClass}">${pedido.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="verDetallePedido(${pedido.id})" title="Ver detalle">
                                 <i class="fas fa-eye"></i>
-                            </a>
+                            </button>
                         </td>
                     </tr>
                 `;
             });
 
-            if (html === '') {
-                html = '<tr><td colspan="6" class="text-center text-muted">No hay pedidos registrados</td></tr>';
-            }
-
             tbody.innerHTML = html;
         }
 
+        // Ver detalle de pedido (placeholder)
+        function verDetallePedido(pedidoId) {
+            showNotification('Redirigiendo a la sección de pedidos...', 'info');
+            setTimeout(() => {
+                window.location.href = './pedidos.html';
+            }, 1000);
+        }
+
+        // Logout
         function logout() {
             if (confirm('¿Desea cerrar sesión?')) {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('usuarioActual');
+                localStorage.removeItem('userData');
                 sessionStorage.removeItem('adminUser');
+                
+                console.log('Sesión cerrada. Redirigiendo al login...');
                 window.location.href = './index.html';
             }
         }
+
+        // Hacer funciones globales
+        window.verDetallePedido = verDetallePedido;
+        window.logout = logout;
     </script>
 </body>
 </html>
