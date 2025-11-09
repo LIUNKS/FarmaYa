@@ -117,20 +117,40 @@ class ApiService {
     handleError(error) {
         console.error('API Error:', error);
         
-        // Si es error 401, mostrar modal de expiración de sesión
+        // Si es error 401, verificar si es necesario mostrar modal
         if (error.message.includes('401')) {
-            // Limpiar sesión
+            const path = window.location.pathname;
+            
+            // Páginas protegidas que SÍ deben mostrar modal
+            const protectedPaths = [
+                '/admin/',
+                '/delivery/',
+                '/mis-pedidos.html'
+            ];
+            
+            const isProtectedPage = protectedPaths.some(p => path.includes(p));
+            
+            // Limpiar sesión siempre
             this.clearToken();
             
-            // Mostrar modal de expiración de sesión
-            if (window.App && window.App.showSessionExpiredModal) {
-                window.App.showSessionExpiredModal();
+            // SOLO mostrar modal si estamos en página protegida
+            if (isProtectedPage) {
+                if (window.App && window.App.showSessionExpiredModal) {
+                    window.App.showSessionExpiredModal();
+                } else {
+                    // Fallback para páginas protegidas
+                    alert('Tu sesión ha expirado. Serás redirigido al login.');
+                    setTimeout(() => {
+                        if (path.includes('/admin/')) {
+                            window.location.href = '/admin/index.html';
+                        } else {
+                            window.location.href = '/login.html';
+                        }
+                    }, 2000);
+                }
             } else {
-                // Fallback si App no está disponible
-                alert('Tu sesión ha expirado. Serás redirigido al login.');
-                setTimeout(() => {
-                    window.location.href = '/login.html';
-                }, 2000);
+                // En páginas públicas, solo limpiar sesión sin mostrar modal
+                console.log('Sesión expirada (modo público) - limpieza silenciosa');
             }
         }
         
@@ -186,6 +206,8 @@ const AuthAPI = {
 const ProductAPI = {
     api: new ApiService(),
 
+    // ============ MÉTODOS PÚBLICOS ============
+
     // Obtener todos los productos
     async getAllProducts() {
         return await this.api.get('/products', false);
@@ -204,6 +226,23 @@ const ProductAPI = {
     // Filtrar por categoría
     async getProductsByCategory(category) {
         return await this.api.get(`/products/category/${encodeURIComponent(category)}`, false);
+    },
+
+    // ============ MÉTODOS DE ADMINISTRACIÓN (requieren auth) ============
+
+    // Crear nuevo producto (Admin)
+    async createProduct(productData) {
+        return await this.api.post('/products', productData, true);
+    },
+
+    // Actualizar producto (Admin)
+    async updateProduct(id, productData) {
+        return await this.api.put(`/products/${id}`, productData, true);
+    },
+
+    // Eliminar producto (Admin)
+    async deleteProduct(id) {
+        return await this.api.delete(`/products/${id}`, true);
     }
 };
 
@@ -234,6 +273,8 @@ const CartAPI = {
 const OrderAPI = {
     api: new ApiService(),
 
+    // ============ MÉTODOS DE USUARIO ============
+
     // Crear orden
     async createOrder(orderData = null) {
         if (orderData) {
@@ -253,9 +294,67 @@ const OrderAPI = {
         return await this.api.get(`/orders/${orderId}`, true);
     },
 
+    // ============ MÉTODOS DE ADMINISTRACIÓN (requieren auth ADMIN) ============
+
+    // Obtener TODOS los pedidos (Admin)
+    async getAllOrders() {
+        return await this.api.get('/orders/admin/all', true);
+    },
+
     // Actualizar estado de orden (Admin)
+    // Estados válidos: PENDING, PROCESSING, DELIVERED, CANCELLED
     async updateOrderStatus(orderId, status) {
         return await this.api.put(`/orders/${orderId}/status?status=${status}`, null, true);
+    },
+
+    // Asignar repartidor a pedido (Admin)
+    async assignDelivery(orderId, repartidorId) {
+        return await this.api.put(`/orders/${orderId}/assign-delivery?repartidorId=${repartidorId}`, null, true);
+    }
+};
+
+const UserAPI = {
+    api: new ApiService(),
+
+    // ============ MÉTODOS DE ADMINISTRACIÓN (requieren auth Admin) ============
+
+    // Obtener todos los usuarios (Admin)
+    async getAllUsers() {
+        return await this.api.get('/users', true);
+    },
+
+    // Obtener usuario por ID (Admin)
+    async getUserById(id) {
+        return await this.api.get(`/users/${id}`, true);
+    },
+
+    // ============ MÉTODOS DE PERFIL (requieren auth) ============
+
+    // Obtener perfil del usuario actual
+    async getCurrentProfile() {
+        return await this.api.get('/users/profile', true);
+    },
+
+    // Actualizar información personal del perfil
+    async updateProfile(profileData) {
+        return await this.api.put('/users/profile', profileData, true);
+    },
+
+    // Cambiar contraseña
+    async changePassword(currentPassword, newPassword) {
+        return await this.api.put('/users/profile/password', {
+            currentPassword,
+            newPassword
+        }, true);
+    }
+};
+
+const DashboardAPI = {
+    api: new ApiService(),
+
+    // Obtener datos del dashboard (Admin)
+    async getDashboardData() {
+        return await this.api.get('/dashboard/data', true);
     }
 };
 
@@ -266,3 +365,5 @@ window.AuthAPI = AuthAPI;
 window.ProductAPI = ProductAPI;
 window.CartAPI = CartAPI;
 window.OrderAPI = OrderAPI;
+window.UserAPI = UserAPI;
+window.DashboardAPI = DashboardAPI;
