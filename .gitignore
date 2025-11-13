@@ -1,0 +1,5 @@
+# Ignorar archivos de entorno y artefactos comunes
+.env
+target/
+node_modules/
+*.log
