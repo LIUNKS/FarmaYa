@@ -6,6 +6,24 @@ Proyecto Final para el curso de Integrador I - Sistema de E-commerce para Farmac
 
 FarmaYa es una plataforma de comercio electrónico completa diseñada para farmacias, que permite a los usuarios navegar por un catálogo de productos farmacéuticos, gestionar carritos de compra, realizar pedidos y realizar pagos de manera segura. El sistema incluye interfaces separadas para clientes, administradores y personal de entrega.
 
+## ⚡ Inicio Rápido (Docker)
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/LIUNKS/FarmaYa.git
+cd FarmaYa
+
+# 2. Levantar todo el sistema (DB + Backend)
+docker compose up --build
+
+# 3. Abrir en el navegador
+# Backend API: http://localhost:8080
+# Swagger UI: http://localhost:8080/swagger-ui.html
+# Frontend: Abre frontend/farmacia-merysalud/index.html
+```
+
+¡Listo! 🎉 El backend estará corriendo en el puerto 8080 con la base de datos configurada y el script SQL ejecutado automáticamente.
+
 ## ✨ Características
 
 ### Para Clientes
@@ -56,10 +74,16 @@ FarmaYa es una plataforma de comercio electrónico completa diseñada para farma
 
 ## 📋 Prerrequisitos
 
-Antes de ejecutar el proyecto, asegúrate de tener instalados:
+### Opción A: Ejecución con Docker (Recomendado)
+
+- **Docker** y **Docker Compose**
+- **Git** (para clonar el repositorio)
+- Navegador web moderno (Chrome, Firefox, Edge)
+
+### Opción B: Ejecución Local
 
 - **Java 21** o superior
-- **Maven 3.6+**
+- **Maven 3.6+** (o usar el Maven Wrapper incluido: `./mvnw`)
 - **MySQL 8.0+**
 - **Git** (para clonar el repositorio)
 - Navegador web moderno (Chrome, Firefox, Edge)
@@ -73,46 +97,142 @@ git clone https://github.com/LIUNKS/FarmaYa.git
 cd FarmaYa
 ```
 
-### 2. Configurar la Base de Datos
+---
+
+## 🐳 Opción A: Ejecución con Docker Compose (Recomendado)
+
+Esta es la forma más rápida de levantar todo el proyecto (Base de datos + Backend) en contenedores.
+
+### 2A. Levantar todo el sistema
 
 ```bash
-# Crear la base de datos MySQL
-mysql -u root -p < BD/farmaYa.sql
+# Construir y arrancar todos los servicios (DB + Backend)
+docker compose up --build
 ```
 
-### 3. Configurar el Backend
+Esto hará automáticamente:
+
+- ✅ Crear el contenedor MySQL 8.0 con la base de datos `farmaya`
+- ✅ Compilar tu aplicación Spring Boot con Maven Wrapper
+- ✅ Ejecutar el script SQL (`farmaYa.sql`) automáticamente
+- ✅ Iniciar el backend en `http://localhost:8080`
+
+### Comandos útiles de Docker Compose
+
+```bash
+# Ver logs en tiempo real
+docker compose logs -f
+
+# Ver solo logs del backend
+docker compose logs -f farmaya-app
+
+# Ver solo logs de la base de datos
+docker compose logs -f farmaya-db
+
+# Detener todos los servicios
+docker compose down
+
+# Reiniciar solo el backend (si cambias código)
+docker compose restart farmaya-app
+
+# Reconstruir el backend (después de cambios importantes)
+docker compose up --build farmaya-app
+
+# Detener y eliminar todo (incluida la base de datos)
+docker compose down -v
+```
+
+### Configuración de variables de entorno (Opcional)
+
+Si deseas cambiar las credenciales de la base de datos:
+
+```bash
+# Crear archivo .env en la raíz del proyecto
+cp .env.example .env
+
+# Editar el archivo .env con tus credenciales
+nano .env
+```
+
+Ejemplo de `.env`:
+
+```env
+MYSQL_ROOT_PASSWORD=TuContraseñaSegura
+MYSQL_DATABASE=farmaya
+```
+
+**Nota de seguridad**: El archivo `.env` está ignorado en `.gitignore` para evitar subir credenciales al repositorio.
+
+---
+
+## 💻 Opción B: Ejecución Local (Sin Docker)
+
+Si prefieres ejecutar el proyecto de forma tradicional sin Docker:
+
+### 2B. Configurar la Base de Datos MySQL
+
+#### Opción 1: Instalación local de MySQL
+
+```bash
+# Crear la base de datos e importar el script SQL
+mysql -u root -p < backend/src/main/resources/farmaYa.sql
+```
+
+#### Opción 2: MySQL en contenedor (solo la DB)
+
+```bash
+docker run --name farmaya-db \
+  -e MYSQL_ROOT_PASSWORD=Johan12315912 \
+  -e MYSQL_DATABASE=farmaya \
+  -p 3306:3306 \
+  -v farmaya_data:/var/lib/mysql \
+  --restart unless-stopped \
+  -d mysql:8.0
+```
+
+### 3B. Configurar el Backend
 
 ```bash
 cd backend
 
 # Editar application.properties si es necesario
-# Cambiar las credenciales de la base de datos
 nano src/main/resources/application.properties
 ```
 
-**Nota**: Las credenciales por defecto están configuradas para:
+**Credenciales por defecto**:
 
 - Usuario: `root`
 - Contraseña: `Johan12315912`
 - Base de datos: `farmaya`
 
-### 4. Ejecutar el Backend
+### 4B. Ejecutar el Backend
 
 ```bash
-# Compilar y ejecutar
+# Opción 1: Con Maven Wrapper (recomendado)
+./mvnw spring-boot:run
+
+# Opción 2: Con Maven instalado globalmente
 mvn spring-boot:run
 ```
 
 El backend estará disponible en: `http://localhost:8080`
 
+---
+
 ### 5. Ejecutar el Frontend
 
 ```bash
-cd ../frontend/farmacia-merysalud
+cd frontend/farmacia-merysalud
 
-# Abrir index.html en el navegador
-# O usar un servidor local (opcional)
+# Opción 1: Abrir directamente en el navegador
+# Abre el archivo index.html con tu navegador
+
+# Opción 2: Usar un servidor local (recomendado)
 python -m http.server 3000
+# o con Python 2
+python -m SimpleHTTPServer 3000
+# o con Node.js
+npx serve -p 3000
 ```
 
 El frontend estará disponible en: `http://localhost:3000` (o directamente abriendo los archivos HTML)
@@ -145,34 +265,85 @@ http://localhost:8080/swagger-ui.html
 
 ```
 FarmaYa/
-├── backend/                 # API REST con Spring Boot
+├── docker-compose.yml       # Orquestación de servicios (DB + Backend)
+├── .env.example            # Ejemplo de variables de entorno
+├── .gitignore              # Archivos ignorados por Git
+├── backend/                # API REST con Spring Boot
+│   ├── Dockerfile          # Imagen Docker del backend
+│   ├── mvnw / mvnw.cmd     # Maven Wrapper
+│   ├── pom.xml             # Dependencias Maven
 │   ├── src/main/java/com/farma_ya/
-│   │   ├── controller/      # Controladores REST
+│   │   ├── controller/     # Controladores REST
 │   │   ├── model/          # Entidades JPA
 │   │   ├── repository/     # Repositorios de datos
 │   │   ├── service/        # Lógica de negocio
 │   │   ├── security/       # Configuración de seguridad
 │   │   └── config/         # Configuraciones generales
 │   └── src/main/resources/
-│       └── application.properties
+│       ├── application.properties
+│       └── farmaYa.sql     # Script de inicialización
 ├── frontend/               # Interfaz de usuario
 │   └── farmacia-merysalud/
 │       ├── assets/         # CSS, JS, imágenes
 │       ├── components/     # Componentes HTML reutilizables
 │       ├── admin/          # Páginas de administración
 │       └── delivery/       # Páginas de entrega
-└── BD/                     # Scripts de base de datos
-    └── farmaYa.sql
+└── DOCKER_SETUP.md         # Documentación detallada de Docker
 ```
 
-## Documentación Técnica
+## 📚 Documentación Técnica
 
-Para el informe académico, se han creado documentos detallados sobre la implementación:
+### Documentación de Infraestructura
+
+- **[Configuración de Docker](DOCKER_SETUP.md)**: Guía completa de Docker, troubleshooting y mejores prácticas
+
+### Documentación del Informe Académico
 
 - **[Principios de Diseño](principios-diseno.md)**: Aplicación de MVC, TDD, DAO y SOLID
 - **[Librerías y Dependencias](librerias-dependencias.md)**: Recursos Java utilizados
 - **[Porcentaje del Proyecto](porcentaje-proyecto.md)**: Distribución del código fuente
 - **[Control de Versiones](control-versiones.md)**: Análisis del repositorio Git
+
+## 🔧 Solución de Problemas
+
+### El backend no conecta a la base de datos
+
+```bash
+# Verificar que MySQL esté listo
+docker compose logs farmaya-db | grep "ready for connections"
+
+# Verificar conectividad entre contenedores
+docker compose exec farmaya-app ping farmaya-db
+```
+
+### El script SQL no se ejecuta
+
+```bash
+# Verificar que el archivo existe en el contenedor
+docker compose exec farmaya-app ls -la /app/src/main/resources/
+
+# Ver logs de Spring Boot
+docker compose logs farmaya-app | grep "farmaYa.sql"
+```
+
+### Cambié el código pero no se refleja
+
+```bash
+# Reconstruir la imagen sin caché
+docker compose build --no-cache farmaya-app
+docker compose up farmaya-app
+```
+
+### Puerto 3306 o 8080 ya está en uso
+
+```bash
+# Ver qué proceso está usando el puerto
+lsof -i :3306
+lsof -i :8080
+
+# O detener contenedores previos
+docker stop $(docker ps -aq)
+```
 
 ## 📝 Licencia
 
