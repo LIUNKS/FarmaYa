@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  # -------------------------------
+  # SERVICIO 1: BASE DE DATOS (MySQL)
+  # -------------------------------
+  farmaya-db:
+    image: mysql:8.0
+    container_name: farmaya-db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Johan12315912}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-farmaya}
+    volumes:
+      - farmaya_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p${MYSQL_ROOT_PASSWORD:-Johan12315912}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------
+  # SERVICIO 2: Spring Boot con Java 21
+  # -------------------------------
+  farmaya-app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: farmaya-backend
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    depends_on:
+      farmaya-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://farmaya-db:3306/${MYSQL_DATABASE:-farmaya}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Johan12315912}
+
+      SPRING_SQL_INIT_MODE: always
+
+volumes:
+  farmaya_data:
