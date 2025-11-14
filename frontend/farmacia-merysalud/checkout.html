@@ -128,11 +128,11 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label">Nombre Completo *</label>
-                                <input type="text" class="form-control" name="nombre" required>
+                                <input type="text" id="checkoutNombre" class="form-control" name="nombre" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Teléfono *</label>
-                                <input type="tel" class="form-control" name="telefono" placeholder="999888777"
+                                <input type="tel" id="checkoutTelefono" class="form-control" name="telefono" placeholder="999888777"
                                     pattern="[0-9]{9}" required>
                                 <small class="text-muted">El repartidor usará este número para contactarte</small>
                             </div>
@@ -141,11 +141,11 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <label class="form-label">Email</label>
-                                <input type="email" class="form-control" name="email" placeholder="correo@ejemplo.com">
+                                <input type="email" id="checkoutEmail" class="form-control" name="email" placeholder="correo@ejemplo.com">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">DNI</label>
-                                <input type="text" class="form-control" name="dni" pattern="[0-9]{8}"
+                                <input type="text" id="checkoutDni" class="form-control" name="dni" pattern="[0-9]{8}"
                                     placeholder="12345678">
                             </div>
                         </div>
@@ -154,14 +154,14 @@
                         <h5 class="mb-3 mt-4">Dirección de Entrega</h5>
                         <div class="mb-3">
                             <label class="form-label">Dirección *</label>
-                            <input type="text" class="form-control" name="direccion" placeholder="Av. Brasil 123"
+                            <input type="text" id="checkoutDireccion" class="form-control" name="direccion" placeholder="Av. Brasil 123"
                                 required>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label">Distrito *</label>
-                                <select class="form-select" name="distrito" required>
+                                <select class="form-select" id="checkoutDistrito" name="distrito" required>
                                     <option value="">Seleccionar distrito</option>
                                     <option value="Breña">Breña</option>
                                     <option value="Lima">Lima (Cercado)</option>
@@ -319,6 +319,94 @@
             }
         }
 
+            // --- Validaciones cliente para checkout ---
+            function showMessageCheckout(message, type = 'success') {
+                // Preferir App.showNotification si existe
+                if (window.App && typeof window.App.showNotification === 'function') {
+                    window.App.showNotification(message, type);
+                    return;
+                }
+
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+                alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                alertDiv.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+                document.body.appendChild(alertDiv);
+                setTimeout(() => alertDiv.remove(), 5000);
+            }
+
+            function setFieldError(el, message) {
+                if (!el) return;
+                el.classList.add('is-invalid');
+                let fb = el.nextElementSibling;
+                if (!(fb && fb.classList && fb.classList.contains('invalid-feedback'))) {
+                    fb = document.createElement('div');
+                    fb.className = 'invalid-feedback';
+                    el.insertAdjacentElement('afterend', fb);
+                }
+                fb.textContent = message;
+            }
+
+            function clearFieldError(el) {
+                if (!el) return;
+                el.classList.remove('is-invalid');
+                const fb = el.nextElementSibling;
+                if (fb && fb.classList && fb.classList.contains('invalid-feedback')) fb.textContent = '';
+            }
+
+            function isValidEmailSimple(email) {
+                return /\S+@\S+\.\S+/.test(email);
+            }
+
+            function validateCheckoutForm() {
+                const errors = [];
+                const nombre = document.getElementById('checkoutNombre');
+                const telefono = document.getElementById('checkoutTelefono');
+                const email = document.getElementById('checkoutEmail');
+                const dni = document.getElementById('checkoutDni');
+                const direccion = document.getElementById('checkoutDireccion');
+                const distrito = document.getElementById('checkoutDistrito');
+
+                // limpiar previos
+                [nombre, telefono, email, dni, direccion, distrito].forEach(clearFieldError);
+
+                if (!nombre || !nombre.value.trim() || nombre.value.trim().length < 3) {
+                    errors.push('Nombre completo inválido (mínimo 3 caracteres).');
+                    setFieldError(nombre, 'Nombre inválido');
+                }
+
+                if (!telefono || !/^9\d{8}$/.test(telefono.value.trim())) {
+                    errors.push('Teléfono inválido. Debe tener 9 dígitos y comenzar con 9.');
+                    setFieldError(telefono, 'Ej: 912345678');
+                }
+
+                if (email && email.value.trim()) {
+                    if (!isValidEmailSimple(email.value.trim())) {
+                        errors.push('Email inválido.');
+                        setFieldError(email, 'Email inválido');
+                    }
+                }
+
+                if (dni && dni.value.trim()) {
+                    if (!/^\d{8}$/.test(dni.value.trim())) {
+                        errors.push('DNI inválido. Debe tener 8 dígitos.');
+                        setFieldError(dni, 'Ej: 12345678');
+                    }
+                }
+
+                if (!direccion || !direccion.value.trim()) {
+                    errors.push('La dirección es requerida.');
+                    setFieldError(direccion, 'Requerido');
+                }
+
+                if (!distrito || !distrito.value) {
+                    errors.push('Selecciona un distrito.');
+                    setFieldError(distrito, 'Requerido');
+                }
+
+                return errors;
+            }
+
         // Cargar resumen del pedido
         function loadOrderSummary() {
             const container = document.getElementById('orderItems');
@@ -344,7 +432,14 @@
         // Procesar formulario de checkout
         document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
+            // Validación cliente
+            const validationErrors = validateCheckoutForm();
+            if (validationErrors.length) {
+                showMessageCheckout(validationErrors.join('<br>'), 'warning');
+                return;
+            }
+
             try {
                 // Mostrar loading
                 const submitBtn = this.querySelector('button[type="submit"]');
