@@ -102,8 +102,32 @@ class ApiService {
     // Manejar respuesta
     async handleResponse(response) {
         if (!response.ok) {
-            const error = await response.json().catch(() => ({ message: response.statusText }));
-            throw new Error(error.message || `Error ${response.status}: ${response.statusText}`);
+            let parsed;
+            try {
+                parsed = await response.json();
+            } catch (e) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+
+            let message = null;
+            if (parsed) {
+                if (parsed.errors && Array.isArray(parsed.errors)) {
+                    message = parsed.errors.map(err => err.defaultMessage || err.message || JSON.stringify(err)).join('; ');
+                }
+                else if (parsed.fieldErrors && Array.isArray(parsed.fieldErrors)) {
+                    message = parsed.fieldErrors.map(err => `${err.field}: ${err.defaultMessage || err.message || ''}`).join('; ');
+                }
+                else if (parsed.message) {
+                    message = parsed.message;
+                }
+                else if (typeof parsed === 'string') {
+                    message = parsed;
+                } else {
+                    message = JSON.stringify(parsed);
+                }
+            }
+
+            throw new Error(message || `Error ${response.status}: ${response.statusText}`);
         }
 
         const contentType = response.headers.get('content-type');
