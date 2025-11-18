@@ -46,6 +46,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        // TEMPORAL: Endpoint público para debugging - REMOVER EN PRODUCCIÓN
+                        .requestMatchers("/api/orders/delivery/available-public").permitAll()
                         // Swagger UI endpoints
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()
