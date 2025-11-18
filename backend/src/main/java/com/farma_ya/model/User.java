@@ -16,7 +16,7 @@ public class User implements UserDetails {
     public User() {
     }
 
-    public User(Long id, String username, String email, String password, Role role) {
+    public User(Integer id, String username, String email, String password, Role role) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -24,11 +24,11 @@ public class User implements UserDetails {
         this.role = role;
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -57,13 +57,13 @@ public class User implements UserDetails {
     }
 
     public Role getRole() {
-        // Determinar el rol basado en rolId: 1 = ADMIN, 2 = CLIENTE/USER, 3 = DELIVERY
+        // Determinar el rol basado en rolId: 1 = ADMIN, 2 = CLIENTE/USER, 35 = DELIVERY
         if (rolId == null)
             return Role.USER;
         switch (rolId) {
             case 1:
                 return Role.ADMIN;
-            case 3:
+            case 35:
                 return Role.DELIVERY;
             default:
                 return Role.USER;
@@ -78,7 +78,7 @@ public class User implements UserDetails {
                 this.rolId = 1;
                 break;
             case DELIVERY:
-                this.rolId = 3;
+                this.rolId = 35;
                 break;
             default:
                 this.rolId = 2;
@@ -113,7 +113,7 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "usuario_id")
-    private Long id;
+    private Integer id;
 
     @Column(name = "rol_id")
     private Integer rolId;
@@ -144,7 +144,7 @@ public class User implements UserDetails {
             currentRole = Role.USER;
         else if (rolId == 1)
             currentRole = Role.ADMIN;
-        else if (rolId == 3)
+        else if (rolId == 35)
             currentRole = Role.DELIVERY;
         else
             currentRole = Role.USER;
