@@ -40,7 +40,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User getUserById(Long id) {
+    public User getUserById(Integer id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ID: " + id));
     }
@@ -69,7 +69,7 @@ public class UserService {
         return userRepository.countByRole(rolId);
     }
 
-    public User updateUserRole(Long userId, Role newRole) {
+    public User updateUserRole(Integer userId, Role newRole) {
         User user = getUserById(userId);
         user.setRole(newRole);
         return userRepository.save(user);
@@ -92,7 +92,7 @@ public class UserService {
             case ADMIN:
                 return 1;
             case DELIVERY:
-                return 3;
+                return 35;
             case USER:
             default:
                 return 2;
