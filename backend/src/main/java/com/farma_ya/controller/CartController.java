@@ -56,7 +56,7 @@ public class CartController {
     @PostMapping("/add")
     public ResponseEntity<Cart> addProductToCart(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Parameter(description = "ID del producto a agregar", required = true) @RequestParam Long productId,
+            @Parameter(description = "ID del producto a agregar", required = true) @RequestParam Integer productId,
             @Parameter(description = "Cantidad del producto (por defecto 1)") @RequestParam(defaultValue = "1") int quantity) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
         Cart updatedCart = cartService.addToCart(currentUser, productId, quantity);
@@ -72,7 +72,7 @@ public class CartController {
     @DeleteMapping("/remove/{productId}")
     public ResponseEntity<Cart> removeProductFromCart(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Parameter(description = "ID del producto a remover", required = true) @PathVariable Long productId) {
+            @Parameter(description = "ID del producto a remover", required = true) @PathVariable Integer productId) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
         Cart updatedCart = cartService.removeFromCart(currentUser, productId);
         return ResponseEntity.ok(updatedCart);
