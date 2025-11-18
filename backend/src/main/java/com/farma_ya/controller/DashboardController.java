@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Tag(name = "Dashboard", description = "Estadísticas y métricas del sistema")
 @RestController
@@ -80,9 +81,21 @@ public class DashboardController {
     @Operation(summary = "Obtener pedidos recientes", description = "Retorna los últimos 10 pedidos (solo administradores)")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/recent-orders")
-    public ResponseEntity<List<Order>> getRecentOrders() {
+    public ResponseEntity<List<Map<String, Object>>> getRecentOrders() {
         List<Order> orders = orderService.getRecentOrders(10);
-        return ResponseEntity.ok(orders);
+        List<Map<String, Object>> simplifiedOrders = orders.stream().map(order -> {
+            Map<String, Object> orderData = new HashMap<>();
+            orderData.put("id", order.getId());
+            orderData.put("numeroPedido", order.getNumeroPedido());
+            orderData.put("totalAmount", order.getTotalAmount());
+            orderData.put("status", order.getStatus());
+            orderData.put("createdAt", order.getCreatedAt());
+            if (order.getUser() != null) {
+                orderData.put("userName", order.getUser().getUsername());
+            }
+            return orderData;
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(simplifiedOrders);
     }
 
     @Operation(summary = "Obtener datos completos del dashboard", description = "Retorna toda la información necesaria para el dashboard administrativo (solo administradores)")
@@ -115,7 +128,19 @@ public class DashboardController {
 
         // Pedidos recientes (últimos 10)
         List<Order> recentOrders = orderService.getRecentOrders(10);
-        dashboardData.put("recentOrders", recentOrders);
+        List<Map<String, Object>> simplifiedRecentOrders = recentOrders.stream().map(order -> {
+            Map<String, Object> orderData = new HashMap<>();
+            orderData.put("id", order.getId());
+            orderData.put("numeroPedido", order.getNumeroPedido());
+            orderData.put("totalAmount", order.getTotalAmount());
+            orderData.put("status", order.getStatus());
+            orderData.put("createdAt", order.getCreatedAt());
+            if (order.getUser() != null) {
+                orderData.put("userName", order.getUser().getUsername());
+            }
+            return orderData;
+        }).collect(Collectors.toList());
+        dashboardData.put("recentOrders", simplifiedRecentOrders);
 
         return ResponseEntity.ok(dashboardData);
     }
