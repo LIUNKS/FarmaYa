@@ -171,7 +171,8 @@ public class OrderService implements IOrderService {
             if (items != null) {
                 System.out.println("=== DEBUG: Items count: " + items.size());
                 if (!items.isEmpty()) {
-                    System.out.println("=== DEBUG: First item: " + items.get(0).getProduct().getName() + " x" + items.get(0).getQuantity());
+                    System.out.println("=== DEBUG: First item: " + items.get(0).getProduct().getName() + " x"
+                            + items.get(0).getQuantity());
                 }
             } else {
                 System.out.println("=== DEBUG: Items collection is NULL!");
