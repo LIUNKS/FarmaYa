@@ -59,7 +59,7 @@ public class ReporteVentaService {
 
         BigDecimal totalIngresos = BigDecimal.ZERO;
         int totalProductosVendidos = 0;
-        Map<Long, Integer> ventasPorProducto = new HashMap<>();
+        Map<Integer, Integer> ventasPorProducto = new HashMap<>();
         Map<String, Integer> ventasPorCategoria = new HashMap<>();
 
         for (Order pedido : pedidosSemana) {
@@ -69,7 +69,7 @@ public class ReporteVentaService {
                 totalProductosVendidos += item.getQuantity();
 
                 // Contar ventas por producto
-                Long productoId = item.getProduct().getId();
+                Integer productoId = item.getProduct().getId();
                 ventasPorProducto.merge(productoId, item.getQuantity(), Integer::sum);
 
                 // Contar ventas por categoría
@@ -85,7 +85,7 @@ public class ReporteVentaService {
 
         // Encontrar producto más vendido
         if (!ventasPorProducto.isEmpty()) {
-            Long productoMasVendidoId = ventasPorProducto.entrySet().stream()
+            Integer productoMasVendidoId = ventasPorProducto.entrySet().stream()
                     .max(Map.Entry.comparingByValue())
                     .map(Map.Entry::getKey)
                     .orElse(null);
@@ -153,11 +153,11 @@ public class ReporteVentaService {
     }
 
     private void crearDetallesProducto(ReporteVentaSemanal reporte, List<Order> pedidosSemana) {
-        Map<Long, DetalleData> detallesPorProducto = new HashMap<>();
+        Map<Integer, DetalleData> detallesPorProducto = new HashMap<>();
 
         for (Order pedido : pedidosSemana) {
             for (OrderItem item : pedido.getItems()) {
-                Long productoId = item.getProduct().getId();
+                Integer productoId = item.getProduct().getId();
                 BigDecimal ingresoItem = item.getPrice()
                         .multiply(BigDecimal.valueOf(item.getQuantity()));
 
