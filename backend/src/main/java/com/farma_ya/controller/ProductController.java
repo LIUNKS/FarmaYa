@@ -48,7 +48,7 @@ public class ProductController {
         })
         @GetMapping("/{id}")
         public ResponseEntity<Product> getProductById(
-                        @Parameter(description = "ID del producto", required = true) @PathVariable Long id) {
+                        @Parameter(description = "ID del producto", required = true) @PathVariable Integer id) {
                 Product product = productService.getProductById(id);
                 return ResponseEntity.ok(product);
         }
@@ -80,7 +80,7 @@ public class ProductController {
         @PutMapping("/{id}")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<Product> updateProduct(
-                        @Parameter(description = "ID del producto", required = true) @PathVariable Long id,
+                        @Parameter(description = "ID del producto", required = true) @PathVariable Integer id,
                         @Valid @RequestBody Product productDetails) {
                 Product updatedProduct = productService.updateProduct(id, productDetails);
                 return ResponseEntity.ok(updatedProduct);
@@ -97,7 +97,7 @@ public class ProductController {
         @DeleteMapping("/{id}")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<Void> deleteProduct(
-                        @Parameter(description = "ID del producto", required = true) @PathVariable Long id) {
+                        @Parameter(description = "ID del producto", required = true) @PathVariable Integer id) {
                 productService.deleteProduct(id);
                 return ResponseEntity.noContent().build();
         }
