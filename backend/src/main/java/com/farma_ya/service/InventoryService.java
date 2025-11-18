@@ -19,7 +19,7 @@ public class InventoryService {
     /**
      * Verifica si hay suficiente stock para un producto
      */
-    public boolean hasEnoughStock(Long productId, int requiredQuantity) {
+    public boolean hasEnoughStock(Integer productId, int requiredQuantity) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con ID: " + productId));
         return product.getStock() >= requiredQuantity;
@@ -28,7 +28,7 @@ public class InventoryService {
     /**
      * Reduce el stock de un producto de forma segura
      */
-    public void decrementStock(Long productId, int quantity) {
+    public void decrementStock(Integer productId, int quantity) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con ID: " + productId));
 
@@ -44,7 +44,7 @@ public class InventoryService {
     /**
      * Verifica y reduce stock en una operación atómica
      */
-    public void checkAndDecrementStock(Long productId, int quantity) {
+    public void checkAndDecrementStock(Integer productId, int quantity) {
         if (!hasEnoughStock(productId, quantity)) {
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con ID: " + productId));
