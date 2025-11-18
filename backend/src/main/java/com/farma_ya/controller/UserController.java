@@ -45,7 +45,7 @@ public class UserController {
     @Operation(summary = "Obtener usuario por ID", description = "Retorna detalles de un usuario específico (solo administradores)")
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
         User user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
@@ -54,7 +54,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/role")
     public ResponseEntity<User> updateUserRole(
-            @PathVariable Long id,
+            @PathVariable Integer id,
             @RequestParam Role role) {
         User updatedUser = userService.updateUserRole(id, role);
         return ResponseEntity.ok(updatedUser);
