@@ -39,38 +39,38 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUser = new User(1L, "testuser", "test@example.com", "password", Role.USER);
+        testUser = new User(1, "testuser", "test@example.com", "password", Role.USER);
         testUser.setRolId(2); // Explicitly set rolId for USER
 
-        adminUser = new User(2L, "admin", "admin@example.com", "adminpass", Role.ADMIN);
+        adminUser = new User(2, "admin", "admin@example.com", "adminpass", Role.ADMIN);
         adminUser.setRolId(1); // Explicitly set rolId for ADMIN
 
-        deliveryUser = new User(3L, "delivery", "delivery@example.com", "delpass", Role.DELIVERY);
+        deliveryUser = new User(3, "delivery", "delivery@example.com", "delpass", Role.DELIVERY);
         deliveryUser.setRolId(3); // Explicitly set rolId for DELIVERY
     }
 
     @Test
     void getUserById_ExistingUser_ReturnsUser() {
         // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(1)).thenReturn(Optional.of(testUser));
 
         // When
-        User result = userService.getUserById(1L);
+        User result = userService.getUserById(1);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getId()).isEqualTo(1);
         assertThat(result.getUsername()).isEqualTo("testuser");
-        verify(userRepository).findById(1L);
+        verify(userRepository).findById(1);
     }
 
     @Test
     void getUserById_NonExistingUser_ThrowsException() {
         // Given
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+        when(userRepository.findById(999)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userService.getUserById(999L))
+        assertThatThrownBy(() -> userService.getUserById(999))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Usuario no encontrado");
     }
@@ -141,7 +141,7 @@ class UserServiceTest {
         long count = userService.countUsersByRole(Role.USER);
 
         // Then
-        assertThat(count).isEqualTo(10L);
+        assertThat(count).isEqualTo(10);
         verify(userRepository).countByRole(2);
     }
 
@@ -155,7 +155,7 @@ class UserServiceTest {
         registrationDTO.setTelefono("912345678");
 
         User savedUser = new User();
-        savedUser.setId(4L);
+        savedUser.setId(4);
         savedUser.setUsername("newuser");
         savedUser.setEmail("new@example.com");
         savedUser.setPassword("encodedPassword");
@@ -171,7 +171,7 @@ class UserServiceTest {
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(4L);
+        assertThat(result.getId()).isEqualTo(4);
         assertThat(result.getUsername()).isEqualTo("newuser");
         assertThat(result.getPassword()).isEqualTo("encodedPassword");
         verify(passwordEncoder).encode("password");
@@ -214,11 +214,11 @@ class UserServiceTest {
     @Test
     void updateUserRole_ValidUpdate_UpdatesSuccessfully() {
         // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(1)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         // When
-        User result = userService.updateUserRole(1L, Role.ADMIN);
+        User result = userService.updateUserRole(1, Role.ADMIN);
 
         // Then
         assertThat(result).isNotNull();

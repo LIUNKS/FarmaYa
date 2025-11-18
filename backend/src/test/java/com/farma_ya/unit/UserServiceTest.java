@@ -38,8 +38,8 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUser = new User(1L, "testuser", "test@example.com", "encodedPassword", Role.USER);
-        adminUser = new User(2L, "admin", "admin@example.com", "encodedPassword", Role.ADMIN);
+        testUser = new User(1, "testuser", "test@example.com", "encodedPassword", Role.USER);
+        adminUser = new User(2, "admin", "admin@example.com", "encodedPassword", Role.ADMIN);
     }
 
     @Test
@@ -88,10 +88,10 @@ class UserServiceTest {
     @Test
     void getUserById_ExistingUser_ShouldReturnUser() {
         // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(1)).thenReturn(Optional.of(testUser));
 
         // When
-        User result = userService.getUserById(1L);
+        User result = userService.getUserById(1);
 
         // Then
         assertThat(result).isEqualTo(testUser);
@@ -100,10 +100,10 @@ class UserServiceTest {
     @Test
     void getUserById_NonExistingUser_ShouldThrowException() {
         // Given
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+        when(userRepository.findById(999)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userService.getUserById(999L))
+        assertThatThrownBy(() -> userService.getUserById(999))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Usuario no encontrado con ID: 999");
     }
@@ -163,11 +163,11 @@ class UserServiceTest {
     @Test
     void updateUserRole_ShouldUpdateRoleSuccessfully() {
         // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(1)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         // When
-        User result = userService.updateUserRole(1L, Role.ADMIN);
+        User result = userService.updateUserRole(1, Role.ADMIN);
 
         // Then
         assertThat(result.getRole()).isEqualTo(Role.ADMIN);
@@ -220,7 +220,7 @@ class UserServiceTest {
         long result = userService.countUsersByRole(Role.ADMIN);
 
         // Then
-        assertThat(result).isEqualTo(5L);
+        assertThat(result).isEqualTo(5);
     }
 
     private com.farma_ya.dto.UserRegistrationDTO createRegistrationDTO(String username, String email, String password) {

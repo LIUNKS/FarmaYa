@@ -174,9 +174,9 @@ class OrderSystemTest {
 
         // Then - Debería haber 1 orden entregada (testOrder) y 1 en proceso
         assertThat(stats).isNotNull();
-        assertThat(stats.get("pedidosPendientes")).isEqualTo(0L);
-        assertThat(stats.get("pedidosEnProceso")).isEqualTo(1L);
-        assertThat(stats.get("pedidosEntregados")).isEqualTo(1L); // solo testOrder
+        assertThat(stats.get("pedidosPendientes")).isEqualTo(0);
+        assertThat(stats.get("pedidosEnProceso")).isEqualTo(1);
+        assertThat(stats.get("pedidosEntregados")).isEqualTo(1); // solo testOrder
         // Total ganancias: 100.0 (solo testOrder entregada)
         assertThat(stats.get("totalGanancias")).isEqualTo(100.0);
     }

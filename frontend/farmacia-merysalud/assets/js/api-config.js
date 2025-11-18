@@ -334,6 +334,16 @@ const OrderAPI = {
     // Asignar repartidor a pedido (Admin)
     async assignDelivery(orderId, repartidorId) {
         return await this.api.put(`/orders/${orderId}/assign-delivery?repartidorId=${repartidorId}`, null, true);
+    },
+
+    // Obtener repartidores disponibles (Admin)
+    async getAvailableDeliveryUsers() {
+        return await this.api.get('/orders/delivery/available', true);
+    },
+
+    // TEMPORAL: Obtener repartidores disponibles (público para debugging)
+    async getAvailableDeliveryUsersPublic() {
+        return await this.api.get('/orders/delivery/available-public', false);
     }
 };
 

@@ -690,21 +690,43 @@
         }
 
         // Cargar lista de repartidores
-        function loadRepartidores() {
-            // TODO: Implementar endpoint para obtener lista de repartidores
-            // Por ahora, agregamos opciones de ejemplo
-            const select = document.getElementById('selectRepartidor');
-            select.innerHTML = `
-                <option value="">Seleccione un repartidor...</option>
-                <option value="3">Pedro Repartidor</option>
-                <option value="4">Juan Delivery</option>
-                <option value="5">María Transport</option>
-            `;
+        async function loadRepartidores() {
+            try {
+                console.log('Cargando lista de repartidores...');
+                // TEMPORAL: Usar endpoint público para debugging
+                const repartidores = await OrderAPI.getAvailableDeliveryUsersPublic();
+                
+                const select = document.getElementById('selectRepartidor');
+                select.innerHTML = '<option value="">Seleccione un repartidor...</option>';
+                
+                repartidores.forEach(repartidor => {
+                    const option = document.createElement('option');
+                    option.value = repartidor.id;
+                    option.textContent = repartidor.username;
+                    select.appendChild(option);
+                });
+                
+                console.log('Repartidores cargados:', repartidores.length);
+            } catch (error) {
+                console.error('Error al cargar repartidores:', error);
+                // Fallback a datos hardcodeados si falla la API
+                const select = document.getElementById('selectRepartidor');
+                select.innerHTML = `
+                    <option value="">Seleccione un repartidor...</option>
+                    <option value="3">Pedro Repartidor</option>
+                    <option value="4">Juan Delivery</option>
+                    <option value="5">María Transport</option>
+                `;
+                console.log('Usando datos hardcodeados de repartidores');
+            }
         }
 
         // Abrir modal para asignar repartidor
-        function abrirModalAsignarRepartidor(pedidoId) {
+        async function abrirModalAsignarRepartidor(pedidoId) {
             document.getElementById('pedidoIdAsignar').value = pedidoId;
+            
+            // Cargar lista de repartidores
+            await loadRepartidores();
             
             // Buscar el pedido actual para preseleccionar el repartidor si ya tiene uno
             const pedido = allPedidos.find(p => p.id === pedidoId);

@@ -47,19 +47,19 @@ public class OrderControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         testUser = new User();
-        testUser.setId(1L);
+        testUser.setId(1);
         testUser.setUsername("testuser");
         testUser.setEmail("test@example.com");
         testUser.setRole(Role.USER);
 
         deliveryUser = new User();
-        deliveryUser.setId(2L);
+        deliveryUser.setId(2);
         deliveryUser.setUsername("delivery");
         deliveryUser.setEmail("delivery@example.com");
         deliveryUser.setRole(Role.DELIVERY);
 
         testOrder = new Order();
-        testOrder.setId(1L);
+        testOrder.setId(1);
         testOrder.setUser(testUser);
         testOrder.setStatus(OrderStatus.PENDIENTE);
         testOrder.setTotalAmount(BigDecimal.valueOf(100.0));
@@ -88,7 +88,7 @@ public class OrderControllerIntegrationTest {
     void getOrderById_UserOwnsOrder_ShouldReturnOrder() throws Exception {
         // Given
         when(userService.getUserByUsername("testuser")).thenReturn(testUser);
-        when(orderService.getOrderById(1L)).thenReturn(testOrder);
+        when(orderService.getOrderById(1)).thenReturn(testOrder);
 
         // When & Then
         mockMvc.perform(get("/api/orders/1"))
@@ -117,10 +117,10 @@ public class OrderControllerIntegrationTest {
     void updateOrderStatus_ValidStatus_ShouldUpdateSuccessfully() throws Exception {
         // Given
         Order updatedOrder = new Order();
-        updatedOrder.setId(1L);
+        updatedOrder.setId(1);
         updatedOrder.setStatus(OrderStatus.PROCESANDO);
 
-        when(orderService.updateOrderStatus(1L, "PROCESANDO")).thenReturn(updatedOrder);
+        when(orderService.updateOrderStatus(1, "PROCESANDO")).thenReturn(updatedOrder);
 
         // When & Then
         mockMvc.perform(put("/api/orders/1/status")
@@ -133,8 +133,8 @@ public class OrderControllerIntegrationTest {
     @WithMockUser(roles = "ADMIN")
     void assignDelivery_ValidAssignment_ShouldAssignSuccessfully() throws Exception {
         // Given
-        when(userService.getUserById(2L)).thenReturn(deliveryUser);
-        when(orderService.assignRepartidor(1L, deliveryUser)).thenReturn(testOrder);
+        when(userService.getUserById(2)).thenReturn(deliveryUser);
+        when(orderService.assignRepartidor(1, deliveryUser)).thenReturn(testOrder);
 
         // When & Then
         mockMvc.perform(put("/api/orders/1/assign-delivery")
@@ -165,9 +165,9 @@ public class OrderControllerIntegrationTest {
         // Given
         when(userService.getUserByUsername("delivery")).thenReturn(deliveryUser);
         when(orderService.getDeliveryStats(deliveryUser)).thenReturn(java.util.Map.of(
-                "pedidosPendientes", 2L,
-                "pedidosEnProceso", 1L,
-                "pedidosEntregados", 5L,
+                "pedidosPendientes", 2,
+                "pedidosEnProceso", 1,
+                "pedidosEntregados", 5,
                 "totalGanancias", 150.0));
 
         // When & Then
