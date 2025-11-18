@@ -11,9 +11,9 @@ public interface ICartService {
 
     Cart getCartByUser(User user);
 
-    Cart addToCart(User user, Long productId, int quantity);
+    Cart addToCart(User user, Integer productId, int quantity);
 
-    Cart removeFromCart(User user, Long productId);
+    Cart removeFromCart(User user, Integer productId);
 
     Cart clearCart(User user);
 }
