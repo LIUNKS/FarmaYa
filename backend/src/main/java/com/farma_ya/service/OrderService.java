@@ -8,6 +8,7 @@ import com.farma_ya.model.Order;
 import com.farma_ya.model.OrderItem;
 import com.farma_ya.model.User;
 import com.farma_ya.repository.DireccionRepository;
+import com.farma_ya.repository.OrderItemRepository;
 import com.farma_ya.repository.OrderRepository;
 import com.farma_ya.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
@@ -25,14 +26,17 @@ public class OrderService implements IOrderService {
 
     private final DireccionRepository direccionRepository;
 
+    private final OrderItemRepository orderItemRepository;
+
     private final ICartService cartService;
 
     private final InventoryService inventoryService;
 
     public OrderService(OrderRepository orderRepository, DireccionRepository direccionRepository,
-            ICartService cartService, InventoryService inventoryService) {
+            OrderItemRepository orderItemRepository, ICartService cartService, InventoryService inventoryService) {
         this.orderRepository = orderRepository;
         this.direccionRepository = direccionRepository;
+        this.orderItemRepository = orderItemRepository;
         this.cartService = cartService;
         this.inventoryService = inventoryService;
     }
@@ -83,6 +87,12 @@ public class OrderService implements IOrderService {
         // Guardar la orden primero
         Order savedOrder = orderRepository.save(order);
 
+        // Guardar los items explícitamente después de guardar la orden
+        for (OrderItem orderItem : orderItems) {
+            orderItem.setOrder(savedOrder);
+            orderItemRepository.save(orderItem);
+        }
+
         // Limpiar el carrito después de guardar la orden exitosamente
         cartService.clearCart(user);
 
@@ -107,18 +117,38 @@ public class OrderService implements IOrderService {
         return orderRepository.findByUser(user);
     }
 
-    public Order getOrderById(Long id) {
+    public Order getOrderById(Integer id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Orden no encontrada con ID: " + id));
     }
 
-    public Order updateOrderStatus(Long id, String status) {
+    public Order updateOrderStatus(Integer id, String status) {
         Order order = getOrderById(id);
         try {
-            // Convertir "EN_PROCESO" a "PROCESANDO" para compatibilidad con frontend
+            // Convertir estados del frontend (inglés) a estados del enum (español)
             String normalizedStatus = status.toUpperCase();
-            if ("EN_PROCESO".equals(normalizedStatus)) {
-                normalizedStatus = "PROCESANDO";
+            switch (normalizedStatus) {
+                case "PENDING":
+                    normalizedStatus = "PENDIENTE";
+                    break;
+                case "PROCESSING":
+                case "EN_PROCESO":
+                    normalizedStatus = "PROCESANDO";
+                    break;
+                case "DELIVERED":
+                case "ENVIADO":
+                    normalizedStatus = "ENVIADO";
+                    break;
+                case "SHIPPED":
+                    normalizedStatus = "ENVIADO";
+                    break;
+                case "CANCELLED":
+                case "CANCELADO":
+                    normalizedStatus = "CANCELADO";
+                    break;
+                default:
+                    // Mantener el valor original si no es ninguno de los anteriores
+                    break;
             }
             order.setStatus(OrderStatus.valueOf(normalizedStatus));
         } catch (IllegalArgumentException e) {
@@ -129,7 +159,25 @@ public class OrderService implements IOrderService {
 
     @Override
     public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+        System.out.println("=== DEBUG: Ejecutando getAllOrders() ===");
+        List<Order> orders = orderRepository.findAllWithItems();
+        System.out.println("=== DEBUG: Se encontraron " + orders.size() + " órdenes ===");
+
+        // Forzar la carga de items para cada orden y agregar logs de debug
+        for (Order order : orders) {
+            System.out.println("=== DEBUG: Procesando orden ID: " + order.getId() + " ===");
+            List<OrderItem> items = order.getItems();
+            System.out.println("=== DEBUG: Items collection: " + items);
+            if (items != null) {
+                System.out.println("=== DEBUG: Items count: " + items.size());
+                if (!items.isEmpty()) {
+                    System.out.println("=== DEBUG: First item: " + items.get(0).getProduct().getName() + " x" + items.get(0).getQuantity());
+                }
+            } else {
+                System.out.println("=== DEBUG: Items collection is NULL!");
+            }
+        }
+        return orders;
     }
 
     public long countOrdersByStatus(OrderStatus status) {
@@ -145,7 +193,7 @@ public class OrderService implements IOrderService {
         return orders.stream().limit(limit).collect(Collectors.toList());
     }
 
-    public Order assignRepartidor(Long orderId, User repartidor) {
+    public Order assignRepartidor(Integer orderId, User repartidor) {
         Order order = getOrderById(orderId);
         order.setRepartidor(repartidor);
         return orderRepository.save(order);
