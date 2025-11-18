@@ -24,7 +24,7 @@ public class ProductService implements IProductService {
         return productRepository.findAll();
     }
 
-    public Product getProductById(Long id) {
+    public Product getProductById(Integer id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con ID: " + id));
     }
@@ -34,7 +34,7 @@ public class ProductService implements IProductService {
         return productRepository.save(product);
     }
 
-    public Product updateProduct(Long id, Product productDetails) {
+    public Product updateProduct(Integer id, Product productDetails) {
         Product existingProduct = getProductById(id);
 
         // Actualizar campos
@@ -51,7 +51,7 @@ public class ProductService implements IProductService {
         return productRepository.save(existingProduct);
     }
 
-    public void deleteProduct(Long id) {
+    public void deleteProduct(Integer id) {
         Product product = getProductById(id);
         productRepository.delete(product);
     }
