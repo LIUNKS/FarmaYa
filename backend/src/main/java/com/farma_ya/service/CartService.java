@@ -28,7 +28,7 @@ public class CartService implements ICartService {
                 .orElseGet(() -> createCartForUser(user));
     }
 
-    public Cart addToCart(User user, Long productId, int quantity) {
+    public Cart addToCart(User user, Integer productId, int quantity) {
         Cart cart = getCartByUser(user);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
@@ -60,7 +60,7 @@ public class CartService implements ICartService {
         return cartRepository.save(cart);
     }
 
-    public Cart removeFromCart(User user, Long productId) {
+    public Cart removeFromCart(User user, Integer productId) {
         Cart cart = getCartByUser(user);
         cart.getItems().removeIf(item -> item.getProduct().getId().equals(productId));
         return cartRepository.save(cart);
