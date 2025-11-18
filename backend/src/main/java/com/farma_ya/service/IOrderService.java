@@ -16,9 +16,9 @@ public interface IOrderService {
 
     List<Order> getOrdersByUser(User user);
 
-    Order getOrderById(Long id);
+    Order getOrderById(Integer id);
 
-    Order updateOrderStatus(Long id, String status);
+    Order updateOrderStatus(Integer id, String status);
 
     List<Order> getAllOrders();
 
@@ -28,7 +28,7 @@ public interface IOrderService {
 
     List<Order> getRecentOrders(int limit);
 
-    Order assignRepartidor(Long orderId, User repartidor);
+    Order assignRepartidor(Integer orderId, User repartidor);
 
     List<Order> getUnassignedOrdersByStatus(OrderStatus status);
 
