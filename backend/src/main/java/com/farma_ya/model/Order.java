@@ -2,7 +2,6 @@ package com.farma_ya.model;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Convert;
 
@@ -12,12 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "Pedido")
+@Table(name = "pedido")
 public class Order {
     public Order() {
     }
 
-    public Order(Long id, User user, java.util.List<OrderItem> items, BigDecimal totalAmount, OrderStatus status,
+    public Order(Integer id, User user, java.util.List<OrderItem> items, BigDecimal totalAmount, OrderStatus status,
             java.time.LocalDateTime createdAt) {
         this.id = id;
         this.user = user;
@@ -30,7 +29,7 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "pedido_id")
-    private Long id;
+    private Integer id;
 
     @Column(name = "numero_pedido", unique = true)
     private String numeroPedido;
@@ -43,8 +42,7 @@ public class Order {
     @JoinColumn(name = "repartidor_id")
     private User repartidor;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
     @Convert(converter = OrderStatusConverter.class)
@@ -60,7 +58,7 @@ public class Order {
     @Column(name = "creado_en")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "direccion_entrega_id")
     @JsonIgnore
     private Direccion shippingAddress;
@@ -71,11 +69,11 @@ public class Order {
                 .sum();
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
