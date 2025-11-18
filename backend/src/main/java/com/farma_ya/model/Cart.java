@@ -13,7 +13,7 @@ public class Cart {
     public Cart() {
     }
 
-    public Cart(Long id, User user, java.util.List<CartItem> items, java.time.LocalDateTime createdAt) {
+    public Cart(Integer id, User user, java.util.List<CartItem> items, java.time.LocalDateTime createdAt) {
         this.id = id;
         this.user = user;
         this.items = items;
@@ -23,7 +23,7 @@ public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "carrito_id")
-    private Long id;
+    private Integer id;
 
     @OneToOne
     @JoinColumn(name = "usuario_id")
@@ -45,11 +45,11 @@ public class Cart {
                 .sum();
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
