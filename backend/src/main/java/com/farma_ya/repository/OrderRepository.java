@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findByUser(User user);
 
     List<Order> findByUserId(Long userId);
@@ -44,4 +44,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM Order o WHERE o.repartidor IS NULL AND o.status = :status")
     List<Order> findUnassignedOrdersByStatus(@Param("status") OrderStatus status);
+
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product LEFT JOIN FETCH o.user LEFT JOIN FETCH o.repartidor LEFT JOIN FETCH o.shippingAddress ORDER BY o.createdAt DESC")
+    List<Order> findAllWithItems();
 }
