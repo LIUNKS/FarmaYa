@@ -33,4 +33,6 @@ public interface IOrderService {
     List<Order> getUnassignedOrdersByStatus(OrderStatus status);
 
     Map<String, Object> getDeliveryStats(User repartidor);
+
+    void deleteOrder(Integer id);
 }
