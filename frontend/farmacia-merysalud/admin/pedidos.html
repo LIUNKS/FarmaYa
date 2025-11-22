@@ -301,10 +301,7 @@
     <script src="../assets/js/app.js"></script>
 
     <script>
-        console.log('=== INICIO DE pedidos.html ===');
-        console.log('Verificando APIs cargadas...');
-        console.log('OrderAPI:', typeof OrderAPI !== 'undefined' ? 'OK' : 'ERROR');
-
+        
         // Variables globales
         let allPedidos = [];
         let filteredPedidos = [];
@@ -313,7 +310,6 @@
 
         // Verificar autenticación al cargar
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('DOMContentLoaded - Iniciando verificación de sesión...');
             
             // Verificar sesión
             const token = localStorage.getItem('accessToken');
@@ -384,14 +380,10 @@
         // Cargar pedidos desde el backend
         async function loadPedidos() {
             try {
-                console.log('Llamando a OrderAPI.getAllOrders()...');
                 showLoading(true);
                 
                 allPedidos = await OrderAPI.getAllOrders();
                 filteredPedidos = [...allPedidos];
-                
-                console.log('✓ Pedidos cargados exitosamente:', allPedidos.length);
-                console.log('Primer pedido:', allPedidos[0]);
                 
                 updateStats();
                 renderPedidosTable();
@@ -580,7 +572,6 @@
             }
             
             try {
-                console.log(`Cambiando estado del pedido ${pedidoId} a ${nuevoEstado}`);
                 showLoading(true);
                 
                 await OrderAPI.updateOrderStatus(pedidoId, nuevoEstado);
@@ -603,13 +594,11 @@
         // Ver detalle del pedido
         async function verDetalle(pedidoId) {
             try {
-                console.log('Obteniendo detalle del pedido:', pedidoId);
                 showLoading(true);
                 
                 const pedido = await OrderAPI.getOrderById(pedidoId);
                 
                 showLoading(false);
-                console.log('Detalle del pedido:', pedido);
                 
                 const content = document.getElementById('detallePedidoContent');
 
@@ -692,7 +681,6 @@
         // Cargar lista de repartidores
         async function loadRepartidores() {
             try {
-                console.log('Cargando lista de repartidores...');
                 // TEMPORAL: Usar endpoint público para debugging
                 const repartidores = await OrderAPI.getAvailableDeliveryUsersPublic();
                 
@@ -706,7 +694,6 @@
                     select.appendChild(option);
                 });
                 
-                console.log('Repartidores cargados:', repartidores.length);
             } catch (error) {
                 console.error('Error al cargar repartidores:', error);
                 // Fallback a datos hardcodeados si falla la API
@@ -717,7 +704,6 @@
                     <option value="4">Juan Delivery</option>
                     <option value="5">María Transport</option>
                 `;
-                console.log('Usando datos hardcodeados de repartidores');
             }
         }
 
@@ -750,7 +736,6 @@
             }
             
             try {
-                console.log(`Asignando repartidor ${repartidorId} al pedido ${pedidoId}`);
                 showLoading(true);
                 
                 await OrderAPI.assignDelivery(pedidoId, repartidorId);
