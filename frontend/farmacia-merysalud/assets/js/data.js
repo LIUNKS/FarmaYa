@@ -99,7 +99,6 @@ class DataStore {
                 console.error('Error al obtener carrito del backend:', error);
                 // Si es error 401 (token inválido), limpiar usuario y usar carrito local
                 if (error.message.includes('401') || error.message.includes('500')) {
-                    console.log('Token inválido o error del servidor, limpiando sesión y usando carrito local');
                     this.logout();
                 }
                 return this.carritoLocal;
@@ -112,7 +111,6 @@ class DataStore {
 
     // Agregar al carrito
     async addToCarrito(productoId, cantidad = 1) {
-        console.log('DataStore.addToCarrito llamado con ID:', productoId);
         const usuario = this.getCurrentUser();
         
         if (usuario) {
@@ -127,9 +125,7 @@ class DataStore {
         } else {
             // Usuario no autenticado: agregar al carrito local
             try {
-                console.log('Obteniendo producto por ID:', productoId);
                 const producto = await this.getProductoById(productoId);
-                console.log('Producto obtenido:', producto);
                 if (!producto) return false;
 
                 const itemExistente = this.carritoLocal.find(item => item.id === productoId);
