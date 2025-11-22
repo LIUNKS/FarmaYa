@@ -263,13 +263,11 @@
         async function loadCart() {
             try {
                 cart = await dataStore.getCarrito();
-                console.log('Carrito cargado:', cart);
             } catch (error) {
                 console.error('Error al cargar carrito:', error);
                 
                 // Si es error de autenticación, mostrar mensaje pero no redirigir automáticamente
                 if (error.message && error.message.includes('401')) {
-                    console.log('Token expirado al cargar carrito');
                     showNotification('Tu sesión ha expirado. Los cambios no se guardarán hasta que inicies sesión nuevamente.', 'warning');
                 }
                 
@@ -439,8 +437,6 @@
                     return;
                 }
                 
-                console.log('Eliminando producto del carrito:', productId);
-                
                 // Remover del backend
                 await CartAPI.removeFromCart(productId);
                 
@@ -502,7 +498,7 @@
             if (window.App && window.App.showNotification) {
                 window.App.showNotification(message, type);
             } else {
-                console.log(`Notificación (${type}): ${message}`);
+                alert(message);
             }
         }
     </script>
