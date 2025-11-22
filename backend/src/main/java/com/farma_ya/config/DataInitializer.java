@@ -99,7 +99,12 @@ public class DataInitializer {
                 roleName);
 
         if (count == null || count == 0) {
-            jdbcTemplate.update("INSERT INTO rol (nombre) VALUES (?)", roleName);
+            // Para DELIVERY, asegurar que tenga ID 35
+            if ("DELIVERY".equals(roleName)) {
+                jdbcTemplate.update("INSERT INTO rol (rol_id, nombre) VALUES (35, ?)", roleName);
+            } else {
+                jdbcTemplate.update("INSERT INTO rol (nombre) VALUES (?)", roleName);
+            }
             logger.info(" Rol '{}' creado exitosamente", roleName);
         } else {
             logger.info("ℹ El rol '{}' ya existe en la base de datos", roleName);
