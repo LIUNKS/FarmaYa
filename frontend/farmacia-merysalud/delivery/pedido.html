@@ -250,8 +250,9 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- <script src="../assets/js/data.js"></script> -->
-    <script src="../assets/js/app.js"></script>
+    <script src="../assets/js/api-config.js"></script>
+    <script src="../assets/js/data.js"></script>
+    <!-- NOTA: app.js no se carga en páginas de delivery para evitar conflictos -->
 
     <script>
         let currentPedido = null;
@@ -262,69 +263,52 @@
         });
 
         function checkDeliveryAuth() {
-            const deliveryUser = JSON.parse(sessionStorage.getItem('adminUser') || 'null');
+            const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual') || 'null');
             
-            if (!deliveryUser || deliveryUser.rol !== 'REPARTIDOR') {
-                window.location.href = '../admin/index.html';
+            if (!usuarioActual || usuarioActual.rol !== 'DELIVERY') {
+                window.location.href = '../login.html';
                 return;
             }
         }
 
-        function loadPedidoDetails() {
+        async function loadPedidoDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             const pedidoId = parseInt(urlParams.get('id'));
             
-            // Si no hay ID o no se encuentra el pedido, usar datos por defecto para demostración
-            const data = dataStore.getData();
-            currentPedido = data.pedidos.find(p => p.id === pedidoId);
-            
-            if (!currentPedido) {
-                // Datos por defecto para demostración
-                currentPedido = {
-                    id: 999,
-                    numero: "ORD-003",
-                    clienteNombre: "Ana María López",
-                    telefono: "987654321",
-                    direccion: "Av. Universitaria 1245, San Miguel, Lima",
-                    productos: [
-                        {
-                            id: 1,
-                            nombre: "Paracetamol 500mg",
-                            cantidad: 3,
-                            precio: 5.50,
-                            subtotal: 16.50
-                        },
-                        {
-                            id: 3,
-                            nombre: "Vitamina C 1000mg",
-                            cantidad: 2,
-                            precio: 12.00,
-                            subtotal: 24.00
-                        },
-                        {
-                            id: 5,
-                            nombre: "Alcohol 70°",
-                            cantidad: 1,
-                            precio: 6.00,
-                            subtotal: 6.00
-                        },
-                        {
-                            id: 7,
-                            nombre: "Mascarillas KN95",
-                            cantidad: 10,
-                            precio: 2.00,
-                            subtotal: 20.00
-                        }
-                    ],
-                    total: 66.50,
-                    estado: "EN_PROCESO",
-                    fecha: "2024-12-20 14:30",
-                    repartidorId: 3
-                };
-                console.log("Usando datos por defecto para demostración");
+            if (!pedidoId) {
+                showNotification('ID de pedido no válido', 'danger');
+                goBack();
+                return;
             }
 
-            renderPedidoDetails();
+            try {
+                const pedidoData = await OrderAPI.getAssignedOrderDetail(pedidoId);
+                
+                currentPedido = {
+                    id: pedidoData.id,
+                    numero: pedidoData.numeroPedido,
+                    clienteNombre: pedidoData.user ? pedidoData.user.username : 'Cliente',
+                    telefono: pedidoData.user ? pedidoData.user.telefono : '',
+                    direccion: pedidoData.shippingAddress,
+                    productos: pedidoData.items ? pedidoData.items.map(item => ({
+                        id: item.id,
+                        nombre: item.product ? item.product.name : 'Producto',
+                        cantidad: item.quantity,
+                        precio: item.price,
+                        subtotal: item.subtotal
+                    })) : [],
+                    total: pedidoData.totalAmount,
+                    estado: pedidoData.status,
+                    fecha: pedidoData.createdAt ? new Date(pedidoData.createdAt[0], pedidoData.createdAt[1]-1, pedidoData.createdAt[2]).toLocaleDateString('es-ES') : '',
+                    repartidorId: pedidoData.repartidor ? pedidoData.repartidor.id : null
+                };
+
+                renderPedidoDetails();
+            } catch (error) {
+                console.error('Error cargando pedido:', error);
+                showNotification('Error al cargar los detalles del pedido', 'danger');
+                goBack();
+            }
         }
 
         function renderPedidoDetails() {
@@ -335,13 +319,19 @@
             
             const estadoBadge = document.getElementById('pedidoEstado');
             const badgeClass = {
-                'PENDIENTE': 'warning',
-                'EN_PROCESO': 'info', 
-                'ENTREGADO': 'success'
+                'PENDING': 'warning',
+                'PROCESSING': 'info', 
+                'DELIVERED': 'success'
             }[currentPedido.estado] || 'secondary';
             
+            const estadoText = {
+                'PENDING': 'PENDIENTE',
+                'PROCESSING': 'EN PROCESO',
+                'DELIVERED': 'ENTREGADO'
+            }[currentPedido.estado] || currentPedido.estado;
+            
             estadoBadge.className = `badge bg-${badgeClass} fs-6`;
-            estadoBadge.textContent = currentPedido.estado;
+            estadoBadge.textContent = estadoText;
 
             // Información del cliente
             document.getElementById('clienteNombre').textContent = currentPedido.clienteNombre;
@@ -394,9 +384,9 @@
             const container = document.getElementById('statusTimeline');
             
             const estados = [
-                { key: 'PENDIENTE', label: 'Pedido Recibido', icon: 'clock', color: 'warning' },
-                { key: 'EN_PROCESO', label: 'En Camino', icon: 'truck', color: 'info' },
-                { key: 'ENTREGADO', label: 'Entregado', icon: 'check-circle', color: 'success' }
+                { key: 'PENDING', label: 'Pedido Recibido', icon: 'clock', color: 'warning' },
+                { key: 'PROCESSING', label: 'En Camino', icon: 'truck', color: 'info' },
+                { key: 'DELIVERED', label: 'Entregado', icon: 'check-circle', color: 'success' }
             ];
             
             let html = '';
@@ -424,7 +414,7 @@
         }
 
         function getCurrentStateIndex() {
-            const stateOrder = ['PENDIENTE', 'EN_PROCESO', 'ENTREGADO'];
+            const stateOrder = ['PENDING', 'PROCESSING', 'DELIVERED'];
             return stateOrder.indexOf(currentPedido.estado);
         }
 
@@ -432,7 +422,7 @@
             const container = document.getElementById('actionButtons');
             let html = '';
             
-            if (currentPedido.estado === 'PENDIENTE') {
+            if (currentPedido.estado === 'PENDING') {
                 html = `
                     <button class="btn btn-info mb-2" onclick="marcarEnProceso()">
                         <i class="fas fa-truck"></i> Marcar En Proceso
@@ -441,7 +431,7 @@
                         <i class="fas fa-check"></i> Marcar Entregado
                     </button>
                 `;
-            } else if (currentPedido.estado === 'EN_PROCESO') {
+            } else if (currentPedido.estado === 'PROCESSING') {
                 html = `
                     <button class="btn btn-success" onclick="marcarEntregado()">
                         <i class="fas fa-check"></i> Marcar Entregado
@@ -462,33 +452,35 @@
             const entregarBtn = document.getElementById('entregarBtn');
             const procesoBtn = document.getElementById('procesoBtn');
             
-            if (currentPedido.estado === 'ENTREGADO') {
-                entregarBtn.style.display = 'none';
-                procesoBtn.style.display = 'none';
-            } else if (currentPedido.estado === 'EN_PROCESO') {
-                procesoBtn.style.display = 'none';
+            if (currentPedido.estado === 'DELIVERED') {
+                if (entregarBtn) entregarBtn.style.display = 'none';
+                if (procesoBtn) procesoBtn.style.display = 'none';
+            } else if (currentPedido.estado === 'PROCESSING') {
+                if (procesoBtn) procesoBtn.style.display = 'none';
             }
         }
 
-        function marcarEnProceso() {
+        async function marcarEnProceso() {
             if (confirm('¿Marcar este pedido como "En Proceso"?')) {
-                updatePedidoEstado('EN_PROCESO');
+                await updatePedidoEstado('PROCESSING');
             }
         }
 
-        function marcarEntregado() {
+        async function marcarEntregado() {
             if (confirm('¿Confirmar que el pedido ha sido entregado al cliente?')) {
-                updatePedidoEstado('ENTREGADO');
+                await updatePedidoEstado('DELIVERED');
             }
         }
 
-        function updatePedidoEstado(nuevoEstado) {
-            if (dataStore.updatePedidoEstado(currentPedido.id, nuevoEstado)) {
+        async function updatePedidoEstado(nuevoEstado) {
+            try {
+                await OrderAPI.updateDeliveryStatus(currentPedido.id, nuevoEstado);
                 currentPedido.estado = nuevoEstado;
                 renderPedidoDetails();
                 showNotification(`Estado actualizado a ${nuevoEstado}`, 'success');
-            } else {
-                showNotification('Error al actualizar el estado', 'danger');
+            } catch (error) {
+                console.error('Error actualizando estado:', error);
+                showNotification('Error al actualizar el estado del pedido', 'danger');
             }
         }
 
