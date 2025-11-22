@@ -340,16 +340,12 @@
     <script src="../assets/js/app.js"></script>
 
     <script>
-        console.log('=== INICIO DE perfil.html ===');
-        console.log('Verificando APIs cargadas...');
-        console.log('UserAPI:', typeof UserAPI !== 'undefined' ? 'OK' : 'ERROR');
-
+        
         // Variable global para almacenar el perfil
         let currentProfile = null;
 
         // Inicializar al cargar la página
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('DOMContentLoaded - Iniciando...');
             
             // Verificar sesión
             const token = localStorage.getItem('accessToken');
@@ -431,12 +427,9 @@
         // Cargar perfil desde el backend
         async function loadProfile() {
             try {
-                console.log('Cargando perfil desde backend...');
                 showLoading(true);
                 
                 currentProfile = await UserAPI.getCurrentProfile();
-                
-                console.log('✓ Perfil cargado:', currentProfile);
                 
                 // Actualizar UI con los datos del perfil
                 document.getElementById('profileName').textContent = currentProfile.username;
@@ -477,7 +470,6 @@
                 const usuarios = await UserAPI.getAllUsers();
                 document.getElementById('totalUsuarios').textContent = usuarios.length;
             } catch (error) {
-                console.log('No se pudieron cargar las estadísticas:', error.message);
             }
         }
 
@@ -518,7 +510,6 @@
             }
             
             try {
-                console.log('Cambiando contraseña...');
                 showLoading(true);
                 
                 await UserAPI.changePassword(currentPassword, newPassword);
@@ -555,15 +546,12 @@
             }
             
             try {
-                console.log('Actualizando información personal...');
                 showLoading(true);
                 
                 const updatedUser = await UserAPI.updateProfile({
                     name: name,
                     phone: phone
                 });
-                
-                console.log('✓ Perfil actualizado:', updatedUser);
                 
                 // Actualizar UI
                 document.getElementById('profileName').textContent = updatedUser.username;
@@ -601,7 +589,6 @@
                 localStorage.removeItem('userData');
                 sessionStorage.removeItem('adminUser');
                 
-                console.log('Sesión cerrada. Redirigiendo al login...');
                 window.location.href = './index.html';
             }
         }
