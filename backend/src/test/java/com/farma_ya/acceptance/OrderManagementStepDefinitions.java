@@ -3,24 +3,23 @@ package com.farma_ya.acceptance;
 import com.farma_ya.model.*;
 import com.farma_ya.repository.OrderRepository;
 import com.farma_ya.repository.UserRepository;
-import com.farma_ya.service.IOrderService;
+import com.farma_ya.service.OrderService;
 import com.farma_ya.service.UserService;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@CucumberContextConfiguration
 public class OrderManagementStepDefinitions {
 
     @Autowired
-    private IOrderService orderService;
+    private OrderService orderService;
 
     @Autowired
     private UserService userService;
@@ -210,7 +209,8 @@ public class OrderManagementStepDefinitions {
 
     @Then("they should see updated statistics")
     public void theyShouldSeeUpdatedStatistics() {
-        var stats = orderService.getDeliveryStats(deliveryUser);
+        @SuppressWarnings("unchecked")
+        var stats = (Map<String, Object>) orderService.getDeliveryStats(deliveryUser);
         assertThat(stats).isNotNull();
         assertThat(stats.get("pedidosEntregados")).isNotNull();
     }
@@ -351,7 +351,8 @@ public class OrderManagementStepDefinitions {
 
     @Then("they should see:")
     public void theyShouldSee(io.cucumber.datatable.DataTable dataTable) {
-        var stats = orderService.getDeliveryStats(deliveryUser);
+        @SuppressWarnings("unchecked")
+        var stats = (Map<String, Object>) orderService.getDeliveryStats(deliveryUser);
 
         var expectedStats = dataTable.asMaps().get(0);
         assertThat(stats.get("pedidosPendientes")).isEqualTo(Long.valueOf(expectedStats.get("pending_orders")));
