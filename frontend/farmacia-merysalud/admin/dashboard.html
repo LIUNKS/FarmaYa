@@ -244,6 +244,79 @@
                         </div>
                     </div>
 
+                    <!-- Reportes Section -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-12">
+                            <div class="card dashboard-card">
+                                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-chart-line text-success"></i> Generación de Reportes
+                                    </h5>
+                                    <small class="text-muted">Selecciona una fecha y genera reportes de ventas</small>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Selector de Fecha y Botones -->
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-4">
+                                            <label for="reporteFecha" class="form-label">
+                                                <i class="fas fa-calendar-alt"></i> Seleccionar Fecha
+                                            </label>
+                                            <input type="date" class="form-control" id="reporteFecha">
+                                        </div>
+                                        <div class="col-md-8 d-flex align-items-end gap-2">
+                                            <button type="button" class="btn btn-success" id="btnGenerarDiario">
+                                                <i class="fas fa-file-excel"></i> Reporte Diario
+                                            </button>
+                                            <button type="button" class="btn btn-primary" id="btnGenerarSemanal">
+                                                <i class="fas fa-file-excel"></i> Reporte Semanal
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info" id="btnVerReportes">
+                                                <i class="fas fa-list"></i> Ver Reportes Recientes
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Información de Reportes -->
+                                    <div class="alert alert-info" id="reportesInfo">
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Información:</strong> Los reportes incluyen solo pedidos entregados.
+                                        El reporte diario muestra ganancias de un día específico.
+                                        El reporte semanal abarca desde el lunes hasta el domingo de la semana seleccionada.
+                                    </div>
+
+                                    <!-- Reportes Recientes -->
+                                    <div id="reportesRecientesSection" style="display: none;">
+                                        <h6 class="mb-3">
+                                            <i class="fas fa-history"></i> Reportes Recientes
+                                        </h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-hover">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Tipo</th>
+                                                        <th>Período</th>
+                                                        <th>Generado</th>
+                                                        <th>Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="reportesRecientesTable">
+                                                    <tr>
+                                                        <td colspan="4" class="text-center text-muted">
+                                                            <div class="spinner-border spinner-border-sm" role="status">
+                                                                <span class="visually-hidden">Cargando...</span>
+                                                            </div>
+                                                            Cargando reportes...
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Charts Row -->
                     <div class="row g-4 mb-4">
                         <!-- Pedidos por Estado -->
@@ -331,17 +404,13 @@
     <script src="../assets/js/app.js"></script>
 
     <script>
-        console.log('=== INICIO DE dashboard.html ===');
-        console.log('Verificando APIs cargadas...');
-        console.log('DashboardAPI:', typeof DashboardAPI !== 'undefined' ? 'OK' : 'ERROR');
-
+        
         // Variables globales
         let dashboardData = null;
         let estadoChart = null;
 
         // Verificar autenticación al cargar
         document.addEventListener('DOMContentLoaded', async function () {
-            console.log('DOMContentLoaded - Iniciando...');
             
             // Verificar sesión
             const token = localStorage.getItem('accessToken');
@@ -364,6 +433,10 @@
 
             // Mostrar nombre del admin
             document.getElementById('adminName').textContent = userData.nombre;
+
+            // Establecer fecha por defecto (hoy)
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('reporteFecha').value = today;
 
             // Configurar event listeners
             document.getElementById('logoutBtn').addEventListener('click', logout);
@@ -395,12 +468,9 @@
         // Cargar datos del dashboard
         async function loadDashboardData() {
             try {
-                console.log('Cargando datos del dashboard desde backend...');
                 showLoading(true);
                 
                 dashboardData = await DashboardAPI.getDashboardData();
-                
-                console.log('✓ Datos del dashboard cargados:', dashboardData);
                 
                 // Actualizar estadísticas
                 loadStats(dashboardData.stats);
@@ -568,6 +638,21 @@
                 const fecha = formatDate(pedido.createdAt);
                 const cantidadProductos = pedido.items?.length || 0;
 
+                // Crear lista de productos (máximo 2 productos + "y X más" si hay más)
+                let productosTexto = '';
+                if (pedido.items && pedido.items.length > 0) {
+                    const primerosProductos = pedido.items.slice(0, 2);
+                    productosTexto = primerosProductos.map(item =>
+                        item.product?.name || 'Producto'
+                    ).join(', ');
+
+                    if (pedido.items.length > 2) {
+                        productosTexto += ` y ${pedido.items.length - 2} más`;
+                    }
+                } else {
+                    productosTexto = 'Sin productos';
+                }
+
                 html += `
                     <tr>
                         <td><strong>${pedido.numeroPedido}</strong></td>
@@ -576,7 +661,10 @@
                             <small class="text-muted">${pedido.user?.email || ''}</small>
                         </td>
                         <td>
-                            <span class="badge bg-secondary">${cantidadProductos} items</span>
+                            <div title="${productosTexto}">
+                                <small class="text-muted">${productosTexto}</small><br>
+                                <span class="badge bg-secondary">${cantidadProductos} item${cantidadProductos !== 1 ? 's' : ''}</span>
+                            </div>
                         </td>
                         <td><strong>S/. ${pedido.totalAmount?.toFixed(2) || '0.00'}</strong></td>
                         <td><span class="badge bg-${badgeClass}">${pedido.status}</span></td>
@@ -610,14 +698,210 @@
                 localStorage.removeItem('userData');
                 sessionStorage.removeItem('adminUser');
                 
-                console.log('Sesión cerrada. Redirigiendo al login...');
                 window.location.href = './index.html';
+            }
+        }
+
+        // Variables para reportes
+        let reportesRecientes = [];
+
+        // Configurar event listeners para reportes
+        document.getElementById('btnGenerarDiario').addEventListener('click', generarReporteDiario);
+        document.getElementById('btnGenerarSemanal').addEventListener('click', generarReporteSemanal);
+        document.getElementById('btnVerReportes').addEventListener('click', toggleReportesRecientes);
+
+        // Generar reporte diario
+        async function generarReporteDiario() {
+            const fecha = document.getElementById('reporteFecha').value;
+            
+            if (!fecha) {
+                showNotification('Por favor selecciona una fecha', 'warning');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                showNotification('Generando reporte diario...', 'info');
+                
+                await ReporteAPI.exportarReporteDiario(fecha);
+                
+                showLoading(false);
+                showNotification('Reporte diario generado y descargado exitosamente', 'success');
+                
+                // Recargar reportes recientes
+                await cargarReportesRecientes();
+                
+            } catch (error) {
+                showLoading(false);
+                console.error('Error generando reporte diario:', error);
+                showNotification('Error al generar reporte diario: ' + error.message, 'danger');
+            }
+        }
+
+        // Generar reporte semanal
+        async function generarReporteSemanal() {
+            const fechaSeleccionada = document.getElementById('reporteFecha').value;
+            
+            if (!fechaSeleccionada) {
+                showNotification('Por favor selecciona una fecha', 'warning');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                showNotification('Generando reporte semanal...', 'info');
+                
+                // Calcular inicio y fin de semana (lunes a domingo)
+                const fecha = new Date(fechaSeleccionada);
+                const diaSemana = fecha.getDay(); // 0 = domingo, 1 = lunes, etc.
+                
+                // Calcular lunes de la semana
+                const lunes = new Date(fecha);
+                const diffLunes = fecha.getDay() === 0 ? -6 : 1 - fecha.getDay(); // Si es domingo, restar 6 días
+                lunes.setDate(fecha.getDate() + diffLunes);
+                
+                // Calcular domingo de la semana
+                const domingo = new Date(lunes);
+                domingo.setDate(lunes.getDate() + 6);
+                
+                // Formatear fechas
+                const fechaInicio = lunes.toISOString().split('T')[0];
+                const fechaFin = domingo.toISOString().split('T')[0];
+                
+                // Generar reporte
+                const resultado = await ReporteAPI.generarReporteSemanal(fechaInicio, fechaFin);
+                
+                if (resultado.status === 'SUCCESS' && resultado.reporte) {
+                    const reporteId = resultado.reporte.reporteId;
+                    
+                    // Exportar a Excel
+                    await ReporteAPI.exportarReporteSemanal(reporteId);
+                    
+                    showLoading(false);
+                    showNotification('Reporte semanal generado y descargado exitosamente', 'success');
+                    
+                    // Recargar reportes recientes
+                    await cargarReportesRecientes();
+                    
+                } else {
+                    throw new Error(resultado.message || 'Error desconocido');
+                }
+                
+            } catch (error) {
+                showLoading(false);
+                console.error('Error generando reporte semanal:', error);
+                showNotification('Error al generar reporte semanal: ' + error.message, 'danger');
+            }
+        }
+
+        // Toggle sección de reportes recientes
+        function toggleReportesRecientes() {
+            const section = document.getElementById('reportesRecientesSection');
+            const isVisible = section.style.display !== 'none';
+            
+            if (!isVisible) {
+                // Mostrar y cargar datos
+                section.style.display = 'block';
+                cargarReportesRecientes();
+            } else {
+                // Ocultar
+                section.style.display = 'none';
+            }
+        }
+
+        // Cargar reportes recientes
+        async function cargarReportesRecientes() {
+            try {
+                const tbody = document.getElementById('reportesRecientesTable');
+                
+                // Mostrar loading
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            Cargando reportes...
+                        </td>
+                    </tr>
+                `;
+                
+                const reportes = await ReporteAPI.getUltimosReportes(10);
+                
+                if (!reportes.reportes || reportes.reportes.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">
+                                <i class="fas fa-inbox"></i> No hay reportes generados aún
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                reportes.reportes.forEach(reporte => {
+                    const fechaInicio = new Date(reporte.semanaInicio[0], reporte.semanaInicio[1] - 1, reporte.semanaInicio[2]);
+                    const fechaFin = new Date(reporte.semanaFin[0], reporte.semanaFin[1] - 1, reporte.semanaFin[2]);
+                    const fechaGenerado = new Date(reporte.generadoEn[0], reporte.generadoEn[1] - 1, reporte.generadoEn[2], 
+                                                 reporte.generadoEn[3] || 0, reporte.generadoEn[4] || 0);
+                    
+                    const periodo = `${fechaInicio.toLocaleDateString('es-PE')} - ${fechaFin.toLocaleDateString('es-PE')}`;
+                    const generado = fechaGenerado.toLocaleDateString('es-PE') + ' ' + fechaGenerado.toLocaleTimeString('es-PE', {hour: '2-digit', minute: '2-digit'});
+                    
+                    html += `
+                        <tr>
+                            <td>
+                                <span class="badge bg-primary">Semanal</span>
+                            </td>
+                            <td>
+                                <small>${periodo}</small>
+                            </td>
+                            <td>
+                                <small class="text-muted">${generado}</small>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-success" 
+                                        onclick="descargarReporteSemanal(${reporte.reporteId})"
+                                        title="Descargar Excel">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tbody.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error cargando reportes recientes:', error);
+                const tbody = document.getElementById('reportesRecientesTable');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Error al cargar reportes
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Descargar reporte semanal existente
+        async function descargarReporteSemanal(reporteId) {
+            try {
+                showNotification('Descargando reporte...', 'info');
+                await ReporteAPI.exportarReporteSemanal(reporteId);
+                showNotification('Reporte descargado exitosamente', 'success');
+            } catch (error) {
+                console.error('Error descargando reporte:', error);
+                showNotification('Error al descargar reporte: ' + error.message, 'danger');
             }
         }
 
         // Hacer funciones globales
         window.verDetallePedido = verDetallePedido;
         window.logout = logout;
+        window.descargarReporteSemanal = descargarReporteSemanal;
     </script>
 </body>
 </html>
