@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Tag(name = "Usuarios", description = "Gestión de usuarios del sistema")
 @RestController
@@ -124,5 +127,58 @@ public class UserController {
 
         User updatedUser = userService.saveUser(currentUser);
         return ResponseEntity.ok(updatedUser);
+    }
+
+    @Operation(summary = "Limpiar usuarios de prueba", description = "Elimina todos los usuarios de prueba del sistema (solo administradores)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/cleanup-test-users")
+    public ResponseEntity<Map<String, Object>> cleanupTestUsers() {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // Lista de usuarios de prueba a eliminar
+            String[] testUsers = {
+                    "testuser",
+                    "delivery"
+            };
+
+            int deletedCount = 0;
+            List<String> deletedUsers = new ArrayList<>();
+            List<String> notFoundUsers = new ArrayList<>();
+
+            for (String username : testUsers) {
+                if (userService.existsByUsername(username)) {
+                    userService.deleteByUsername(username);
+                    deletedUsers.add(username);
+                    deletedCount++;
+                } else {
+                    notFoundUsers.add(username);
+                }
+            }
+
+            response.put("status", "SUCCESS");
+            response.put("message", "Limpieza de usuarios de prueba completada");
+            response.put("deletedCount", deletedCount);
+            response.put("deletedUsers", deletedUsers);
+            response.put("notFoundUsers", notFoundUsers);
+
+            // Mostrar usuarios restantes
+            List<User> remainingUsers = userService.getAllUsers();
+            response.put("remainingUsersCount", remainingUsers.size());
+            response.put("remainingUsers", remainingUsers.stream()
+                    .map(user -> Map.of(
+                            "id", user.getId(),
+                            "username", user.getUsername(),
+                            "email", user.getEmail(),
+                            "role", user.getRolId()))
+                    .collect(Collectors.toList()));
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("status", "ERROR");
+            response.put("message", "Error durante la limpieza: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
     }
 }
