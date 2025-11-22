@@ -14,10 +14,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,7 +32,7 @@ import java.util.Map;
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/api/reportes")
-@CrossOrigin(origins = "*")
+// @CrossOrigin(origins = "*") // Temporalmente comentado para debugging
 public class ReporteVentaController {
 
     @Autowired
@@ -50,17 +50,38 @@ public class ReporteVentaController {
     })
     @PostMapping("/generar-semanal")
     public ResponseEntity<Map<String, Object>> generarReporteSemanal(
-            @Parameter(description = "Fecha de inicio de la semana (formato: YYYY-MM-DD)", required = true) @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
-            @Parameter(description = "Fecha de fin de la semana (formato: YYYY-MM-DD)", required = true) @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) {
+            @RequestBody Map<String, String> requestBody) {
 
         Map<String, Object> response = new HashMap<>();
 
         try {
+            LocalDate fechaInicio = LocalDate.parse(requestBody.get("fechaInicio"));
+            LocalDate fechaFin = LocalDate.parse(requestBody.get("fechaFin"));
+
             ReporteVentaSemanal reporte = reporteService.generarReporteSemanal(fechaInicio, fechaFin);
+
+            // Crear respuesta resumida para evitar problemas de serialización
+            Map<String, Object> reporteData = new HashMap<>();
+            reporteData.put("reporteId", reporte.getReporteId());
+            reporteData.put("semanaInicio", reporte.getSemanaInicio());
+            reporteData.put("semanaFin", reporte.getSemanaFin());
+            reporteData.put("yearSemana", reporte.getYearSemana());
+            reporteData.put("totalPedidos", reporte.getTotalPedidos());
+            reporteData.put("totalProductosVendidos", reporte.getTotalProductosVendidos());
+            reporteData.put("totalIngresos", reporte.getTotalIngresos());
+            reporteData.put("categoriaMasVendida", reporte.getCategoriaMasVendida());
+            reporteData.put("generadoEn", reporte.getGeneradoEn());
+
+            if (reporte.getProductoMasVendido() != null) {
+                Map<String, Object> productoData = new HashMap<>();
+                productoData.put("id", reporte.getProductoMasVendido().getId());
+                productoData.put("name", reporte.getProductoMasVendido().getName());
+                reporteData.put("productoMasVendido", productoData);
+            }
 
             response.put("status", "SUCCESS");
             response.put("message", "Reporte generado exitosamente");
-            response.put("reporte", reporte);
+            response.put("reporte", reporteData);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -94,6 +115,22 @@ public class ReporteVentaController {
         } catch (Exception e) {
             response.put("status", "ERROR");
             response.put("message", "Error al generar reportes automáticos: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @Operation(summary = "Probar creación de reporte vacío", description = "Crea un reporte vacío para testing")
+    @PostMapping("/test-crear-reporte")
+    public ResponseEntity<Map<String, Object>> testCrearReporte() {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            response.put("status", "SUCCESS");
+            response.put("message", "Endpoint de prueba funcionando");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("status", "ERROR");
+            response.put("message", "Error en endpoint de prueba: " + e.getMessage());
             return ResponseEntity.status(500).body(response);
         }
     }
@@ -166,7 +203,8 @@ public class ReporteVentaController {
                 "GET /api/reportes/por-año/{año}", "Obtener reportes de un año específico",
                 "GET /api/reportes/ultimos/{limite}", "Obtener los últimos N reportes",
                 "GET /api/reportes/diario-ganancias", "Generar reporte diario de ganancias",
-                "GET /api/reportes/exportar-diario-ganancias", "Exportar reporte diario de ganancias a Excel"));
+                "GET /api/reportes/exportar-diario-ganancias", "Exportar reporte diario de ganancias a Excel",
+                "GET /api/reportes/exportar-semanal/{id}", "Exportar reporte semanal a Excel"));
 
         return ResponseEntity.ok(response);
     }
@@ -210,9 +248,11 @@ public class ReporteVentaController {
     public ResponseEntity<byte[]> exportarReporteDiarioGanancias(
             @Parameter(description = "Fecha del día (formato: YYYY-MM-DD)", required = true) @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha)
             throws IOException {
-
         try {
+            // Generar el reporte diario
             Map<String, Object> reporte = reporteService.generarReporteDiarioGanancias(fecha);
+
+            // Exportar a Excel
             byte[] excelBytes = excelExportService.exportarReporteDiarioGanancias(reporte);
 
             HttpHeaders headers = new HttpHeaders();
@@ -223,7 +263,38 @@ public class ReporteVentaController {
                     .headers(headers)
                     .body(excelBytes);
         } catch (Exception e) {
-            throw new RuntimeException("Error al exportar reporte: " + e.getMessage());
+            throw new RuntimeException("Error al exportar reporte diario: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Exportar reporte semanal a Excel", description = "Genera y descarga un archivo Excel con el reporte semanal de ventas completo")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Archivo Excel generado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Reporte no encontrado"),
+            @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/exportar-semanal/{reporteId}")
+    public ResponseEntity<byte[]> exportarReporteSemanal(@PathVariable Long reporteId) throws IOException {
+        try {
+            // Buscar el reporte por ID
+            ReporteVentaSemanal reporte = reporteService.getReporteById(reporteId);
+
+            if (reporte == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            byte[] excelBytes = excelExportService.exportarReporteSemanal(reporte);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "reporte_semanal_" + reporte.getYearSemana() + ".xlsx");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(excelBytes);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al exportar reporte semanal: " + e.getMessage());
         }
     }
 }
