@@ -267,17 +267,13 @@
     <script src="../assets/js/app.js"></script>
 
     <script>
-        console.log('=== INICIO DE usuarios.html ===');
-        console.log('Verificando APIs cargadas...');
-        console.log('UserAPI:', typeof UserAPI !== 'undefined' ? 'OK' : 'ERROR');
-
+        
         // Variables globales
         let allUsuarios = [];
         let filteredUsuarios = [];
 
         // Inicializar al cargar la página
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('DOMContentLoaded - Iniciando verificación de sesión...');
             
             // Verificar sesión
             const token = localStorage.getItem('accessToken');
@@ -339,14 +335,10 @@
         // Cargar usuarios desde el backend
         async function loadUsuarios() {
             try {
-                console.log('Cargando usuarios desde backend...');
                 showLoading(true);
                 
                 allUsuarios = await UserAPI.getAllUsers();
                 filteredUsuarios = allUsuarios;
-                
-                console.log('✓ Usuarios cargados:', allUsuarios.length);
-                console.log('Usuarios:', allUsuarios);
                 
                 updateStats();
                 renderUsuariosTable();
@@ -374,7 +366,7 @@
             const stats = {
                 clientes: allUsuarios.filter(u => u.role === 'USER').length,
                 admins: allUsuarios.filter(u => u.role === 'ADMIN').length,
-                repartidores: allUsuarios.filter(u => u.role === 'REPARTIDOR' || u.rolId === 3).length,
+                repartidores: allUsuarios.filter(u => u.role === 'DELIVERY' || u.rolId === 3).length,
                 total: allUsuarios.length
             };
             
@@ -425,13 +417,13 @@
                 const badgeClass = {
                     'USER': 'primary',
                     'ADMIN': 'success',
-                    'REPARTIDOR': 'warning'
+                    'DELIVERY': 'warning'
                 }[usuario.role] || 'secondary';
                 
                 const roleIcon = {
                     'USER': 'fa-user',
                     'ADMIN': 'fa-user-shield',
-                    'REPARTIDOR': 'fa-motorcycle'
+                    'DELIVERY': 'fa-motorcycle'
                 }[usuario.role] || 'fa-user';
 
                 // Formatear fecha de registro
@@ -501,13 +493,10 @@
         // Ver detalle de usuario
         async function verDetalle(usuarioId) {
             try {
-                console.log('Cargando detalle del usuario ID:', usuarioId);
                 showLoading(true);
                 
                 const usuario = await UserAPI.getUserById(usuarioId);
                 showLoading(false);
-                
-                console.log('Usuario obtenido:', usuario);
                 
                 const modal = new bootstrap.Modal(document.getElementById('detalleUsuarioModal'));
                 const content = document.getElementById('detalleUsuarioContent');
@@ -515,13 +504,13 @@
                 const badgeClass = {
                     'USER': 'primary',
                     'ADMIN': 'success',
-                    'REPARTIDOR': 'warning'
+                    'DELIVERY': 'warning'
                 }[usuario.role] || 'secondary';
                 
                 const roleIcon = {
                     'USER': 'fa-user',
                     'ADMIN': 'fa-user-shield',
-                    'REPARTIDOR': 'fa-motorcycle'
+                    'DELIVERY': 'fa-motorcycle'
                 }[usuario.role] || 'fa-user';
                 
                 const fechaRegistro = usuario.creadoEn ? 
@@ -617,7 +606,6 @@
                 localStorage.removeItem('userData');
                 sessionStorage.removeItem('adminUser');
                 
-                console.log('Sesión cerrada. Redirigiendo al login...');
                 window.location.href = './index.html';
             }
         }
