@@ -312,7 +312,6 @@
         async function loadCart() {
             try {
                 cart = await dataStore.getCarrito();
-                console.log('Carrito cargado para checkout:', cart);
             } catch (error) {
                 console.error('Error al cargar carrito:', error);
                 cart = [];
@@ -458,8 +457,6 @@
                 // Crear pedido en el backend
                 const pedido = await OrderAPI.createOrder(shippingData);
                 
-                console.log('Pedido creado:', pedido);
-
                 // Limpiar carrito después de crear pedido
                 await dataStore.clearCarrito();
                 
