@@ -125,6 +125,14 @@ public class OrderController {
         return ResponseEntity.ok(simplifiedOrders);
     }
 
+    @Operation(summary = "Eliminar pedido", description = "Elimina un pedido del sistema (solo administradores)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Integer id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Asignar repartidor a pedido", description = "Asigna un repartidor a un pedido (solo administradores)")
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/assign-delivery")
@@ -213,10 +221,16 @@ public class OrderController {
     @Operation(summary = "Obtener mis pedidos asignados", description = "Retorna pedidos asignados al repartidor autenticado")
     @PreAuthorize("hasRole('DELIVERY')")
     @GetMapping("/delivery/my-orders")
-    public ResponseEntity<List<Order>> getMyAssignedOrders(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<List<Map<String, Object>>> getMyAssignedOrders(
+            @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
         List<Order> orders = orderService.getOrdersByRepartidor(currentUser);
-        return ResponseEntity.ok(orders);
+
+        List<Map<String, Object>> simplifiedOrders = orders.stream()
+                .map(this::convertOrderToMap)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(simplifiedOrders);
     }
 
     @Operation(summary = "Obtener estadísticas del repartidor", description = "Retorna estadísticas de entregas del repartidor autenticado")
@@ -255,7 +269,7 @@ public class OrderController {
             case PROCESANDO:
                 return "PROCESSING";
             case ENVIADO:
-                return "DELIVERED";
+                return "SHIPPED";
             case ENTREGADO:
                 return "DELIVERED";
             case CANCELADO:
