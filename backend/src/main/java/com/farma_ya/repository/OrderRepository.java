@@ -47,4 +47,19 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product LEFT JOIN FETCH o.user LEFT JOIN FETCH o.repartidor LEFT JOIN FETCH o.shippingAddress ORDER BY o.createdAt DESC")
     List<Order> findAllWithItems();
+
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product LEFT JOIN FETCH o.user LEFT JOIN FETCH o.repartidor LEFT JOIN FETCH o.shippingAddress WHERE o.user = :user ORDER BY o.createdAt DESC")
+    List<Order> findByUserWithItems(@Param("user") User user);
+
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product LEFT JOIN FETCH o.user LEFT JOIN FETCH o.repartidor LEFT JOIN FETCH o.shippingAddress WHERE o.id = :id")
+    Order findByIdWithItems(@Param("id") Integer id);
+
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product LEFT JOIN FETCH o.user LEFT JOIN FETCH o.repartidor LEFT JOIN FETCH o.shippingAddress WHERE o.repartidor = :repartidor ORDER BY o.createdAt DESC")
+    List<Order> findByRepartidorWithItems(@Param("repartidor") User repartidor);
+
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product LEFT JOIN FETCH o.user LEFT JOIN FETCH o.repartidor LEFT JOIN FETCH o.shippingAddress ORDER BY o.createdAt DESC")
+    List<Order> findRecentOrdersWithItems();
+
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.items i LEFT JOIN FETCH i.product LEFT JOIN FETCH o.user LEFT JOIN FETCH o.repartidor LEFT JOIN FETCH o.shippingAddress WHERE o.repartidor IS NULL AND o.status = :status ORDER BY o.createdAt DESC")
+    List<Order> findUnassignedOrdersByStatusWithItems(@Param("status") OrderStatus status);
 }
