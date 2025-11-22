@@ -145,11 +145,42 @@ public class DashboardController {
             orderData.put("id", order.getId());
             orderData.put("numeroPedido", order.getNumeroPedido());
             orderData.put("totalAmount", order.getTotalAmount());
-            orderData.put("status", order.getStatus());
-            orderData.put("createdAt", order.getCreatedAt());
+            orderData.put("status", order.getStatus().name());
+            orderData.put("createdAt", new int[] {
+                    order.getCreatedAt().getYear(),
+                    order.getCreatedAt().getMonthValue(),
+                    order.getCreatedAt().getDayOfMonth(),
+                    order.getCreatedAt().getHour(),
+                    order.getCreatedAt().getMinute(),
+                    order.getCreatedAt().getSecond()
+            });
+
+            // Información del usuario
             if (order.getUser() != null) {
-                orderData.put("userName", order.getUser().getUsername());
+                Map<String, Object> userData = new HashMap<>();
+                userData.put("id", order.getUser().getId());
+                userData.put("username", order.getUser().getUsername());
+                userData.put("email", order.getUser().getEmail());
+                orderData.put("user", userData);
             }
+
+            // Items del pedido (simplificados)
+            List<Map<String, Object>> items = order.getItems().stream().map(item -> {
+                Map<String, Object> itemData = new HashMap<>();
+                itemData.put("id", item.getId());
+                itemData.put("quantity", item.getQuantity());
+                itemData.put("price", item.getPrice());
+                itemData.put("subtotal", item.getSubtotal());
+                if (item.getProduct() != null) {
+                    Map<String, Object> productData = new HashMap<>();
+                    productData.put("id", item.getProduct().getId());
+                    productData.put("name", item.getProduct().getName());
+                    itemData.put("product", productData);
+                }
+                return itemData;
+            }).collect(Collectors.toList());
+            orderData.put("items", items);
+
             return orderData;
         }).collect(Collectors.toList());
         dashboardData.put("recentOrders", simplifiedRecentOrders);
