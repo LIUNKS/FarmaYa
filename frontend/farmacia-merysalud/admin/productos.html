@@ -349,11 +349,7 @@
     <script src="../assets/js/app.js"></script>
     
     <script>
-        console.log('=== INICIO DE productos.html ===');
-        console.log('Verificando APIs cargadas...');
-        console.log('ProductAPI:', typeof ProductAPI !== 'undefined' ? 'OK' : 'ERROR');
-        console.log('AuthAPI:', typeof AuthAPI !== 'undefined' ? 'OK' : 'ERROR');
-
+        
         // Variables globales
         let productos = [];
         let productosFiltrados = [];
@@ -361,28 +357,21 @@
 
         // Verificar autenticación al cargar
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('DOMContentLoaded - Iniciando verificación de sesión...');
             
             // Verificar sesión
             const token = localStorage.getItem('accessToken');
             const usuario = localStorage.getItem('usuarioActual');
             
-            console.log('Token presente:', !!token);
-            console.log('Usuario presente:', !!usuario);
-            
             if (!token || !usuario) {
-                console.error('Sesión no encontrada');
                 alert('Sesión no encontrada. Redirigiendo al login...');
                 window.location.href = './index.html';
                 return;
             }
 
             const userData = JSON.parse(usuario);
-            console.log('Usuario:', userData);
             
             // Verificar que sea ADMIN
             if (userData.rol !== 'ADMIN') {
-                console.error('Usuario no es ADMIN:', userData.rol);
                 alert('Acceso denegado. Solo administradores pueden acceder a esta sección.');
                 window.location.href = '../index.html';
                 return;
@@ -398,7 +387,6 @@
             setupEventListeners();
 
             // Cargar productos desde el backend
-            console.log('Cargando productos desde backend...');
             await loadProducts();
 
             // Cargar categorías para el filtro
@@ -456,14 +444,10 @@
         // Cargar productos desde el backend
         async function loadProducts() {
             try {
-                console.log('Llamando a ProductAPI.getAllProducts()...');
                 showLoading(true);
                 
                 productos = await ProductAPI.getAllProducts();
                 productosFiltrados = productos;
-                
-                console.log('✓ Productos cargados exitosamente:', productos.length);
-                console.log('Primeros 3 productos:', productos.slice(0, 3));
                 
                 renderProducts();
                 updateStats();
@@ -605,12 +589,9 @@
         // Editar producto
         async function editProduct(id) {
             try {
-                console.log('Editando producto ID:', id);
                 showLoading(true);
                 const producto = await ProductAPI.getProductById(id);
                 showLoading(false);
-                
-                console.log('Producto obtenido:', producto);
                 
                 document.getElementById('productId').value = producto.id;
                 document.getElementById('productName').value = producto.name;
@@ -636,7 +617,6 @@
 
         // Guardar producto (crear o actualizar)
         async function saveProduct() {
-            console.log('Guardando producto...');
             
             // Limpiar alertas previas
             document.getElementById('modalAlertContainer').innerHTML = '';
@@ -662,8 +642,6 @@
                 imageUrl: document.getElementById('productImage').value.trim() || null
             };
             
-            console.log('Datos del producto:', productData);
-            
             try {
                 // Deshabilitar botón mientras se procesa
                 const saveBtn = document.getElementById('saveBtn');
@@ -672,12 +650,10 @@
                 
                 if (id) {
                     // Actualizar producto existente
-                    console.log('Actualizando producto ID:', id);
                     await ProductAPI.updateProduct(id, productData);
                     showNotification('Producto actualizado exitosamente', 'success');
                 } else {
                     // Crear nuevo producto
-                    console.log('Creando nuevo producto');
                     await ProductAPI.createProduct(productData);
                     showNotification('Producto creado exitosamente', 'success');
                 }
@@ -710,7 +686,6 @@
             }
             
             try {
-                console.log('Eliminando producto ID:', id);
                 showLoading(true);
                 await ProductAPI.deleteProduct(id);
                 showLoading(false);
@@ -726,7 +701,6 @@
 
         // Logout
         function logout() {
-            console.log('Cerrando sesión...');
             if (confirm('¿Desea cerrar sesión?')) {
                 // Limpiar TODOS los datos de sesión
                 localStorage.removeItem('accessToken');
@@ -734,8 +708,6 @@
                 localStorage.removeItem('usuarioActual');
                 localStorage.removeItem('userData');
                 sessionStorage.removeItem('adminUser');
-                
-                console.log('Sesión cerrada. Redirigiendo al login...');
                 
                 // Redirigir al login del admin
                 window.location.href = './index.html';
