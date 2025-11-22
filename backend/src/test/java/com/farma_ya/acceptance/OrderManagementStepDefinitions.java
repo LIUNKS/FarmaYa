@@ -1,6 +1,5 @@
 package com.farma_ya.acceptance;
 
-import com.farma_ya.FarmaYaApplication;
 import com.farma_ya.model.*;
 import com.farma_ya.repository.OrderRepository;
 import com.farma_ya.repository.UserRepository;
@@ -11,8 +10,6 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,8 +17,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @CucumberContextConfiguration
-@SpringBootTest(classes = FarmaYaApplication.class)
-@ActiveProfiles("test")
 public class OrderManagementStepDefinitions {
 
     @Autowired
@@ -67,7 +62,7 @@ public class OrderManagementStepDefinitions {
         deliveryUser.setUsername("delivery");
         deliveryUser.setEmail("delivery@example.com");
         deliveryUser.setPassword("password");
-        deliveryUser.setRolId(3); // DELIVERY role
+        deliveryUser.setRolId(35); // DELIVERY role
         deliveryUser = userRepository.save(deliveryUser);
     }
 
