@@ -367,8 +367,12 @@
 
                 // Redirigir según rol después de 1 segundo
                 setTimeout(() => {
-                    if (response.role === 'ADMIN') {
+                    const userRole = (response.role || '').toUpperCase().trim();
+                    
+                    if (userRole === 'ADMIN') {
                         window.location.href = './admin/dashboard.html';
+                    } else if (userRole === 'DELIVERY') {
+                        window.location.href = './delivery/index.html';
                     } else {
                         window.location.href = './index.html';
                     }
