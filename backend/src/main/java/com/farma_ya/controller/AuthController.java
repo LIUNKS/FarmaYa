@@ -23,6 +23,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "Autenticación", description = "Endpoints para registro, login y gestión de usuarios")
 @RestController
 @RequestMapping("/api/auth")
@@ -107,5 +109,11 @@ public class AuthController {
         @GetMapping("/test")
         public ResponseEntity<String> test() {
                 return ResponseEntity.ok("Backend funcionando correctamente");
+        }
+
+        @GetMapping("/debug/users")
+        public ResponseEntity<List<User>> getAllUsers() {
+                List<User> users = userService.getAllUsers();
+                return ResponseEntity.ok(users);
         }
 }
