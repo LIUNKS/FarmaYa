@@ -39,7 +39,7 @@ public class ReporteVentaService {
      * Genera un reporte de ventas para una semana específica
      */
     public ReporteVentaSemanal generarReporteSemanal(LocalDate fechaInicio, LocalDate fechaFin) {
-        // Crear identificador de semana (ej: "2025-W01")
+        // Crear identificador de semana
         String yearSemana = crearIdentificadorSemana(fechaInicio);
 
         // Verificar si ya existe el reporte
@@ -150,6 +150,44 @@ public class ReporteVentaService {
      */
     public List<ReporteVentaSemanal> getUltimosReportes(int limite) {
         return reporteRepository.findTopReportes(limite);
+    }
+
+    /**
+     * Genera un reporte diario de ganancias para un día específico
+     */
+    public Map<String, Object> generarReporteDiarioGanancias(LocalDate fecha) {
+        // Obtener pedidos entregados del día
+        List<Order> pedidosDia = orderRepository.findPedidosEntregadosPorRangoFechas(fecha, fecha);
+
+        // Calcular ganancias totales
+        BigDecimal totalGanancias = pedidosDia.stream()
+                .map(order -> BigDecimal.valueOf(order.getTotalAmount()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Número de pedidos
+        int totalPedidos = pedidosDia.size();
+
+        // Productos vendidos
+        int totalProductosVendidos = pedidosDia.stream()
+                .mapToInt(order -> order.getItems().stream().mapToInt(OrderItem::getQuantity).sum())
+                .sum();
+
+        // Crear mapa de respuesta
+        Map<String, Object> reporte = new HashMap<>();
+        reporte.put("fecha", fecha);
+        reporte.put("totalGanancias", totalGanancias);
+        reporte.put("totalPedidos", totalPedidos);
+        reporte.put("totalProductosVendidos", totalProductosVendidos);
+        reporte.put("pedidos", pedidosDia.stream().map(order -> {
+            Map<String, Object> orderData = new HashMap<>();
+            orderData.put("id", order.getId());
+            orderData.put("numeroPedido", order.getNumeroPedido());
+            orderData.put("totalAmount", order.getTotalAmount());
+            orderData.put("createdAt", order.getCreatedAt());
+            return orderData;
+        }).collect(Collectors.toList()));
+
+        return reporte;
     }
 
     private void crearDetallesProducto(ReporteVentaSemanal reporte, List<Order> pedidosSemana) {
