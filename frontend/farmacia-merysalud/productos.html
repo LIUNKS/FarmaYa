@@ -272,9 +272,6 @@
                 productos = productosRaw.filter(p => p && p.id && p.name);
                 
                 productosFiltrados = [...productos];
-                console.log('Productos cargados:', productos.length);
-                console.log('Primer producto:', productos[0]);
-                console.log('IDs de productos:', productos.map(p => p.id));
             } catch (error) {
                 console.error('Error al cargar productos:', error);
                 App.showNotification('Error al cargar productos', 'danger');
@@ -437,17 +434,14 @@
 
         // Agregar al carrito
         async function addToCart(productoId) {
-            console.log('Agregando al carrito producto ID:', productoId);
             
             // Verificar que el producto existe
             const producto = productos.find(p => p.id === productoId);
             if (!producto) {
-                console.error('Producto no encontrado:', productoId);
                 App.showNotification('Producto no encontrado', 'danger');
                 return;
             }
             
-            console.log('Producto encontrado:', producto);
             await dataStore.addToCarrito(productoId);
             
             // Actualizar badge del carrito
