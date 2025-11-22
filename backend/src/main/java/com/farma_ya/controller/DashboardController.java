@@ -7,14 +7,21 @@ import com.farma_ya.model.Role;
 import com.farma_ya.service.IOrderService;
 import com.farma_ya.service.IProductService;
 import com.farma_ya.service.UserService;
+import com.farma_ya.service.ReporteVentaService;
+import com.farma_ya.service.ExcelExportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,11 +35,16 @@ public class DashboardController {
     private final IOrderService orderService;
     private final IProductService productService;
     private final UserService userService;
+    private final ReporteVentaService reporteService;
+    private final ExcelExportService excelExportService;
 
-    public DashboardController(IOrderService orderService, IProductService productService, UserService userService) {
+    public DashboardController(IOrderService orderService, IProductService productService, UserService userService,
+            ReporteVentaService reporteService, ExcelExportService excelExportService) {
         this.orderService = orderService;
         this.productService = productService;
         this.userService = userService;
+        this.reporteService = reporteService;
+        this.excelExportService = excelExportService;
     }
 
     @Operation(summary = "Obtener estadísticas generales", description = "Retorna métricas principales del dashboard (solo administradores)")
@@ -154,5 +166,32 @@ public class DashboardController {
         stats.put("totalPedidos", orderService.getAllOrders().size());
         stats.put("totalUsuarios", userService.getAllUsers().size());
         return ResponseEntity.ok(stats);
+    }
+
+    @Operation(summary = "Obtener reporte diario de ganancias", description = "Retorna el reporte de ganancias para un día específico (solo pedidos entregados)")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/daily-earnings")
+    public ResponseEntity<Map<String, Object>> getDailyEarningsReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
+        Map<String, Object> reporte = reporteService.generarReporteDiarioGanancias(date);
+        return ResponseEntity.ok(reporte);
+    }
+
+    @Operation(summary = "Exportar reporte diario de ganancias a Excel", description = "Descarga el reporte de ganancias diario en formato Excel")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/export-daily-earnings")
+    public ResponseEntity<byte[]> exportDailyEarningsReport(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate date)
+            throws IOException {
+        Map<String, Object> reporte = reporteService.generarReporteDiarioGanancias(date);
+        byte[] excelBytes = excelExportService.exportarReporteDiarioGanancias(reporte);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", "reporte_ganancias_" + date + ".xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excelBytes);
     }
 }
