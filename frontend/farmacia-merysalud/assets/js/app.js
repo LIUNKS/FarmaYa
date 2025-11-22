@@ -4,7 +4,6 @@
 const App = {
     // Inicializar la aplicación
     async init() {
-        console.log('Inicializando aplicación...');
         
         // Restaurar sesión si existe
         await this.restoreSession();
@@ -24,7 +23,6 @@ const App = {
         // Eventos globales
         this.bindGlobalEvents();
         
-        console.log('Aplicación inicializada correctamente');
     },
 
     // Restaurar sesión desde localStorage
@@ -40,7 +38,6 @@ const App = {
                     apiService.setToken(token);
                 }
                 
-                console.log('Sesión restaurada desde localStorage');
             } catch (error) {
                 console.warn('Error al restaurar sesión:', error);
                 // Limpiar sesión corrupta
@@ -61,7 +58,6 @@ const App = {
     // Iniciar timer para validar token periódicamente
     startTokenValidationTimer() {
         // NO hacer nada - método desactivado
-        console.log('⚠️ Validación automática de token DESACTIVADA');
     },
 
     // Cargar componentes HTML reutilizables
@@ -76,7 +72,7 @@ const App = {
             
             if (usuario) {
                 if (usuario.rol === 'ADMIN') navbarFile = 'navbar-admin.html';
-                else if (usuario.rol === 'REPARTIDOR') navbarFile = 'navbar-delivery.html';
+                else if (usuario.rol === 'DELIVERY') navbarFile = 'navbar-delivery.html';
             }
             
             try {
@@ -85,7 +81,6 @@ const App = {
                     navbarElement.innerHTML = await response.text();
                 }
             } catch (error) {
-                console.log('Navbar será incluido directamente en HTML');
             }
         }
         
@@ -96,7 +91,6 @@ const App = {
                     footerElement.innerHTML = await response.text();
                 }
             } catch (error) {
-                console.log('Footer será incluido directamente en HTML');
             }
         }
     },
@@ -131,22 +125,24 @@ const App = {
         
         // ✅ CORREGIDO: Solo validar token si el usuario ESTÁ logueado
         if (token && usuario) {
-            try {
-                // Validar token llamando a una API que requiere autenticación
-                await AuthAPI.getCurrentUser();
-                console.log('Token válido, usuario autenticado');
-            } catch (error) {
-                console.warn('Token inválido o expirado:', error.message);
-                
-                // ✅ SOLO mostrar modal si estamos en página protegida
-                if (needsAuth) {
-                    this.showSessionExpiredModal();
-                } else {
-                    // En página pública, solo limpiar sesión sin mostrar modal
-                    dataStore.logout();
-                    console.log('Sesión expirada limpiada silenciosamente (modo público)');
+            // Para usuarios delivery, no validar token con API call (puede causar problemas)
+            if (usuario.rol !== 'DELIVERY') {
+                try {
+                    // Validar token llamando a una API que requiere autenticación
+                    await AuthAPI.getCurrentUser();
+                } catch (error) {
+                    console.warn('Token inválido o expirado:', error.message);
+                    
+                    // ✅ SOLO mostrar modal si estamos en página protegida
+                    if (needsAuth) {
+                        this.showSessionExpiredModal();
+                    } else {
+                        // En página pública, solo limpiar sesión sin mostrar modal
+                        dataStore.logout();
+                    }
+                    return false;
                 }
-                return false;
+            } else {
             }
         }
         
@@ -166,7 +162,7 @@ const App = {
                 window.location.href = '/';
                 return false;
             }
-            if (path.includes('/delivery/') && usuario.rol !== 'REPARTIDOR') {
+            if (path.includes('/delivery/') && usuario.rol !== 'DELIVERY') {
                 window.location.href = '/';
                 return false;
             }
