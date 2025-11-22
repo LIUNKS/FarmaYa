@@ -174,7 +174,6 @@ class ApiService {
                 }
             } else {
                 // En páginas públicas, solo limpiar sesión sin mostrar modal
-                console.log('Sesión expirada (modo público) - limpieza silenciosa');
             }
         }
         
@@ -341,9 +340,31 @@ const OrderAPI = {
         return await this.api.get('/orders/delivery/available', true);
     },
 
-    // TEMPORAL: Obtener repartidores disponibles (público para debugging)
-    async getAvailableDeliveryUsersPublic() {
-        return await this.api.get('/orders/delivery/available-public', false);
+    // Obtener pedidos sin asignar (Admin)
+    async getUnassignedOrders() {
+        return await this.api.get('/orders/unassigned', true);
+    },
+
+    // ============ MÉTODOS DE DELIVERY (requieren auth DELIVERY) ============
+
+    // Obtener pedidos asignados al repartidor
+    async getMyAssignedOrders() {
+        return await this.api.get('/orders/delivery/my-orders', true);
+    },
+
+    // Actualizar estado de pedido asignado (Delivery)
+    async updateDeliveryStatus(orderId, status) {
+        return await this.api.put(`/orders/${orderId}/delivery-status?status=${status}`, null, true);
+    },
+
+    // Obtener detalle de pedido asignado (Delivery)
+    async getAssignedOrderDetail(orderId) {
+        return await this.api.get(`/orders/delivery/order/${orderId}`, true);
+    },
+
+    // Obtener estadísticas del repartidor
+    async getDeliveryStats() {
+        return await this.api.get('/orders/delivery/stats', true);
     }
 };
 
@@ -392,6 +413,83 @@ const DashboardAPI = {
     }
 };
 
+const ReporteAPI = {
+    api: new ApiService(),
+
+    // ============ REPORTES DIARIOS ============
+
+    // Generar reporte diario de ganancias
+    async generarReporteDiario(fecha) {
+        return await this.api.get(`/reportes/diario-ganancias?fecha=${fecha}`, true);
+    },
+
+    // Exportar reporte diario de ganancias a Excel
+    async exportarReporteDiario(fecha) {
+        const response = await fetch(`${this.api.baseURL}/reportes/exportar-diario-ganancias?fecha=${fecha}`, {
+            method: 'GET',
+            headers: this.api.getHeaders(true)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error al descargar reporte: ${response.status}`);
+        }
+
+        // Crear blob y descargar
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte_ganancias_${fecha}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    },
+
+    // ============ REPORTES SEMANALES ============
+
+    // Generar reporte semanal
+    async generarReporteSemanal(fechaInicio, fechaFin) {
+        return await this.api.post('/reportes/generar-semanal', {
+            fechaInicio: fechaInicio,
+            fechaFin: fechaFin
+        }, true);
+    },
+
+    // Obtener reportes por año
+    async getReportesPorAno(ano) {
+        return await this.api.get(`/reportes/por-año/${ano}`, true);
+    },
+
+    // Obtener últimos reportes
+    async getUltimosReportes(limite = 5) {
+        return await this.api.get(`/reportes/ultimos/${limite}`, true);
+    },
+
+    // Exportar reporte semanal a Excel
+    async exportarReporteSemanal(reporteId) {
+        const response = await fetch(`${this.api.baseURL}/reportes/exportar-semanal/${reporteId}`, {
+            method: 'GET',
+            headers: this.api.getHeaders(true)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error al descargar reporte: ${response.status}`);
+        }
+
+        // Crear blob y descargar
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte_semanal_${reporteId}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    }
+};
+
 // Exportar servicios
 window.API_CONFIG = API_CONFIG;
 window.ApiService = ApiService;
@@ -401,3 +499,4 @@ window.CartAPI = CartAPI;
 window.OrderAPI = OrderAPI;
 window.UserAPI = UserAPI;
 window.DashboardAPI = DashboardAPI;
+window.ReporteAPI = ReporteAPI;
