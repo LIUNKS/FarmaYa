@@ -48,34 +48,38 @@ public class OrderController {
             @ApiResponse(responseCode = "401", description = "Usuario no autenticado")
     })
     @PostMapping
-    public ResponseEntity<Order> createOrder(@AuthenticationPrincipal UserDetails userDetails,
+    public ResponseEntity<Map<String, Object>> createOrder(@AuthenticationPrincipal UserDetails userDetails,
             @RequestBody Map<String, String> shippingData) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
         Order newOrder = orderService.createOrderFromCart(currentUser, shippingData);
-        return new ResponseEntity<>(newOrder, HttpStatus.CREATED);
+        Map<String, Object> simplifiedOrder = convertOrderToMap(newOrder);
+        return new ResponseEntity<>(simplifiedOrder, HttpStatus.CREATED);
     }
 
     @Operation(summary = "Obtener pedidos del usuario", description = "Retorna todos los pedidos del usuario autenticado")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista de pedidos obtenida exitosamente", content = @Content(schema = @Schema(implementation = Order.class))),
+            @ApiResponse(responseCode = "200", description = "Lista de pedidos obtenida exitosamente"),
             @ApiResponse(responseCode = "401", description = "Usuario no autenticado")
     })
     @GetMapping
-    public ResponseEntity<List<Order>> getUserOrders(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<List<Map<String, Object>>> getUserOrders(@AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
         List<Order> orders = orderService.getOrdersByUser(currentUser);
-        return ResponseEntity.ok(orders);
+        List<Map<String, Object>> simplifiedOrders = orders.stream()
+                .map(this::convertOrderToMap)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(simplifiedOrders);
     }
 
     @Operation(summary = "Obtener pedido por ID", description = "Obtiene los detalles de un pedido específico (solo el propietario)")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pedido obtenido exitosamente", content = @Content(schema = @Schema(implementation = Order.class))),
+            @ApiResponse(responseCode = "200", description = "Pedido obtenido exitosamente"),
             @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
             @ApiResponse(responseCode = "403", description = "Acceso denegado - No es propietario del pedido"),
             @ApiResponse(responseCode = "404", description = "Pedido no encontrado")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(
+    public ResponseEntity<Map<String, Object>> getOrderById(
             @Parameter(description = "ID del pedido", required = true) @PathVariable Integer id,
             @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
@@ -83,7 +87,8 @@ public class OrderController {
         if (!order.getUser().getId().equals(currentUser.getId())) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
-        return ResponseEntity.ok(order);
+        Map<String, Object> simplifiedOrder = convertOrderToMap(order);
+        return ResponseEntity.ok(simplifiedOrder);
     }
 
     @Operation(summary = "Actualizar estado del pedido", description = "Actualiza el estado de un pedido (solo administradores)")
@@ -96,11 +101,12 @@ public class OrderController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/status")
-    public ResponseEntity<Order> updateOrderStatus(
+    public ResponseEntity<Map<String, Object>> updateOrderStatus(
             @Parameter(description = "ID del pedido", required = true) @PathVariable Integer id,
             @Parameter(description = "Nuevo estado del pedido (PENDING, PROCESSING, DELIVERED, CANCELLED)", required = true) @RequestParam String status) {
         Order updatedOrder = orderService.updateOrderStatus(id, status);
-        return ResponseEntity.ok(updatedOrder);
+        Map<String, Object> simplifiedOrder = convertOrderToMap(updatedOrder);
+        return ResponseEntity.ok(simplifiedOrder);
     }
 
     @Operation(summary = "Obtener todos los pedidos", description = "Retorna todos los pedidos del sistema (solo administradores)")
@@ -113,73 +119,16 @@ public class OrderController {
     @GetMapping("/admin/all")
     public ResponseEntity<List<Map<String, Object>>> getAllOrders() {
         List<Order> orders = orderService.getAllOrders();
-        List<Map<String, Object>> simplifiedOrders = orders.stream().map(order -> {
-            Map<String, Object> orderData = new HashMap<>();
-            orderData.put("id", order.getId());
-            orderData.put("numeroPedido", order.getNumeroPedido());
-            orderData.put("createdAt", new int[] {
-                    order.getCreatedAt().getYear(),
-                    order.getCreatedAt().getMonthValue(),
-                    order.getCreatedAt().getDayOfMonth(),
-                    order.getCreatedAt().getHour(),
-                    order.getCreatedAt().getMinute(),
-                    order.getCreatedAt().getSecond()
-            });
-            orderData.put("status", order.getStatus().name());
-            orderData.put("totalAmount", order.getTotalAmount());
-            orderData.put("calculatedTotalAmount", order.getCalculatedTotalAmount());
-            orderData.put("shippingAddress", order.getShippingAddressLine());
-            orderData.put("shippingDistrict", order.getShippingDistrict());
-            orderData.put("shippingReference", order.getShippingReference());
-
-            // Convertir estado a inglés para compatibilidad con frontend
-            String statusEnglish = convertStatusToEnglish(order.getStatus());
-            orderData.put("status", statusEnglish);
-
-            // Items del pedido (simplificados)
-            List<Map<String, Object>> items = order.getItems().stream().map(item -> {
-                Map<String, Object> itemData = new HashMap<>();
-                itemData.put("id", item.getId());
-                itemData.put("quantity", item.getQuantity());
-                itemData.put("price", item.getPrice());
-                itemData.put("subtotal", item.getSubtotal());
-                if (item.getProduct() != null) {
-                    Map<String, Object> productData = new HashMap<>();
-                    productData.put("id", item.getProduct().getId());
-                    productData.put("name", item.getProduct().getName());
-                    itemData.put("product", productData);
-                }
-                return itemData;
-            }).collect(Collectors.toList());
-            orderData.put("items", items);
-
-            // Usuario
-            if (order.getUser() != null) {
-                Map<String, Object> userData = new HashMap<>();
-                userData.put("id", order.getUser().getId());
-                userData.put("username", order.getUser().getUsername());
-                userData.put("email", order.getUser().getEmail());
-                userData.put("telefono", order.getUser().getTelefono());
-                orderData.put("user", userData);
-            }
-
-            // Repartidor
-            if (order.getRepartidor() != null) {
-                Map<String, Object> deliveryData = new HashMap<>();
-                deliveryData.put("id", order.getRepartidor().getId());
-                deliveryData.put("username", order.getRepartidor().getUsername());
-                orderData.put("repartidor", deliveryData);
-            }
-
-            return orderData;
-        }).collect(Collectors.toList());
+        List<Map<String, Object>> simplifiedOrders = orders.stream()
+                .map(this::convertOrderToMap)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(simplifiedOrders);
     }
 
     @Operation(summary = "Asignar repartidor a pedido", description = "Asigna un repartidor a un pedido (solo administradores)")
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}/assign-delivery")
-    public ResponseEntity<Order> assignDelivery(
+    public ResponseEntity<Map<String, Object>> assignDelivery(
             @PathVariable Integer id,
             @RequestParam Integer repartidorId) {
         User repartidor = userService.getUserById(repartidorId);
@@ -187,7 +136,8 @@ public class OrderController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         Order updatedOrder = orderService.assignRepartidor(id, repartidor);
-        return ResponseEntity.ok(updatedOrder);
+        Map<String, Object> simplifiedOrder = convertOrderToMap(updatedOrder);
+        return ResponseEntity.ok(simplifiedOrder);
     }
 
     @Operation(summary = "Obtener pedidos por repartidor", description = "Retorna pedidos asignados a un repartidor (admin o el repartidor mismo)")
@@ -210,7 +160,7 @@ public class OrderController {
     @Operation(summary = "Actualizar estado por repartidor", description = "Permite a un repartidor actualizar el estado de sus pedidos asignados")
     @PreAuthorize("hasRole('DELIVERY')")
     @PutMapping("/{id}/delivery-status")
-    public ResponseEntity<Order> updateDeliveryStatus(
+    public ResponseEntity<Map<String, Object>> updateDeliveryStatus(
             @PathVariable Integer id,
             @RequestParam String status,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -223,7 +173,8 @@ public class OrderController {
         }
 
         Order updatedOrder = orderService.updateOrderStatus(id, status);
-        return ResponseEntity.ok(updatedOrder);
+        Map<String, Object> simplifiedOrder = convertOrderToMap(updatedOrder);
+        return ResponseEntity.ok(simplifiedOrder);
     }
 
     @Operation(summary = "Obtener pedidos sin asignar", description = "Retorna pedidos pendientes sin repartidor asignado (solo administradores)")
@@ -280,7 +231,7 @@ public class OrderController {
     @Operation(summary = "Obtener detalle de pedido asignado", description = "Permite a un repartidor ver detalles de un pedido que le está asignado")
     @PreAuthorize("hasRole('DELIVERY')")
     @GetMapping("/delivery/order/{id}")
-    public ResponseEntity<Order> getAssignedOrderDetail(
+    public ResponseEntity<Map<String, Object>> getAssignedOrderDetail(
             @PathVariable Integer id,
             @AuthenticationPrincipal UserDetails userDetails) {
         User currentUser = userService.getUserByUsername(userDetails.getUsername());
@@ -291,7 +242,8 @@ public class OrderController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
-        return ResponseEntity.ok(order);
+        Map<String, Object> simplifiedOrder = convertOrderToMap(order);
+        return ResponseEntity.ok(simplifiedOrder);
     }
 
     // Método auxiliar para convertir estados del enum español a inglés para el
@@ -311,5 +263,63 @@ public class OrderController {
             default:
                 return status.name();
         }
+    }
+
+    // Método auxiliar para convertir Order a Map<String, Object> simplificado
+    private Map<String, Object> convertOrderToMap(Order order) {
+        Map<String, Object> orderData = new HashMap<>();
+        orderData.put("id", order.getId());
+        orderData.put("numeroPedido", order.getNumeroPedido());
+        orderData.put("createdAt", new int[] {
+                order.getCreatedAt().getYear(),
+                order.getCreatedAt().getMonthValue(),
+                order.getCreatedAt().getDayOfMonth(),
+                order.getCreatedAt().getHour(),
+                order.getCreatedAt().getMinute(),
+                order.getCreatedAt().getSecond()
+        });
+        orderData.put("status", convertStatusToEnglish(order.getStatus()));
+        orderData.put("totalAmount", order.getTotalAmount());
+        orderData.put("calculatedTotalAmount", order.getCalculatedTotalAmount());
+        orderData.put("shippingAddress", order.getShippingAddressLine());
+        orderData.put("shippingDistrict", order.getShippingDistrict());
+        orderData.put("shippingReference", order.getShippingReference());
+
+        // Items del pedido (simplificados)
+        List<Map<String, Object>> items = order.getItems().stream().map(item -> {
+            Map<String, Object> itemData = new HashMap<>();
+            itemData.put("id", item.getId());
+            itemData.put("quantity", item.getQuantity());
+            itemData.put("price", item.getPrice());
+            itemData.put("subtotal", item.getSubtotal());
+            if (item.getProduct() != null) {
+                Map<String, Object> productData = new HashMap<>();
+                productData.put("id", item.getProduct().getId());
+                productData.put("name", item.getProduct().getName());
+                itemData.put("product", productData);
+            }
+            return itemData;
+        }).collect(Collectors.toList());
+        orderData.put("items", items);
+
+        // Usuario (solo información básica)
+        if (order.getUser() != null) {
+            Map<String, Object> userData = new HashMap<>();
+            userData.put("id", order.getUser().getId());
+            userData.put("username", order.getUser().getUsername());
+            userData.put("email", order.getUser().getEmail());
+            userData.put("telefono", order.getUser().getTelefono());
+            orderData.put("user", userData);
+        }
+
+        // Repartidor
+        if (order.getRepartidor() != null) {
+            Map<String, Object> deliveryData = new HashMap<>();
+            deliveryData.put("id", order.getRepartidor().getId());
+            deliveryData.put("username", order.getRepartidor().getUsername());
+            orderData.put("repartidor", deliveryData);
+        }
+
+        return orderData;
     }
 }
