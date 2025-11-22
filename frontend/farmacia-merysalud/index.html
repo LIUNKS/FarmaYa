@@ -374,8 +374,6 @@
                 const productos = await dataStore.getProductos();
                 const container = document.getElementById('featuredProducts');
                 
-                console.log('Productos obtenidos:', productos); // Debug
-                
                 if (!productos || productos.length === 0) {
                     container.innerHTML = '<div class="col-12"><p class="text-center text-muted">No hay productos disponibles</p></div>';
                     return;
@@ -399,8 +397,6 @@
                 } else {
                     featured = productos;
                 }
-                
-                console.log('Productos destacados seleccionados:', featured); // Debug
                 
                 let html = '';
                 featured.forEach(producto => {
