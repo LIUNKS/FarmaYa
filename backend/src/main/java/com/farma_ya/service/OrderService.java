@@ -144,12 +144,13 @@ public class OrderService implements IOrderService {
                 case "EN_PROCESO":
                     normalizedStatus = "PROCESANDO";
                     break;
-                case "DELIVERED":
+                case "SHIPPED":
                 case "ENVIADO":
                     normalizedStatus = "ENVIADO";
                     break;
-                case "SHIPPED":
-                    normalizedStatus = "ENVIADO";
+                case "DELIVERED":
+                case "ENTREGADO":
+                    normalizedStatus = "ENTREGADO";
                     break;
                 case "CANCELLED":
                 case "CANCELADO":
@@ -237,6 +238,12 @@ public class OrderService implements IOrderService {
         stats.put("totalGanancias", totalGanancias);
 
         return stats;
+    }
+
+    @Override
+    public void deleteOrder(Integer id) {
+        Order order = getOrderById(id);
+        orderRepository.delete(order);
     }
 
     private String generateOrderNumber() {
