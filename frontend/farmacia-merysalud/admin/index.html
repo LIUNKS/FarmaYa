@@ -194,12 +194,9 @@
             setButtonLoading(true);
             
             try {
-                console.log('Intentando login con:', { username });
                 
                 // Llamar al endpoint de login
                 const response = await AuthAPI.login(username, password);
-                
-                console.log('Respuesta del login:', response);
                 
                 // Verificar que el usuario sea ADMIN
                 if (response.role !== 'ADMIN') {
@@ -212,7 +209,6 @@
                 }
                 
                 // Login exitoso
-                console.log('Login exitoso. Usuario ADMIN autenticado');
                 
                 // Guardar datos adicionales en sessionStorage (opcional)
                 sessionStorage.setItem('adminUser', JSON.stringify({
@@ -256,11 +252,9 @@
                 try {
                     const userData = JSON.parse(usuario);
                     if (userData.rol === 'ADMIN') {
-                        console.log('Sesión activa detectada, redirigiendo al dashboard...');
                         window.location.href = './dashboard.html';
                     }
                 } catch (error) {
-                    console.log('Error al verificar sesión:', error);
                 }
             }
         });
