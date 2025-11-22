@@ -144,9 +144,9 @@
             <div class="col-md-4">
                 <select class="form-select" id="estadoFilter" onchange="applyFilters()">
                     <option value="">Todos los estados</option>
-                    <option value="PENDIENTE">Pendientes</option>
-                    <option value="EN_PROCESO">En Proceso</option>
-                    <option value="ENTREGADO">Entregados</option>
+                    <option value="PENDING">Pendientes</option>
+                    <option value="PROCESSING">En Proceso</option>
+                    <option value="DELIVERED">Entregados</option>
                 </select>
             </div>
             <div class="col-md-6">
@@ -213,8 +213,9 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- <script src="../assets/js/data.js"></script> -->
-    <script src="../assets/js/app.js"></script>
+    <script src="../assets/js/api-config.js"></script>
+    <script src="../assets/js/data.js"></script>
+    <!-- NOTA: app.js no se carga en el panel de delivery para evitar conflictos -->
 
     <script>
         let allPedidos = [];
@@ -228,21 +229,21 @@
         });
 
         function checkDeliveryAuth() {
-            const deliveryUser = JSON.parse(sessionStorage.getItem('adminUser') || 'null');
+            const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual') || 'null');
             
-            if (!deliveryUser || deliveryUser.rol !== 'REPARTIDOR') {
-                window.location.href = '../admin/index.html';
+            if (!usuarioActual || usuarioActual.rol !== 'DELIVERY') {
+                window.location.href = '../login.html';
                 return;
             }
             
-            document.getElementById('repartidorName').textContent = deliveryUser.nombre;
+            document.getElementById('repartidorName').textContent = usuarioActual.nombre;
         }
 
         function setupEventListeners() {
             // Mostrar/ocultar comentario según el estado
             document.getElementById('nuevoEstado').addEventListener('change', function() {
                 const comentarioDiv = document.getElementById('comentarioDiv');
-                if (this.value === 'ENTREGADO') {
+                if (this.value === 'DELIVERED') {
                     comentarioDiv.style.display = 'block';
                 } else {
                     comentarioDiv.style.display = 'none';
@@ -250,122 +251,65 @@
             });
         }
 
-        function loadPedidos() {
-            // Datos por defecto para demostración del delivery
-            allPedidos = [
-                {
-                    id: 1,
-                    numero: "ORD-001",
-                    clienteNombre: "María García",
-                    telefono: "999888777",
-                    direccion: "Av. Brasil 123, Breña",
-                    productos: [
-                        {id: 1, nombre: "Paracetamol 500mg", cantidad: 2, precio: 5.50, subtotal: 11.00},
-                        {id: 3, nombre: "Vitamina C 1000mg", cantidad: 1, precio: 12.00, subtotal: 12.00}
-                    ],
-                    total: 23.00,
-                    estado: "PENDIENTE",
-                    fecha: "2024-12-20 10:30",
-                    repartidorId: 3
-                },
-                {
-                    id: 2,
-                    numero: "ORD-002",
-                    clienteNombre: "Carlos Mendoza",
-                    telefono: "987654321",
-                    direccion: "Jr. Lampa 456, Cercado de Lima",
-                    productos: [
-                        {id: 5, nombre: "Alcohol 70°", cantidad: 2, precio: 6.00, subtotal: 12.00},
-                        {id: 7, nombre: "Mascarillas KN95", cantidad: 5, precio: 2.00, subtotal: 10.00}
-                    ],
-                    total: 22.00,
-                    estado: "EN_PROCESO",
-                    fecha: "2024-12-20 11:15",
-                    repartidorId: 3
-                },
-                {
-                    id: 3,
-                    numero: "ORD-003",
-                    clienteNombre: "Ana López",
-                    telefono: "945123789",
-                    direccion: "Av. Universitaria 1245, San Miguel",
-                    productos: [
-                        {id: 2, nombre: "Ibuprofeno 400mg", cantidad: 1, precio: 8.00, subtotal: 8.00},
-                        {id: 4, nombre: "Complejo B", cantidad: 1, precio: 15.00, subtotal: 15.00}
-                    ],
-                    total: 23.00,
-                    estado: "ENTREGADO",
-                    fecha: "2024-12-20 09:00",
-                    repartidorId: 3
-                },
-                {
-                    id: 4,
-                    numero: "ORD-004",
-                    clienteNombre: "Roberto Silva",
-                    telefono: "912345678",
-                    direccion: "Av. Arequipa 2890, Lince",
-                    productos: [
-                        {id: 8, nombre: "Termómetro Digital", cantidad: 1, precio: 25.00, subtotal: 25.00},
-                        {id: 6, nombre: "Gasas estériles", cantidad: 3, precio: 3.50, subtotal: 10.50}
-                    ],
-                    total: 35.50,
-                    estado: "PENDIENTE",
-                    fecha: "2024-12-20 13:45",
-                    repartidorId: 3
-                },
-                {
-                    id: 5,
-                    numero: "ORD-005",
-                    clienteNombre: "Lucía Fernández",
-                    telefono: "998877665",
-                    direccion: "Calle Los Pinos 789, Surco",
-                    productos: [
-                        {id: 9, nombre: "Jarabe para la tos", cantidad: 1, precio: 18.00, subtotal: 18.00}
-                    ],
-                    total: 18.00,
-                    estado: "EN_PROCESO",
-                    fecha: "2024-12-20 12:30",
-                    repartidorId: 3
-                }
-            ];
-            
-            // Si tienes dataStore disponible, usar esos datos en su lugar
-            if (typeof dataStore !== 'undefined') {
-                try {
-                    const data = dataStore.getData();
-                    if (data && data.pedidos && data.pedidos.length > 0) {
-                        allPedidos = data.pedidos;
-                    }
-                } catch (error) {
-                    console.log('Usando datos por defecto para demostración');
-                }
+        async function loadPedidos() {
+            try {
+                // Cargar pedidos asignados
+                const pedidosResponse = await OrderAPI.getMyAssignedOrders();
+                allPedidos = pedidosResponse.map(pedido => ({
+                    id: pedido.id,
+                    numero: pedido.numeroPedido,
+                    clienteNombre: pedido.user ? pedido.user.username : 'Cliente',
+                    telefono: pedido.user ? pedido.user.telefono : '',
+                    direccion: pedido.shippingAddress,
+                    productos: pedido.items ? pedido.items.map(item => ({
+                        id: item.id,
+                        nombre: item.product ? item.product.name : 'Producto',
+                        cantidad: item.quantity,
+                        precio: item.price,
+                        subtotal: item.subtotal
+                    })) : [],
+                    total: pedido.totalAmount,
+                    estado: pedido.status,
+                    fecha: pedido.createdAt ? new Date(pedido.createdAt[0], pedido.createdAt[1]-1, pedido.createdAt[2]).toLocaleDateString('es-ES') : '',
+                    repartidorId: pedido.repartidor ? pedido.repartidor.id : null
+                }));
+
+                // Cargar estadísticas
+                const statsResponse = await OrderAPI.getDeliveryStats();
+                updateStatsFromAPI(statsResponse);
+
+                filteredPedidos = [...allPedidos];
+                renderPedidos();
+            } catch (error) {
+                console.error('Error cargando pedidos:', error);
+                showNotification('Error al cargar los pedidos', 'danger');
+                
+                // Fallback a datos vacíos
+                allPedidos = [];
+                filteredPedidos = [];
+                renderPedidos();
             }
-            
-            filteredPedidos = [...allPedidos];
-            
-            updateStats();
-            renderPedidos();
+        }
+
+        function updateStatsFromAPI(stats) {
+            document.getElementById('pedidosPendientes').textContent = stats.pedidosPendientes || 0;
+            document.getElementById('pedidosEnProceso').textContent = stats.pedidosEnProceso || 0;
+            document.getElementById('pedidosEntregados').textContent = stats.pedidosEntregados || 0;
+            document.getElementById('totalGanancias').textContent = `S/. ${(stats.totalGanancias || 0).toFixed(2)}`;
         }
 
         function updateStats() {
-            const hoy = new Date().toLocaleDateString();
-            
+            // Esta función se mantiene por compatibilidad pero ahora usamos updateStatsFromAPI
             const stats = {
-                pendientes: allPedidos.filter(p => p.estado === 'PENDIENTE').length,
-                enProceso: allPedidos.filter(p => p.estado === 'EN_PROCESO').length,
-                entregadosHoy: allPedidos.filter(p => 
-                    p.estado === 'ENTREGADO' && 
-                    p.fecha.includes(hoy.split('/').reverse().join('-'))
-                ).length,
+                pedidosPendientes: allPedidos.filter(p => p.estado === 'PENDING').length,
+                pedidosEnProceso: allPedidos.filter(p => p.estado === 'PROCESSING').length,
+                pedidosEntregados: allPedidos.filter(p => p.estado === 'DELIVERED').length,
                 totalGanancias: allPedidos
-                    .filter(p => p.estado === 'ENTREGADO')
+                    .filter(p => p.estado === 'DELIVERED')
                     .reduce((sum, p) => sum + p.total, 0)
             };
             
-            document.getElementById('pedidosPendientes').textContent = stats.pendientes;
-            document.getElementById('pedidosEnProceso').textContent = stats.enProceso;
-            document.getElementById('pedidosEntregados').textContent = stats.entregadosHoy;
-            document.getElementById('totalGanancias').textContent = `S/. ${stats.totalGanancias.toFixed(2)}`;
+            updateStatsFromAPI(stats);
         }
 
         function applyFilters() {
@@ -401,21 +345,27 @@
             let html = '';
             filteredPedidos.forEach(pedido => {
                 const badgeClass = {
-                    'PENDIENTE': 'warning',
-                    'EN_PROCESO': 'info',
-                    'ENTREGADO': 'success'
+                    'PENDING': 'warning',
+                    'PROCESSING': 'info',
+                    'DELIVERED': 'success'
                 }[pedido.estado] || 'secondary';
                 
                 const statusIcon = {
-                    'PENDIENTE': 'clock',
-                    'EN_PROCESO': 'truck',
-                    'ENTREGADO': 'check-circle'
+                    'PENDING': 'clock',
+                    'PROCESSING': 'truck',
+                    'DELIVERED': 'check-circle'
                 }[pedido.estado] || 'question';
+                
+                const statusText = {
+                    'PENDING': 'PENDIENTE',
+                    'PROCESSING': 'EN PROCESO',
+                    'DELIVERED': 'ENTREGADO'
+                }[pedido.estado] || pedido.estado;
                 
                 html += `
                     <div class="pedido-card position-relative" onclick="verDetalle(${pedido.id})">
                         <span class="badge bg-${badgeClass} status-badge">
-                            <i class="fas fa-${statusIcon}"></i> ${pedido.estado}
+                            <i class="fas fa-${statusIcon}"></i> ${statusText}
                         </span>
                         
                         <div class="row">
@@ -483,14 +433,14 @@
             const nuevoEstadoSelect = document.getElementById('nuevoEstado');
             nuevoEstadoSelect.innerHTML = '';
             
-            if (pedido.estado === 'PENDIENTE') {
+            if (pedido.estado === 'PENDING') {
                 nuevoEstadoSelect.innerHTML = `
-                    <option value="EN_PROCESO">En Proceso</option>
-                    <option value="ENTREGADO">Entregado</option>
+                    <option value="PROCESSING">En Proceso</option>
+                    <option value="DELIVERED">Entregado</option>
                 `;
-            } else if (pedido.estado === 'EN_PROCESO') {
+            } else if (pedido.estado === 'PROCESSING') {
                 nuevoEstadoSelect.innerHTML = `
-                    <option value="ENTREGADO">Entregado</option>
+                    <option value="DELIVERED">Entregado</option>
                 `;
             }
             
@@ -498,47 +448,41 @@
             modal.show();
         }
 
-        function confirmarCambioEstado() {
+        async function confirmarCambioEstado() {
             const nuevoEstado = document.getElementById('nuevoEstado').value;
-            const comentario = document.getElementById('comentarioEntrega').value;
             
-            // Actualizar el estado en los datos locales
-            const pedido = allPedidos.find(p => p.id === selectedPedidoId);
-            if (pedido) {
-                pedido.estado = nuevoEstado;
+            try {
+                await OrderAPI.updateDeliveryStatus(selectedPedidoId, nuevoEstado);
                 
-                // Si dataStore está disponible, usarlo
-                if (typeof dataStore !== 'undefined') {
-                    try {
-                        dataStore.updatePedidoEstado(selectedPedidoId, nuevoEstado);
-                    } catch (error) {
-                        console.log('Actualizando solo datos locales');
-                    }
-                }
-                
-                loadPedidos(); // Recargar datos
+                // Recargar pedidos después de actualizar
+                await loadPedidos();
                 
                 const modal = bootstrap.Modal.getInstance(document.getElementById('cambiarEstadoModal'));
                 modal.hide();
                 
                 showNotification(`Estado actualizado a ${nuevoEstado}`, 'success');
-            } else {
-                showNotification('Error al actualizar el estado', 'danger');
+            } catch (error) {
+                console.error('Error actualizando estado:', error);
+                showNotification('Error al actualizar el estado del pedido', 'danger');
             }
         }
 
-        function refreshPedidos() {
+        async function refreshPedidos() {
             // Simular recarga con animación
             const button = event.target.closest('button');
             const icon = button.querySelector('i');
             
             icon.classList.add('fa-spin');
             
-            setTimeout(() => {
-                loadPedidos();
-                icon.classList.remove('fa-spin');
+            try {
+                await loadPedidos();
                 showNotification('Pedidos actualizados', 'info');
-            }, 1000);
+            } catch (error) {
+                console.error('Error refrescando pedidos:', error);
+                showNotification('Error al actualizar pedidos', 'danger');
+            } finally {
+                icon.classList.remove('fa-spin');
+            }
         }
 
         function clearFilters() {
@@ -566,8 +510,8 @@
 
         function logout() {
             if (confirm('¿Desea cerrar sesión?')) {
-                sessionStorage.removeItem('adminUser');
-                window.location.href = '../admin/index.html';
+                localStorage.clear();
+                window.location.href = '../login.html';
             }
         }
     </script>
