@@ -114,12 +114,21 @@ public class OrderService implements IOrderService {
     }
 
     public List<Order> getOrdersByUser(User user) {
-        return orderRepository.findByUser(user);
+        List<Order> orders = orderRepository.findByUserWithItems(user);
+        // Forzar la carga de items para cada orden
+        for (Order order : orders) {
+            order.getItems().size(); // Esto fuerza la carga lazy
+        }
+        return orders;
     }
 
     public Order getOrderById(Integer id) {
-        return orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Orden no encontrada con ID: " + id));
+        Order order = orderRepository.findByIdWithItems(id);
+        if (order == null) {
+            throw new ResourceNotFoundException("Orden no encontrada con ID: " + id);
+        }
+        order.getItems().size(); // Forzar la carga lazy
+        return order;
     }
 
     public Order updateOrderStatus(Integer id, String status) {
@@ -159,24 +168,10 @@ public class OrderService implements IOrderService {
 
     @Override
     public List<Order> getAllOrders() {
-        System.out.println("=== DEBUG: Ejecutando getAllOrders() ===");
         List<Order> orders = orderRepository.findAllWithItems();
-        System.out.println("=== DEBUG: Se encontraron " + orders.size() + " órdenes ===");
-
-        // Forzar la carga de items para cada orden y agregar logs de debug
+        // Forzar la carga de items para cada orden
         for (Order order : orders) {
-            System.out.println("=== DEBUG: Procesando orden ID: " + order.getId() + " ===");
-            List<OrderItem> items = order.getItems();
-            System.out.println("=== DEBUG: Items collection: " + items);
-            if (items != null) {
-                System.out.println("=== DEBUG: Items count: " + items.size());
-                if (!items.isEmpty()) {
-                    System.out.println("=== DEBUG: First item: " + items.get(0).getProduct().getName() + " x"
-                            + items.get(0).getQuantity());
-                }
-            } else {
-                System.out.println("=== DEBUG: Items collection is NULL!");
-            }
+            order.getItems().size(); // Esto fuerza la carga lazy
         }
         return orders;
     }
@@ -186,11 +181,18 @@ public class OrderService implements IOrderService {
     }
 
     public List<Order> getOrdersByRepartidor(User repartidor) {
-        return orderRepository.findByRepartidor(repartidor);
+        List<Order> orders = orderRepository.findByRepartidorWithItems(repartidor);
+        // Forzar la carga de items para cada orden
+        for (Order order : orders) {
+            order.getItems().size(); // Esto fuerza la carga lazy
+        }
+        return orders;
     }
 
     public List<Order> getRecentOrders(int limit) {
-        List<Order> orders = orderRepository.findRecentOrders();
+        List<Order> orders = orderRepository.findRecentOrdersWithItems();
+        // Forzar la carga de items y limitar resultados
+        orders.forEach(order -> order.getItems().size());
         return orders.stream().limit(limit).collect(Collectors.toList());
     }
 
@@ -201,7 +203,12 @@ public class OrderService implements IOrderService {
     }
 
     public List<Order> getUnassignedOrdersByStatus(OrderStatus status) {
-        return orderRepository.findUnassignedOrdersByStatus(status);
+        List<Order> orders = orderRepository.findUnassignedOrdersByStatusWithItems(status);
+        // Forzar la carga de items para cada orden
+        for (Order order : orders) {
+            order.getItems().size(); // Esto fuerza la carga lazy
+        }
+        return orders;
     }
 
     @Override
