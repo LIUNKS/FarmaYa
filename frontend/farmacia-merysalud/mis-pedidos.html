@@ -284,7 +284,6 @@
         async function loadUserOrders() {
             try {
                 pedidos = await dataStore.getMisPedidos();
-                console.log('Pedidos cargados:', pedidos);
             } catch (error) {
                 console.error('Error al cargar pedidos:', error);
                 pedidos = [];
@@ -432,14 +431,38 @@
         }
 
         // Formatear fecha
-        function formatDate(dateString) {
-            if (!dateString) return 'Fecha no disponible';
+        function formatDate(dateInput) {
+            if (!dateInput) return 'Fecha no disponible';
             
             try {
-                const date = new Date(dateString);
+                let date;
+                
+                // Si es un array [año, mes, día, hora, minuto, segundo]
+                if (Array.isArray(dateInput) && dateInput.length >= 6) {
+                    // Nota: JavaScript Date usa mes 0-indexed, pero el backend ya lo envía 0-indexed
+                    date = new Date(dateInput[0], dateInput[1], dateInput[2], dateInput[3], dateInput[4], dateInput[5]);
+                }
+                // Si es un string de fecha
+                else if (typeof dateInput === 'string') {
+                    date = new Date(dateInput);
+                }
+                // Si ya es un objeto Date
+                else if (dateInput instanceof Date) {
+                    date = dateInput;
+                }
+                else {
+                    return 'Fecha no disponible';
+                }
+                
+                // Verificar si la fecha es válida
+                if (isNaN(date.getTime())) {
+                    return 'Fecha no disponible';
+                }
+                
                 return date.toLocaleString('es-PE');
             } catch (error) {
-                return dateString;
+                console.warn('Error formateando fecha:', dateInput, error);
+                return 'Fecha no disponible';
             }
         }
 
