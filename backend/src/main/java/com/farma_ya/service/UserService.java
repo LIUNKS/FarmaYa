@@ -87,6 +87,14 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    public void deleteByUsername(String username) {
+        userRepository.deleteByUsername(username);
+    }
+
     private Integer roleToRolId(Role role) {
         switch (role) {
             case ADMIN:
