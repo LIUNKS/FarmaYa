@@ -316,8 +316,8 @@
             const usuario = localStorage.getItem('usuarioActual');
             
             if (!token || !usuario) {
-                alert('Sesión no encontrada. Redirigiendo al login...');
-                window.location.href = './index.html';
+                showNotification('Sesión no encontrada. Redirigiendo al login...', 'warning');
+                setTimeout(() => window.location.href = '/login.html', 2000);
                 return;
             }
 
@@ -325,8 +325,8 @@
             
             // Verificar que sea ADMIN
             if (userData.rol !== 'ADMIN') {
-                alert('Acceso denegado. Solo administradores pueden acceder a esta sección.');
-                window.location.href = '../index.html';
+                showNotification('Acceso denegado. Solo administradores pueden acceder a esta sección.', 'danger');
+                setTimeout(() => window.location.href = '/index.html', 2000);
                 return;
             }
 
@@ -565,29 +565,55 @@
         async function cambiarEstado(pedidoId, nuevoEstado) {
             const estadoTexto = getStatusText(nuevoEstado);
             
-            if (!confirm(`¿Cambiar estado del pedido a "${estadoTexto}"?`)) {
-                // Revertir el select si cancela
-                await loadPedidos();
-                return;
-            }
-            
-            try {
-                showLoading(true);
-                
-                await OrderAPI.updateOrderStatus(pedidoId, nuevoEstado);
-                
-                showLoading(false);
-                showNotification(`Estado actualizado a ${estadoTexto}`, 'success');
-                
-                // Recargar pedidos
-                await loadPedidos();
-            } catch (error) {
-                console.error('Error al cambiar estado:', error);
-                showLoading(false);
-                showNotification('Error al actualizar estado: ' + error.message, 'danger');
-                
-                // Recargar para revertir cambios
-                await loadPedidos();
+            if (window.App && window.App.confirmAction) {
+                window.App.confirmAction(`¿Cambiar estado del pedido a "${estadoTexto}"?`, async () => {
+                    try {
+                        showLoading(true);
+                        
+                        await OrderAPI.updateOrderStatus(pedidoId, nuevoEstado);
+                        
+                        showLoading(false);
+                        showNotification(`Estado actualizado a ${estadoTexto}`, 'success');
+                        
+                        // Recargar pedidos
+                        await loadPedidos();
+                    } catch (error) {
+                        console.error('Error al cambiar estado:', error);
+                        showLoading(false);
+                        showNotification('Error al actualizar estado: ' + error.message, 'danger');
+                        
+                        // Recargar para revertir cambios
+                        await loadPedidos();
+                    }
+                }, () => {
+                    // Cancelar: revertir el select
+                    loadPedidos();
+                });
+            } else {
+                // Fallback si App no está disponible - usar modal básico
+                showConfirmModal(`¿Cambiar estado del pedido a "${estadoTexto}"?`, async () => {
+                    try {
+                        showLoading(true);
+                        
+                        await OrderAPI.updateOrderStatus(pedidoId, nuevoEstado);
+                        
+                        showLoading(false);
+                        showNotification(`Estado actualizado a ${estadoTexto}`, 'success');
+                        
+                        // Recargar pedidos
+                        await loadPedidos();
+                    } catch (error) {
+                        console.error('Error al cambiar estado:', error);
+                        showLoading(false);
+                        showNotification('Error al actualizar estado: ' + error.message, 'danger');
+                        
+                        // Recargar para revertir cambios
+                        await loadPedidos();
+                    }
+                }, () => {
+                    // Cancelar: revertir el select
+                    loadPedidos();
+                });
             }
         }
 
@@ -681,8 +707,8 @@
         // Cargar lista de repartidores
         async function loadRepartidores() {
             try {
-                // TEMPORAL: Usar endpoint público para debugging
-                const repartidores = await OrderAPI.getAvailableDeliveryUsersPublic();
+                // Usar endpoint correcto con autenticación
+                const repartidores = await OrderAPI.getAvailableDeliveryUsers();
                 
                 const select = document.getElementById('selectRepartidor');
                 select.innerHTML = '<option value="">Seleccione un repartidor...</option>';
@@ -696,14 +722,11 @@
                 
             } catch (error) {
                 console.error('Error al cargar repartidores:', error);
-                // Fallback a datos hardcodeados si falla la API
+                showNotification('Error al cargar lista de repartidores', 'danger');
+                
+                // Limpiar el select si hay error
                 const select = document.getElementById('selectRepartidor');
-                select.innerHTML = `
-                    <option value="">Seleccione un repartidor...</option>
-                    <option value="3">Pedro Repartidor</option>
-                    <option value="4">Juan Delivery</option>
-                    <option value="5">María Transport</option>
-                `;
+                select.innerHTML = '<option value="">Error al cargar repartidores</option>';
             }
         }
 
@@ -731,7 +754,7 @@
             const repartidorId = document.getElementById('selectRepartidor').value;
             
             if (!repartidorId) {
-                alert('Por favor seleccione un repartidor');
+                showNotification('Por favor seleccione un repartidor', 'warning');
                 return;
             }
             
@@ -763,13 +786,27 @@
 
         // Logout
         function logout() {
-            if (confirm('¿Desea cerrar sesión?')) {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('usuarioActual');
-                localStorage.removeItem('userData');
-                sessionStorage.removeItem('adminUser');
-                window.location.href = './index.html';
+            if (window.App && window.App.confirmAction) {
+                window.App.confirmAction('¿Desea cerrar sesión?', () => {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('usuarioActual');
+                    localStorage.removeItem('userData');
+                    sessionStorage.removeItem('adminUser');
+                    
+                    window.location.href = '/login.html';
+                });
+            } else {
+                // Fallback si App no está disponible - usar modal básico
+                showConfirmModal('¿Desea cerrar sesión?', () => {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('usuarioActual');
+                    localStorage.removeItem('userData');
+                    sessionStorage.removeItem('adminUser');
+                    
+                    window.location.href = '/login.html';
+                });
             }
         }
 
@@ -779,6 +816,52 @@
         window.abrirModalAsignarRepartidor = abrirModalAsignarRepartidor;
         window.confirmarAsignacion = confirmarAsignacion;
         window.logout = logout;
+
+        // Función de fallback para modal de confirmación
+        function showConfirmModal(message, callback, cancelCallback) {
+            // Crear modal básico si Bootstrap está disponible
+            if (typeof bootstrap !== 'undefined') {
+                const modalHtml = `
+                    <div class="modal fade" id="confirmModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirmar Acción</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">${message}</div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="confirmBtn">Aceptar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+                modal.show();
+                
+                document.getElementById('confirmBtn').onclick = function() {
+                    modal.hide();
+                    document.getElementById('confirmModal').remove();
+                    if (callback) callback();
+                };
+                
+                document.getElementById('confirmModal').addEventListener('hidden.bs.modal', function() {
+                    document.getElementById('confirmModal').remove();
+                    if (cancelCallback) cancelCallback();
+                });
+            } else {
+                // Fallback a confirm si no hay Bootstrap
+                if (confirm(message)) {
+                    if (callback) callback();
+                } else {
+                    if (cancelCallback) cancelCallback();
+                }
+            }
+        }
     </script>
 </body>
 </html>
