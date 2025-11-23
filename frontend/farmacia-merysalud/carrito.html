@@ -343,7 +343,7 @@
                 
                 if (!usuario || !token) {
                     showNotification('Debes iniciar sesión para modificar el carrito', 'warning');
-                    window.location.href = './login.html';
+                    window.location.href = '/login.html';
                     return;
                 }
                 
@@ -371,7 +371,7 @@
                 if (error.message && error.message.includes('401')) {
                     showNotification('Tu sesión ha expirado. Inicia sesión nuevamente.', 'warning');
                     setTimeout(() => {
-                        window.location.href = './login.html';
+                        window.location.href = '/login.html';
                     }, 2000);
                 } else {
                     showNotification('Error al actualizar cantidad', 'danger');
@@ -388,7 +388,7 @@
                 
                 if (!usuario || !token) {
                     showNotification('Debes iniciar sesión para modificar el carrito', 'warning');
-                    window.location.href = './login.html';
+                    window.location.href = '/login.html';
                     return;
                 }
                 
@@ -416,7 +416,7 @@
                 if (error.message && error.message.includes('401')) {
                     showNotification('Tu sesión ha expirado. Inicia sesión nuevamente.', 'warning');
                     setTimeout(() => {
-                        window.location.href = './login.html';
+                        window.location.href = '/login.html';
                     }, 2000);
                 } else {
                     showNotification('Error al actualizar cantidad', 'danger');
@@ -433,7 +433,7 @@
                 
                 if (!usuario || !token) {
                     showNotification('Debes iniciar sesión para eliminar productos', 'warning');
-                    window.location.href = './login.html';
+                    window.location.href = '/login.html';
                     return;
                 }
                 
@@ -456,7 +456,7 @@
                 if (error.message && error.message.includes('401')) {
                     showNotification('Tu sesión ha expirado. Inicia sesión nuevamente.', 'warning');
                     setTimeout(() => {
-                        window.location.href = './login.html';
+                        window.location.href = '/login.html';
                     }, 2000);
                 } else {
                     showNotification('Error al eliminar producto', 'danger');
@@ -486,7 +486,7 @@
             const usuario = dataStore.getCurrentUser();
             if (!usuario) {
                 showNotification('Debes iniciar sesión para continuar', 'warning');
-                window.location.href = './login.html';
+                window.location.href = '/login.html';
                 return;
             }
             
