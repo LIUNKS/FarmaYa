@@ -1,0 +1,3 @@
+# Redirects for Netlify
+# Redirect all requests to the frontend application
+/*    /frontend/farmacia-merysalud/:splat   200
