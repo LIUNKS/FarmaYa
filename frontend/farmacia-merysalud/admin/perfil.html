@@ -352,8 +352,8 @@
             const usuario = localStorage.getItem('usuarioActual');
             
             if (!token || !usuario) {
-                alert('Sesión no encontrada. Redirigiendo al login...');
-                window.location.href = './index.html';
+                showNotification('Sesión no encontrada. Redirigiendo al login...', 'warning');
+                setTimeout(() => window.location.href = '/login.html', 2000);
                 return;
             }
 
@@ -361,8 +361,8 @@
             
             // Verificar que sea ADMIN
             if (userData.rol !== 'ADMIN') {
-                alert('Acceso denegado. Solo administradores pueden acceder a esta sección.');
-                window.location.href = '../index.html';
+                showNotification('Acceso denegado. Solo administradores pueden acceder a esta sección.', 'danger');
+                setTimeout(() => window.location.href = '/index.html', 2000);
                 return;
             }
 
@@ -582,20 +582,76 @@
 
         // Logout
         function logout() {
-            if (confirm('¿Desea cerrar sesión?')) {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('usuarioActual');
-                localStorage.removeItem('userData');
-                sessionStorage.removeItem('adminUser');
-                
-                window.location.href = './index.html';
+            if (window.App && window.App.confirmAction) {
+                window.App.confirmAction('¿Desea cerrar sesión?', () => {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('usuarioActual');
+                    localStorage.removeItem('userData');
+                    sessionStorage.removeItem('adminUser');
+                    
+                    window.location.href = '/login.html';
+                });
+            } else {
+                // Fallback si App no está disponible - usar modal básico
+                showConfirmModal('¿Desea cerrar sesión?', () => {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('usuarioActual');
+                    localStorage.removeItem('userData');
+                    sessionStorage.removeItem('adminUser');
+                    
+                    window.location.href = '/login.html';
+                });
             }
         }
 
         // Hacer funciones globales
         window.refreshProfile = refreshProfile;
         window.logout = logout;
+
+        // Función de fallback para modal de confirmación
+        function showConfirmModal(message, callback) {
+            // Crear modal básico si Bootstrap está disponible
+            if (typeof bootstrap !== 'undefined') {
+                const modalHtml = `
+                    <div class="modal fade" id="confirmModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirmar Acción</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">${message}</div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="confirmBtn">Aceptar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+                modal.show();
+                
+                document.getElementById('confirmBtn').onclick = function() {
+                    modal.hide();
+                    document.getElementById('confirmModal').remove();
+                    callback();
+                };
+                
+                document.getElementById('confirmModal').addEventListener('hidden.bs.modal', function() {
+                    document.getElementById('confirmModal').remove();
+                });
+            } else {
+                // Fallback a confirm si no hay Bootstrap
+                if (confirm(message)) {
+                    callback();
+                }
+            }
+        }
     </script>
 </body>
 </html>
