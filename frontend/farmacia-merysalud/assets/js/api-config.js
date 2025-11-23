@@ -36,6 +36,54 @@ class ApiService {
         localStorage.removeItem('usuarioActual');
     }
 
+    // Mostrar modal de sesión expirada
+    showSessionExpiredModal() {
+        // Crear modal si no existe
+        let modal = document.getElementById('sessionExpiredModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'sessionExpiredModal';
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Sesión Expirada</h5>
+                        </div>
+                        <div class="modal-body">
+                            <p>Tu sesión ha expirado. Serás redirigido al login.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="sessionExpiredBtn">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Evento para el botón aceptar
+            document.getElementById('sessionExpiredBtn').addEventListener('click', () => {
+                const bsModal = bootstrap.Modal.getInstance(modal);
+                bsModal.hide();
+                // Limpiar sesión y redirigir al login
+                this.clearToken();
+                const path = window.location.pathname;
+                if (path.includes('/admin/')) {
+                    window.location.href = '/admin/index.html';
+                } else {
+                    window.location.href = '/login.html';
+                }
+            });
+        }
+        
+        // Mostrar modal
+        const bsModal = new bootstrap.Modal(modal, {
+            backdrop: 'static',
+            keyboard: false
+        });
+        bsModal.show();
+    }
+
     // Headers con autenticación
     getHeaders(includeAuth = true) {
         const headers = { ...API_CONFIG.HEADERS };
@@ -163,14 +211,7 @@ class ApiService {
                     window.App.showSessionExpiredModal();
                 } else {
                     // Fallback para páginas protegidas
-                    alert('Tu sesión ha expirado. Serás redirigido al login.');
-                    setTimeout(() => {
-                        if (path.includes('/admin/')) {
-                            window.location.href = '/admin/index.html';
-                        } else {
-                            window.location.href = '/login.html';
-                        }
-                    }, 2000);
+                    this.showSessionExpiredModal();
                 }
             } else {
                 // En páginas públicas, solo limpiar sesión sin mostrar modal
