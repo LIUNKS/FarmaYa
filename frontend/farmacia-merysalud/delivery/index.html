@@ -232,7 +232,7 @@
             const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual') || 'null');
             
             if (!usuarioActual || usuarioActual.rol !== 'DELIVERY') {
-                window.location.href = '../login.html';
+                window.location.href = '/login.html';
                 return;
             }
             
@@ -347,30 +347,34 @@
                 const badgeClass = {
                     'PENDING': 'warning',
                     'PROCESSING': 'info',
-                    'DELIVERED': 'success'
+                    'DELIVERED': 'success',
+                    'CANCELLED': 'danger'
                 }[pedido.estado] || 'secondary';
                 
                 const statusIcon = {
                     'PENDING': 'clock',
                     'PROCESSING': 'truck',
-                    'DELIVERED': 'check-circle'
+                    'DELIVERED': 'check-circle',
+                    'CANCELLED': 'times-circle'
                 }[pedido.estado] || 'question';
                 
                 const statusText = {
                     'PENDING': 'PENDIENTE',
                     'PROCESSING': 'EN PROCESO',
-                    'DELIVERED': 'ENTREGADO'
+                    'DELIVERED': 'ENTREGADO',
+                    'CANCELLED': 'CANCELADO'
                 }[pedido.estado] || pedido.estado;
                 
                 html += `
                     <div class="pedido-card position-relative" onclick="verDetalle(${pedido.id})">
-                        <span class="badge bg-${badgeClass} status-badge">
-                            <i class="fas fa-${statusIcon}"></i> ${statusText}
-                        </span>
-                        
                         <div class="row">
                             <div class="col-md-8">
-                                <h5 class="fw-bold text-primary">${pedido.numero}</h5>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="fw-bold text-primary mb-0">${pedido.numero}</h5>
+                                    <span class="badge bg-${badgeClass} ms-2">
+                                        <i class="fas fa-${statusIcon}"></i> ${statusText}
+                                    </span>
+                                </div>
                                 <div class="client-info">
                                     <h6 class="mb-1">
                                         <i class="fas fa-user"></i> ${pedido.clienteNombre}
@@ -391,19 +395,19 @@
                                 </div>
                             </div>
                             <div class="col-md-4 text-end">
-                                <h4 class="text-success fw-bold">S/. ${pedido.total.toFixed(2)}</h4>
-                                <p class="text-muted">
+                                <h4 class="text-success fw-bold mb-1">S/. ${pedido.total.toFixed(2)}</h4>
+                                <p class="text-muted mb-2">
                                     <i class="fas fa-pills"></i> ${pedido.productos.length} productos
                                 </p>
                                 
-                                <div class="action-buttons" onclick="event.stopPropagation()">
+                                <div class="action-buttons d-flex justify-content-end gap-1" onclick="event.stopPropagation()">
                                     <a href="tel:${pedido.telefono}" class="btn btn-success btn-sm">
                                         <i class="fas fa-phone"></i>
                                     </a>
                                     <a href="https://wa.me/51${pedido.telefono}" target="_blank" class="btn btn-success btn-sm">
                                         <i class="fab fa-whatsapp"></i>
                                     </a>
-                                    ${pedido.estado !== 'ENTREGADO' ? 
+                                    ${pedido.estado !== 'DELIVERED' && pedido.estado !== 'CANCELLED' ? 
                                         `<button class="btn btn-primary btn-sm" onclick="cambiarEstado(${pedido.id})">
                                             <i class="fas fa-edit"></i>
                                         </button>` : ''
@@ -437,10 +441,12 @@
                 nuevoEstadoSelect.innerHTML = `
                     <option value="PROCESSING">En Proceso</option>
                     <option value="DELIVERED">Entregado</option>
+                    <option value="CANCELLED">Cancelado</option>
                 `;
             } else if (pedido.estado === 'PROCESSING') {
                 nuevoEstadoSelect.innerHTML = `
                     <option value="DELIVERED">Entregado</option>
+                    <option value="CANCELLED">Cancelado</option>
                 `;
             }
             
@@ -509,9 +515,60 @@
         }
 
         function logout() {
-            if (confirm('¿Desea cerrar sesión?')) {
-                localStorage.clear();
-                window.location.href = '../login.html';
+            if (window.App && window.App.confirmAction) {
+                window.App.confirmAction('¿Desea cerrar sesión?', () => {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
+                });
+            } else {
+                // Fallback si App no está disponible - usar modal básico
+                showConfirmModal('¿Desea cerrar sesión?', () => {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
+                });
+            }
+        }
+
+        // Función de fallback para modal de confirmación
+        function showConfirmModal(message, callback) {
+            // Crear modal básico si Bootstrap está disponible
+            if (typeof bootstrap !== 'undefined') {
+                const modalHtml = `
+                    <div class="modal fade" id="confirmModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirmar Acción</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">${message}</div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="confirmBtn">Aceptar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+                modal.show();
+                
+                document.getElementById('confirmBtn').onclick = function() {
+                    modal.hide();
+                    document.getElementById('confirmModal').remove();
+                    callback();
+                };
+                
+                document.getElementById('confirmModal').addEventListener('hidden.bs.modal', function() {
+                    document.getElementById('confirmModal').remove();
+                });
+            } else {
+                // Fallback a confirm si no hay Bootstrap
+                if (confirm(message)) {
+                    callback();
+                }
             }
         }
     </script>

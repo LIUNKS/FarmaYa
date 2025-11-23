@@ -266,7 +266,7 @@
             const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual') || 'null');
             
             if (!usuarioActual || usuarioActual.rol !== 'DELIVERY') {
-                window.location.href = '../login.html';
+                window.location.href = '/login.html';
                 return;
             }
         }
@@ -321,13 +321,15 @@
             const badgeClass = {
                 'PENDING': 'warning',
                 'PROCESSING': 'info', 
-                'DELIVERED': 'success'
+                'DELIVERED': 'success',
+                'CANCELLED': 'danger'
             }[currentPedido.estado] || 'secondary';
             
             const estadoText = {
                 'PENDING': 'PENDIENTE',
                 'PROCESSING': 'EN PROCESO',
-                'DELIVERED': 'ENTREGADO'
+                'DELIVERED': 'ENTREGADO',
+                'CANCELLED': 'CANCELADO'
             }[currentPedido.estado] || currentPedido.estado;
             
             estadoBadge.className = `badge bg-${badgeClass} fs-6`;
@@ -386,13 +388,15 @@
             const estados = [
                 { key: 'PENDING', label: 'Pedido Recibido', icon: 'clock', color: 'warning' },
                 { key: 'PROCESSING', label: 'En Camino', icon: 'truck', color: 'info' },
-                { key: 'DELIVERED', label: 'Entregado', icon: 'check-circle', color: 'success' }
+                { key: 'DELIVERED', label: 'Entregado', icon: 'check-circle', color: 'success' },
+                { key: 'CANCELLED', label: 'Cancelado', icon: 'times-circle', color: 'danger' }
             ];
             
             let html = '';
             estados.forEach((estado, index) => {
                 const isActive = getCurrentStateIndex() >= index;
-                const iconClass = isActive ? `bg-${estado.color} text-white` : 'bg-light text-muted';
+                const isCancelled = currentPedido.estado === 'CANCELLED' && estado.key === 'CANCELLED';
+                const iconClass = (isActive || isCancelled) ? `bg-${estado.color} text-white` : 'bg-light text-muted';
                 
                 html += `
                     <div class="timeline-item">
@@ -400,8 +404,8 @@
                             <i class="fas fa-${estado.icon}"></i>
                         </div>
                         <div class="timeline-content">
-                            <h6 class="mb-0 ${isActive ? '' : 'text-muted'}">${estado.label}</h6>
-                            ${isActive && estado.key === currentPedido.estado ? 
+                            <h6 class="mb-0 ${(isActive || isCancelled) ? '' : 'text-muted'}">${estado.label}</h6>
+                            ${(isActive || isCancelled) && estado.key === currentPedido.estado ? 
                                 '<small class="text-success">Estado actual</small>' : 
                                 '<small class="text-muted">Pendiente</small>'
                             }
@@ -414,8 +418,9 @@
         }
 
         function getCurrentStateIndex() {
-            const stateOrder = ['PENDING', 'PROCESSING', 'DELIVERED'];
-            return stateOrder.indexOf(currentPedido.estado);
+            const stateOrder = ['PENDING', 'PROCESSING', 'DELIVERED', 'CANCELLED'];
+            const index = stateOrder.indexOf(currentPedido.estado);
+            return index === -1 ? 0 : index;
         }
 
         function renderActionButtons() {
@@ -427,21 +432,34 @@
                     <button class="btn btn-info mb-2" onclick="marcarEnProceso()">
                         <i class="fas fa-truck"></i> Marcar En Proceso
                     </button>
-                    <button class="btn btn-success" onclick="marcarEntregado()">
+                    <button class="btn btn-success mb-2" onclick="marcarEntregado()">
                         <i class="fas fa-check"></i> Marcar Entregado
+                    </button>
+                    <button class="btn btn-danger" onclick="marcarCancelado()">
+                        <i class="fas fa-times"></i> Cancelar Pedido
                     </button>
                 `;
             } else if (currentPedido.estado === 'PROCESSING') {
                 html = `
-                    <button class="btn btn-success" onclick="marcarEntregado()">
+                    <button class="btn btn-success mb-2" onclick="marcarEntregado()">
                         <i class="fas fa-check"></i> Marcar Entregado
                     </button>
+                    <button class="btn btn-danger" onclick="marcarCancelado()">
+                        <i class="fas fa-times"></i> Cancelar Pedido
+                    </button>
                 `;
-            } else {
+            } else if (currentPedido.estado === 'DELIVERED') {
                 html = `
                     <div class="alert alert-success text-center">
                         <i class="fas fa-check-circle fa-2x mb-2"></i><br>
                         <strong>Pedido Entregado</strong>
+                    </div>
+                `;
+            } else if (currentPedido.estado === 'CANCELLED') {
+                html = `
+                    <div class="alert alert-danger text-center">
+                        <i class="fas fa-times-circle fa-2x mb-2"></i><br>
+                        <strong>Pedido Cancelado</strong>
                     </div>
                 `;
             }
@@ -452,7 +470,7 @@
             const entregarBtn = document.getElementById('entregarBtn');
             const procesoBtn = document.getElementById('procesoBtn');
             
-            if (currentPedido.estado === 'DELIVERED') {
+            if (currentPedido.estado === 'DELIVERED' || currentPedido.estado === 'CANCELLED') {
                 if (entregarBtn) entregarBtn.style.display = 'none';
                 if (procesoBtn) procesoBtn.style.display = 'none';
             } else if (currentPedido.estado === 'PROCESSING') {
@@ -461,14 +479,41 @@
         }
 
         async function marcarEnProceso() {
-            if (confirm('¿Marcar este pedido como "En Proceso"?')) {
-                await updatePedidoEstado('PROCESSING');
+            if (window.App && window.App.confirmAction) {
+                window.App.confirmAction('¿Marcar este pedido como "En Proceso"?', () => {
+                    updatePedidoEstado('PROCESSING');
+                });
+            } else {
+                // Fallback si App no está disponible - usar modal básico
+                showConfirmModal('¿Marcar este pedido como "En Proceso"?', () => {
+                    updatePedidoEstado('PROCESSING');
+                });
             }
         }
 
         async function marcarEntregado() {
-            if (confirm('¿Confirmar que el pedido ha sido entregado al cliente?')) {
-                await updatePedidoEstado('DELIVERED');
+            if (window.App && window.App.confirmAction) {
+                window.App.confirmAction('¿Confirmar que el pedido ha sido entregado al cliente?', () => {
+                    updatePedidoEstado('DELIVERED');
+                });
+            } else {
+                // Fallback si App no está disponible - usar modal básico
+                showConfirmModal('¿Confirmar que el pedido ha sido entregado al cliente?', () => {
+                    updatePedidoEstado('DELIVERED');
+                });
+            }
+        }
+
+        async function marcarCancelado() {
+            if (window.App && window.App.confirmAction) {
+                window.App.confirmAction('¿Está seguro de cancelar este pedido? Esta acción no se puede deshacer.', () => {
+                    updatePedidoEstado('CANCELLED');
+                });
+            } else {
+                // Fallback si App no está disponible - usar modal básico
+                showConfirmModal('¿Está seguro de cancelar este pedido? Esta acción no se puede deshacer.', () => {
+                    updatePedidoEstado('CANCELLED');
+                });
             }
         }
 
@@ -519,6 +564,49 @@
             setTimeout(() => {
                 notification.remove();
             }, 3000);
+        }
+
+        // Función de fallback para modal de confirmación
+        function showConfirmModal(message, callback) {
+            // Crear modal básico si Bootstrap está disponible
+            if (typeof bootstrap !== 'undefined') {
+                const modalHtml = `
+                    <div class="modal fade" id="confirmModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirmar Acción</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">${message}</div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="confirmBtn">Aceptar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+                modal.show();
+                
+                document.getElementById('confirmBtn').onclick = function() {
+                    modal.hide();
+                    document.getElementById('confirmModal').remove();
+                    callback();
+                };
+                
+                document.getElementById('confirmModal').addEventListener('hidden.bs.modal', function() {
+                    document.getElementById('confirmModal').remove();
+                });
+            } else {
+                // Fallback a confirm si no hay Bootstrap
+                if (confirm(message)) {
+                    callback();
+                }
+            }
         }
     </script>
 </body>
