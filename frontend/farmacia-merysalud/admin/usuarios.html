@@ -280,8 +280,8 @@
             const usuario = localStorage.getItem('usuarioActual');
             
             if (!token || !usuario) {
-                alert('Sesión no encontrada. Redirigiendo al login...');
-                window.location.href = './index.html';
+                showNotification('Sesión no encontrada. Redirigiendo al login...', 'warning');
+                setTimeout(() => window.location.href = '/login.html', 2000);
                 return;
             }
 
@@ -289,8 +289,8 @@
             
             // Verificar que sea ADMIN
             if (userData.rol !== 'ADMIN') {
-                alert('Acceso denegado. Solo administradores pueden acceder a esta sección.');
-                window.location.href = '../index.html';
+                showNotification('Acceso denegado. Solo administradores pueden acceder a esta sección.', 'danger');
+                setTimeout(() => window.location.href = '/index.html', 2000);
                 return;
             }
 
@@ -599,20 +599,80 @@
 
         // Logout
         function logout() {
-            if (confirm('¿Desea cerrar sesión?')) {
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('usuarioActual');
-                localStorage.removeItem('userData');
-                sessionStorage.removeItem('adminUser');
-                
-                window.location.href = './index.html';
+            if (window.App && window.App.confirmAction) {
+                window.App.confirmAction('¿Desea cerrar sesión?', () => {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('usuarioActual');
+                    localStorage.removeItem('userData');
+                    sessionStorage.removeItem('adminUser');
+                    
+                    window.location.href = '/login.html';
+                });
+            } else {
+                // Fallback si App no está disponible - usar modal básico
+                showConfirmModal('¿Desea cerrar sesión?', () => {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('usuarioActual');
+                    localStorage.removeItem('userData');
+                    sessionStorage.removeItem('adminUser');
+                    
+                    window.location.href = '/login.html';
+                });
             }
         }
 
         // Hacer funciones globales
         window.verDetalle = verDetalle;
         window.logout = logout;
+
+        // Función de modal de confirmación como fallback
+        function showConfirmModal(message, onConfirm) {
+            // Crear modal si no existe
+            let modal = document.getElementById('confirmModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'confirmModal';
+                modal.className = 'modal fade';
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirmar</h5>
+                            </div>
+                            <div class="modal-body">
+                                <p id="confirmMessage"></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" id="confirmCancelBtn">Cancelar</button>
+                                <button type="button" class="btn btn-primary" id="confirmOkBtn">Aceptar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Eventos para los botones
+                document.getElementById('confirmOkBtn').addEventListener('click', () => {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    bsModal.hide();
+                    if (onConfirm) onConfirm();
+                });
+                
+                document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    bsModal.hide();
+                });
+            }
+            
+            // Actualizar mensaje
+            document.getElementById('confirmMessage').textContent = message;
+            
+            // Mostrar modal
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+        }
     </script>
 </body>
 </html>
