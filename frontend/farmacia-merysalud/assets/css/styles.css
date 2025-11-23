@@ -1,16 +1,23 @@
 /* styles.css - Estilos personalizados para Farmacia Mery Salud */
 
 :root {
-    --primary-color: #28a745;
-    --secondary-color: #6c757d;
+    --primary-color: #0056b3;
+    --secondary-color: #495057;
     --danger-color: #dc3545;
-    --warning-color: #ffc107;
-    --info-color: #17a2b8;
-    --dark-color: #343a40;
+    --warning-color: #856404;
+    --info-color: #0c5460;
+    --success-color: #155724;
+    --dark-color: #212529;
     --light-color: #f8f9fa;
     --border-radius: 8px;
     --box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     --transition: all 0.3s ease;
+    /* High contrast colors for accessibility */
+    --text-primary: #000000;
+    --text-secondary: #333333;
+    --text-muted: #666666;
+    --bg-light: #ffffff;
+    --bg-secondary: #f8f9fa;
 }
 
 /* Global Styles */
@@ -25,11 +32,26 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    color: var(--text-primary);
+    line-height: 1.6;
 }
 
-main {
-    flex: 1;
-    padding: 20px 0;
+/* Improve text contrast */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+/* High contrast focus states */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+    outline: 3px solid #0056b3;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 0.2rem rgba(0, 86, 179, 0.25);
 }
 
 /* Navbar Customization */
@@ -120,8 +142,8 @@ main {
 }
 
 .btn-primary:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
+    background-color: #004494;
+    border-color: #003d7a;
 }
 
 /* Forms */
@@ -133,7 +155,7 @@ main {
 
 .form-control:focus, .form-select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(0, 86, 179, 0.25);
 }
 
 /* Tables */
@@ -219,18 +241,51 @@ footer {
     color: var(--primary-color);
 }
 
-/* Status Badges */
+/* Status Badges - High Contrast */
 .badge-pendiente {
-    background-color: var(--warning-color);
-    color: #000;
+    background-color: #856404;
+    color: #ffffff;
 }
 
 .badge-proceso {
-    background-color: var(--info-color);
+    background-color: #0c5460;
+    color: #ffffff;
 }
 
 .badge-entregado {
-    background-color: var(--primary-color);
+    background-color: #155724;
+    color: #ffffff;
+}
+
+/* Ensure all badges have sufficient contrast */
+.badge {
+    font-weight: 600;
+    color: #ffffff !important;
+}
+
+/* Improve link contrast */
+a {
+    color: var(--primary-color);
+}
+
+a:hover {
+    color: #003d7a;
+}
+
+/* Skip link for accessibility */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: #000;
+    color: #fff;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 100;
+}
+
+.skip-link:focus {
+    top: 6px;
 }
 
 /* Responsive */
@@ -261,6 +316,6 @@ footer {
     min-height: 400px;
 }
 
-.bg-light-green {
-    background-color: rgba(40, 167, 69, 0.1);
+.bg-light-blue {
+    background-color: rgba(0, 86, 179, 0.1);
 }
