@@ -363,8 +363,8 @@
             const usuario = localStorage.getItem('usuarioActual');
             
             if (!token || !usuario) {
-                alert('Sesión no encontrada. Redirigiendo al login...');
-                window.location.href = './index.html';
+                showNotification('Sesión no encontrada. Redirigiendo al login...', 'warning');
+                setTimeout(() => window.location.href = '/login.html', 2000);
                 return;
             }
 
@@ -372,8 +372,8 @@
             
             // Verificar que sea ADMIN
             if (userData.rol !== 'ADMIN') {
-                alert('Acceso denegado. Solo administradores pueden acceder a esta sección.');
-                window.location.href = '../index.html';
+                showNotification('Acceso denegado. Solo administradores pueden acceder a esta sección.', 'danger');
+                setTimeout(() => window.location.href = '/index.html', 2000);
                 return;
             }
 
@@ -681,36 +681,67 @@
             const producto = productos.find(p => p.id === id);
             if (!producto) return;
             
-            if (!confirm(`¿Está seguro de eliminar el producto "${producto.name}"?\n\nEsta acción no se puede deshacer.`)) {
-                return;
-            }
-            
-            try {
-                showLoading(true);
-                await ProductAPI.deleteProduct(id);
-                showLoading(false);
-                
-                showNotification('Producto eliminado exitosamente', 'success');
-                await loadProducts();
-            } catch (error) {
-                console.error('Error al eliminar producto:', error);
-                showLoading(false);
-                showNotification('Error al eliminar producto: ' + error.message, 'danger');
+            if (window.App && window.App.confirmAction) {
+                window.App.confirmAction(`¿Está seguro de eliminar el producto "${producto.name}"?\n\nEsta acción no se puede deshacer.`, async () => {
+                    try {
+                        showLoading(true);
+                        await ProductAPI.deleteProduct(id);
+                        showLoading(false);
+                        
+                        showNotification('Producto eliminado exitosamente', 'success');
+                        await loadProducts();
+                    } catch (error) {
+                        console.error('Error al eliminar producto:', error);
+                        showLoading(false);
+                        showNotification('Error al eliminar producto: ' + error.message, 'danger');
+                    }
+                });
+            } else {
+                // Fallback si App no está disponible - usar modal básico
+                showConfirmModal(`¿Está seguro de eliminar el producto "${producto.name}"?\n\nEsta acción no se puede deshacer.`, async () => {
+                    try {
+                        showLoading(true);
+                        await ProductAPI.deleteProduct(id);
+                        showLoading(false);
+                        
+                        showNotification('Producto eliminado exitosamente', 'success');
+                        await loadProducts();
+                    } catch (error) {
+                        console.error('Error al eliminar producto:', error);
+                        showLoading(false);
+                        showNotification('Error al eliminar producto: ' + error.message, 'danger');
+                    }
+                });
             }
         }
 
         // Logout
         function logout() {
-            if (confirm('¿Desea cerrar sesión?')) {
-                // Limpiar TODOS los datos de sesión
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('usuarioActual');
-                localStorage.removeItem('userData');
-                sessionStorage.removeItem('adminUser');
-                
-                // Redirigir al login del admin
-                window.location.href = './index.html';
+            if (window.App && window.App.confirmAction) {
+                window.App.confirmAction('¿Desea cerrar sesión?', () => {
+                    // Limpiar TODOS los datos de sesión
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('usuarioActual');
+                    localStorage.removeItem('userData');
+                    sessionStorage.removeItem('adminUser');
+                    
+                    // Redirigir al login del admin
+                    window.location.href = '/login.html';
+                });
+            } else {
+                // Fallback si App no está disponible - usar modal básico
+                showConfirmModal('¿Desea cerrar sesión?', () => {
+                    // Limpiar TODOS los datos de sesión
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('usuarioActual');
+                    localStorage.removeItem('userData');
+                    sessionStorage.removeItem('adminUser');
+                    
+                    // Redirigir al login del admin
+                    window.location.href = '/login.html';
+                });
             }
         }
 
@@ -718,6 +749,53 @@
         window.editProduct = editProduct;
         window.deleteProduct = deleteProduct;
         window.logout = logout;
+
+        // Función de modal de confirmación como fallback
+        function showConfirmModal(message, onConfirm) {
+            // Crear modal si no existe
+            let modal = document.getElementById('confirmModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'confirmModal';
+                modal.className = 'modal fade';
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirmar</h5>
+                            </div>
+                            <div class="modal-body">
+                                <p id="confirmMessage"></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" id="confirmCancelBtn">Cancelar</button>
+                                <button type="button" class="btn btn-primary" id="confirmOkBtn">Aceptar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Eventos para los botones
+                document.getElementById('confirmOkBtn').addEventListener('click', () => {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    bsModal.hide();
+                    if (onConfirm) onConfirm();
+                });
+                
+                document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    bsModal.hide();
+                });
+            }
+            
+            // Actualizar mensaje
+            document.getElementById('confirmMessage').textContent = message;
+            
+            // Mostrar modal
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+        }
     </script>
 </body>
 </html>
