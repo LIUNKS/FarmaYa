@@ -94,6 +94,10 @@
         .timeline-item.active::before {
             background: #28a745;
         }
+        
+        .timeline-item.cancelled::before {
+            background: #dee2e6;
+        }
     </style>
 </head>
 <body>
@@ -126,6 +130,11 @@
                             <i class="fas fa-shopping-cart fs-5"></i>
                             <span class="cart-badge badge bg-danger rounded-pill">0</span>
                         </a>
+                    </li>
+                    <li class="nav-item">
+                        <button id="accessibility-btn" class="btn btn-link nav-link" title="Activar modo accesibilidad" aria-label="Botón de accesibilidad" aria-pressed="false">
+                            <i class="fas fa-universal-access fs-5"></i>
+                        </button>
                     </li>
                     <li class="nav-item dropdown user-menu">
                         <a class="nav-link dropdown-toggle active" href="#" data-bs-toggle="dropdown">
@@ -255,7 +264,7 @@
                 const usuario = dataStore.getCurrentUser();
                 if (!usuario) {
                     App.showNotification('Debes iniciar sesión para ver tus pedidos', 'warning');
-                    window.location.href = './login.html';
+                    window.location.href = '/login.html';
                     return;
                 }
 
@@ -396,15 +405,18 @@
             const isReceived = true; // Siempre recibido si existe
             const isProcessing = ['procesando', 'en_proceso', 'processing'].includes(statusLower);
             const isDelivered = ['entregado', 'delivered'].includes(statusLower);
+            const isCancelled = ['cancelado', 'cancelled'].includes(statusLower);
+            
+            const getClass = (condition) => isCancelled ? 'cancelled' : (condition ? 'active' : '');
             
             return `
-                <div class="timeline-item ${isReceived ? 'active' : ''}">
+                <div class="timeline-item ${getClass(isReceived)}">
                     <small>Pedido recibido</small>
                 </div>
-                <div class="timeline-item ${isProcessing || isDelivered ? 'active' : ''}">
+                <div class="timeline-item ${getClass(isProcessing || isDelivered)}">
                     <small>En proceso</small>
                 </div>
-                <div class="timeline-item ${isDelivered ? 'active' : ''}">
+                <div class="timeline-item ${getClass(isDelivered)}">
                     <small>Entregado</small>
                 </div>
             `;
