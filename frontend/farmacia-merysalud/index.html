@@ -1,15 +1,23 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Farmacia Mery Salud - Tu farmacia de confianza en Breña. Encuentra medicamentos, vitaminas y productos de salud con delivery gratuito a domicilio.">
+    <meta name="keywords" content="farmacia, medicamentos, vitaminas, salud, delivery, Breña, Lima">
+    <meta name="author" content="Farmacia Mery Salud">
+    <meta name="robots" content="index, follow">
     <title>Farmacia Mery Salud - Tu salud es nuestra prioridad</title>
     
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
+    <link rel="preload" href="assets/css/styles.css" as="style">
+    
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="assets/css/styles.css">
     
@@ -71,53 +79,61 @@
     </style>
 </head>
 <body>
+    <!-- Skip link for accessibility -->
+    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+    
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm" role="navigation" aria-label="Navegación principal">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="./index.html">
-                <i class="fas fa-clinic-medical text-success me-2 fs-4"></i>
+            <a class="navbar-brand d-flex align-items-center" href="./index.html" aria-label="Ir a la página principal de Farmacia Mery Salud">
+                <i class="fas fa-clinic-medical text-success me-2 fs-4" aria-hidden="true"></i>
                 <span class="fw-bold text-success">Farmacia Mery Salud</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Alternar navegación">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active fw-semibold" href="./index.html">
-                            <i class="fas fa-home"></i> Inicio
+                        <a class="nav-link active fw-semibold" href="./index.html" aria-current="page">
+                            <i class="fas fa-home" aria-hidden="true"></i> Inicio
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="./productos.html">
-                            <i class="fas fa-pills"></i> Productos
+                            <i class="fas fa-pills" aria-hidden="true"></i> Productos
                         </a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link position-relative" href="carrito.html">
-                            <i class="fas fa-shopping-cart fs-5"></i>
-                            <span class="cart-badge badge bg-danger rounded-pill">0</span>
+                        <a class="nav-link position-relative" href="carrito.html" aria-label="Ver carrito de compras">
+                            <i class="fas fa-shopping-cart fs-5" aria-hidden="true"></i>
+                            <span class="cart-badge badge bg-danger rounded-pill" aria-label="Cantidad de productos en el carrito">0</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <button id="accessibility-btn" class="btn btn-link nav-link" title="Activar modo accesibilidad" aria-label="Botón de accesibilidad" aria-pressed="false">
+                            <i class="fas fa-universal-access fs-5" aria-hidden="true"></i>
+                        </button>
+                    </li>
                     <li class="nav-item dropdown user-menu" style="display: none;">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle fs-5"></i> <span class="user-name"></span>
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Menú de usuario">
+                            <i class="fas fa-user-circle fs-5" aria-hidden="true"></i> <span class="user-name"></span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="mis-pedidos.html">
-                                <i class="fas fa-box"></i> Mis Pedidos
+                                <i class="fas fa-box" aria-hidden="true"></i> Mis Pedidos
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item btn-logout" href="#">
-                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            <li><a class="dropdown-item btn-logout" href="#" role="button">
+                                <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Cerrar Sesión
                             </a></li>
                         </ul>
                     </li>
                     <li class="nav-item btn-login">
                         <a class="btn btn-outline-success ms-2" href="login.html">
-                            <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                            <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar Sesión
                         </a>
                     </li>
                 </ul>
@@ -126,39 +142,43 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-section">
+    <section class="hero-section" aria-labelledby="hero-title">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6 mb-4 mb-lg-0">
-                    <h1 class="display-4 fw-bold mb-4">Tu salud es nuestra prioridad</h1>
+                    <h1 id="hero-title" class="display-4 fw-bold mb-4">Tu salud es nuestra prioridad</h1>
                     <p class="lead mb-4">Encuentra medicamentos y productos de salud con delivery gratuito a domicilio en Breña y alrededores.</p>
                     <div class="d-flex gap-3 flex-wrap">
-                        <a href="productos.html" class="btn btn-light btn-lg">
-                            <i class="fas fa-shopping-bag"></i> Ver Productos
+                        <a href="productos.html" class="btn btn-light btn-lg" aria-label="Ver catálogo completo de productos">
+                            <i class="fas fa-shopping-bag" aria-hidden="true"></i> Ver Productos
                         </a>
-                        <a href="#como-funciona" class="btn btn-outline-light btn-lg">
-                            <i class="fas fa-info-circle"></i> Cómo Funciona
+                        <a href="#como-funciona" class="btn btn-outline-light btn-lg" aria-label="Conocer cómo funciona nuestro servicio">
+                            <i class="fas fa-info-circle" aria-hidden="true"></i> Cómo Funciona
                         </a>
                     </div>
                     <div class="mt-4">
-                        <span class="badge bg-white text-dark p-2">
-                            <i class="fas fa-truck text-success"></i> Delivery Gratis
+                        <span class="badge bg-dark bg-opacity-75 text-white p-2" aria-label="Servicio de delivery gratuito disponible">
+                            <i class="fas fa-truck text-success" aria-hidden="true"></i> Delivery Gratis
                         </span>
-                        <span class="badge bg-white text-dark p-2 ms-2">
-                            <i class="fas fa-clock text-primary"></i> Entrega en 2-3 horas
+                        <span class="badge bg-dark bg-opacity-75 text-white p-2 ms-2" aria-label="Tiempo estimado de entrega: 2-3 horas">
+                            <i class="fas fa-clock text-primary" aria-hidden="true"></i> Entrega en 2-3 horas
                         </span>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <img src="https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&h=400&fit=crop" 
-                         alt="Farmacia moderna" class="hero-image">
+                         alt="Farmacia moderna con estanterías organizadas y productos de salud" 
+                         class="hero-image"
+                         width="600"
+                         height="400"
+                         loading="eager">
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Main Content -->
-    <main class="container my-5">
+    <main class="container my-5" id="main-content">
         <!-- Search Bar -->
         <div class="row mb-5">
             <div class="col-lg-8 mx-auto">
@@ -180,78 +200,79 @@
         </div>
 
         <!-- Categories -->
-        <section class="mb-5">
+        <section class="mb-5" aria-labelledby="categories-title">
             <div class="text-center mb-4">
-                <h2 class="fw-bold">Categorías</h2>
+                <h2 id="categories-title" class="fw-bold">Categorías</h2>
                 <p class="text-muted">Encuentra lo que necesitas por categoría</p>
             </div>
-            <div class="row g-3" id="categoriesContainer">
+            <div class="row g-3" id="categoriesContainer" role="list" aria-label="Lista de categorías de productos">
                 <!-- Se llenará dinámicamente con imágenes reales -->
             </div>
         </section>
 
         <!-- Featured Products -->
-        <section class="mb-5">
+        <section class="mb-5" aria-labelledby="featured-title">
             <div class="text-center mb-4">
-                <h2 class="fw-bold">Productos Destacados</h2>
+                <h2 id="featured-title" class="fw-bold">Productos Destacados</h2>
                 <p class="text-muted">Los más vendidos esta semana</p>
             </div>
-            <div class="row g-4" id="featuredProducts">
+            <div class="row g-4" id="featuredProducts" role="list" aria-label="Lista de productos destacados">
                 <!-- Se llenará dinámicamente con imágenes reales -->
             </div>
         </section>
 
         <!-- How it Works -->
-        <section id="como-funciona" class="py-5 bg-light rounded-3">
-            <h2 class="text-center mb-5 fw-bold">¿Cómo Funciona?</h2>
-            <div class="row g-4">
-                <div class="col-md-3 text-center">
-                    <div class="bg-success bg-opacity-10 rounded-circle p-4 d-inline-block mb-3">
+        <section id="como-funciona" class="py-5 bg-light rounded-3" aria-labelledby="how-it-works-title">
+            <h2 id="how-it-works-title" class="text-center mb-5 fw-bold">¿Cómo Funciona?</h2>
+            <div class="row g-4" role="list" aria-label="Pasos para usar nuestro servicio">
+                <div class="col-md-3 text-center" role="listitem">
+                    <div class="bg-success bg-opacity-10 rounded-circle p-4 d-inline-block mb-3" aria-hidden="true">
                         <i class="fas fa-search fa-3x text-success"></i>
                     </div>
-                    <h5 class="fw-bold">1. Busca</h5>
+                    <h3 class="fw-bold">1. Busca</h3>
                     <p class="text-muted">Encuentra el medicamento o producto que necesitas</p>
                 </div>
-                <div class="col-md-3 text-center">
-                    <div class="bg-primary bg-opacity-10 rounded-circle p-4 d-inline-block mb-3">
+                <div class="col-md-3 text-center" role="listitem">
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-4 d-inline-block mb-3" aria-hidden="true">
                         <i class="fas fa-shopping-cart fa-3x text-primary"></i>
                     </div>
-                    <h5 class="fw-bold">2. Agrega al Carrito</h5>
+                    <h3 class="fw-bold">2. Agrega al Carrito</h3>
                     <p class="text-muted">Selecciona la cantidad y agrégalo a tu carrito</p>
                 </div>
-                <div class="col-md-3 text-center">
-                    <div class="bg-warning bg-opacity-10 rounded-circle p-4 d-inline-block mb-3">
+                <div class="col-md-3 text-center" role="listitem">
+                    <div class="bg-warning bg-opacity-10 rounded-circle p-4 d-inline-block mb-3" aria-hidden="true">
                         <i class="fas fa-user-edit fa-3x text-warning"></i>
                     </div>
-                    <h5 class="fw-bold">3. Completa tus Datos</h5>
+                    <h3 class="fw-bold">3. Completa tus Datos</h3>
                     <p class="text-muted">Ingresa tu información de contacto y dirección</p>
                 </div>
-                <div class="col-md-3 text-center">
-                    <div class="bg-info bg-opacity-10 rounded-circle p-4 d-inline-block mb-3">
+                <div class="col-md-3 text-center" role="listitem">
+                    <div class="bg-info bg-opacity-10 rounded-circle p-4 d-inline-block mb-3" aria-hidden="true">
                         <i class="fas fa-motorcycle fa-3x text-info"></i>
                     </div>
-                    <h5 class="fw-bold">4. Recibe en Casa</h5>
+                    <h3 class="fw-bold">4. Recibe en Casa</h3>
                     <p class="text-muted">Nuestro repartidor te contactará para la entrega</p>
                 </div>
             </div>
         </section>
 
         <!-- Trust Badges -->
-        <section class="py-5">
-            <div class="row text-center">
-                <div class="col-md-4">
-                    <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
-                    <h5>100% Seguro</h5>
+        <section class="py-5" aria-labelledby="trust-title">
+            <h2 id="trust-title" class="visually-hidden">Por qué confiar en nosotros</h2>
+            <div class="row text-center" role="list" aria-label="Razones para confiar en Farmacia Mery Salud">
+                <div class="col-md-4" role="listitem">
+                    <i class="fas fa-shield-alt fa-3x text-success mb-3" aria-hidden="true"></i>
+                    <h3>100% Seguro</h3>
                     <p class="text-muted">Productos garantizados y originales</p>
                 </div>
-                <div class="col-md-4">
-                    <i class="fas fa-headset fa-3x text-primary mb-3"></i>
-                    <h5>Atención Personalizada</h5>
+                <div class="col-md-4" role="listitem">
+                    <i class="fas fa-headset fa-3x text-primary mb-3" aria-hidden="true"></i>
+                    <h3>Atención Personalizada</h3>
                     <p class="text-muted">Te asesoramos en tu compra</p>
                 </div>
-                <div class="col-md-4">
-                    <i class="fas fa-undo fa-3x text-warning mb-3"></i>
-                    <h5>Garantía de Satisfacción</h5>
+                <div class="col-md-4" role="listitem">
+                    <i class="fas fa-undo fa-3x text-warning mb-3" aria-hidden="true"></i>
+                    <h3>Garantía de Satisfacción</h3>
                     <p class="text-muted">Si no estás satisfecho, te devolvemos tu dinero</p>
                 </div>
             </div>
@@ -259,38 +280,44 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white pt-5">
+    <footer class="bg-dark text-white pt-5" role="contentinfo">
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4">
-                    <h5 class="fw-bold mb-3">
-                        <i class="fas fa-clinic-medical"></i> Farmacia Mery Salud
-                    </h5>
+                    <h3 class="fw-bold mb-3">
+                        <i class="fas fa-clinic-medical" aria-hidden="true"></i> Farmacia Mery Salud
+                    </h3>
                     <p class="text-white-50">Tu farmacia de confianza en Breña. Cuidamos tu salud con productos de calidad y el mejor servicio.</p>
                     <div class="mt-3">
-                        <a href="#" class="text-white me-3"><i class="fab fa-facebook fa-lg"></i></a>
-                        <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>
-                        <a href="#" class="text-white"><i class="fab fa-whatsapp fa-lg"></i></a>
+                        <a href="#" class="text-white me-3" aria-label="Síguenos en Facebook">
+                            <i class="fab fa-facebook fa-lg" aria-hidden="true"></i>
+                        </a>
+                        <a href="#" class="text-white me-3" aria-label="Síguenos en Instagram">
+                            <i class="fab fa-instagram fa-lg" aria-hidden="true"></i>
+                        </a>
+                        <a href="#" class="text-white" aria-label="Contáctanos por WhatsApp">
+                            <i class="fab fa-whatsapp fa-lg" aria-hidden="true"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5 class="fw-bold mb-3">Contacto</h5>
-                    <p class="text-white-50">
-                        <i class="fas fa-map-marker-alt me-2"></i> Av. Brasil 123, Breña, Lima<br>
-                        <i class="fas fa-phone me-2"></i> (01) 234-5678<br>
-                        <i class="fas fa-envelope me-2"></i> info@farmaciamerysalud.com<br>
-                        <i class="fab fa-whatsapp me-2"></i> +51 999 888 777
-                    </p>
+                    <h3 class="fw-bold mb-3">Contacto</h3>
+                    <address class="text-white-50">
+                        <i class="fas fa-map-marker-alt me-2" aria-hidden="true"></i> Av. Brasil 123, Breña, Lima<br>
+                        <i class="fas fa-phone me-2" aria-hidden="true"></i> <a href="tel:+5112345678" class="text-white-50 text-decoration-none">(01) 234-5678</a><br>
+                        <i class="fas fa-envelope me-2" aria-hidden="true"></i> <a href="mailto:info@farmaciamerysalud.com" class="text-white-50 text-decoration-none">info@farmaciamerysalud.com</a><br>
+                        <i class="fab fa-whatsapp me-2" aria-hidden="true"></i> <a href="https://wa.me/51999888777" class="text-white-50 text-decoration-none" target="_blank" rel="noopener">+51 999 888 777</a>
+                    </address>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5 class="fw-bold mb-3">Horario de Atención</h5>
+                    <h3 class="fw-bold mb-3">Horario de Atención</h3>
                     <p class="text-white-50">
                         <strong>Lunes a Viernes:</strong> 8:00 AM - 10:00 PM<br>
                         <strong>Sábados:</strong> 9:00 AM - 9:00 PM<br>
                         <strong>Domingos:</strong> 10:00 AM - 6:00 PM
                     </p>
                     <p class="text-success">
-                        <i class="fas fa-truck"></i> Delivery disponible todos los días
+                        <i class="fas fa-truck" aria-hidden="true"></i> Delivery disponible todos los días
                     </p>
                 </div>
             </div>
@@ -406,23 +433,26 @@
                     
                     html += `
                         <div class="col-6 col-md-4 col-lg-3">
-                            <div class="card product-card h-100 position-relative">
-                                <span class="badge bg-${stockBadge} badge-stock">
+                            <div class="card product-card h-100 position-relative" role="article">
+                                <span class="badge bg-${stockBadge} badge-stock" aria-label="Estado de stock: ${producto.stock > 0 ? `Disponible - ${producto.stock} unidades` : 'Agotado'}">
                                     ${producto.stock > 0 ? `Stock: ${producto.stock}` : 'Agotado'}
                                 </span>
                                 <img src="${imagenUrl}" 
                                      class="card-img-top" 
-                                     alt="${producto.name}"
-                                     style="height: 150px; object-fit: cover;"
-                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzZjNzU3ZCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkNpbiBJbWFnZW48L3RleHQ+PC9zdmc+'; this.onerror=null;">
+                                     alt="Imagen del producto: ${producto.name}"
+                                     width="300"
+                                     height="200"
+                                     loading="lazy"
+                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNENBRjUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5Qcm9kdWN0bzwvdGV4dD48L3N2Zz4='; this.onerror=null;">
                                 <div class="card-body d-flex flex-column">
                                     <h6 class="card-title">${producto.name}</h6>
                                     <p class="text-muted small mb-2">${producto.presentacion || 'N/A'}</p>
-                                    <p class="price mb-auto fw-bold text-success fs-5">${App.formatPrice(producto.price)}</p>
+                                    <p class="price mb-auto fw-bold text-success fs-5" aria-label="Precio: ${App.formatPrice(producto.price)}">${App.formatPrice(producto.price)}</p>
                                     <button class="btn btn-success btn-sm w-100 mt-2" 
                                             onclick="addToCart(${producto.id})"
-                                            ${producto.stock === 0 ? 'disabled' : ''}>
-                                        <i class="fas fa-cart-plus"></i> Agregar
+                                            ${producto.stock === 0 ? 'disabled aria-disabled="true"' : ''}
+                                            aria-label="${producto.stock === 0 ? 'Producto agotado' : `Agregar ${producto.name} al carrito`}">
+                                        <i class="fas fa-cart-plus" aria-hidden="true"></i> Agregar
                                     </button>
                                 </div>
                             </div>
