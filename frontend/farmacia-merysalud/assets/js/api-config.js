@@ -2,7 +2,7 @@
 
 // Configuración base de la API
 const API_CONFIG = {
-    BASE_URL: 'https://tx97gdt3-8080.brs.devtunnels.ms/api',  // URL del túnel DevTunnels para el backend
+    BASE_URL: 'https://fancy-horse-2s412p7.brs.devtunnels.ms:8080/api',  // URL del túnel DevTunnels para el backend
     TIMEOUT: 30000, // 30 segundos
     HEADERS: {
         'Content-Type': 'application/json',
