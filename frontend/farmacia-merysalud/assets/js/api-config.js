@@ -2,7 +2,7 @@
 
 // Configuración base de la API
 const API_CONFIG = {
-    BASE_URL: 'https://81k7338z.brs.devtunnels.ms/api',
+    BASE_URL: 'https://81k7338z.brs.devtunnels.ms:8080/api',
     TIMEOUT: 30000, // 30 segundos
     HEADERS: {
         'Content-Type': 'application/json',

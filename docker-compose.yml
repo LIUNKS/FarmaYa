@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # -------------------------------
   # SERVICIO 1: BASE DE DATOS (MySQL)
