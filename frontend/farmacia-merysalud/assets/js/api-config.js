@@ -2,7 +2,7 @@
 
 // Configuración base de la API
 const API_CONFIG = {
-    BASE_URL: 'http://localhost:8080/api',
+    BASE_URL: 'https://tx97gdt3-8080.brs.devtunnels.ms/api',  // URL del túnel DevTunnels para el backend
     TIMEOUT: 30000, // 30 segundos
     HEADERS: {
         'Content-Type': 'application/json',
