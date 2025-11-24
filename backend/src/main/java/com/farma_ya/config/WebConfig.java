@@ -18,6 +18,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:8081",
                         "http://127.0.0.1:5500",
                         "http://127.0.0.1:3000",
+                        "https://81k7338z.brs.devtunnels.ms",
                         "null" // Para permitir file://
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
