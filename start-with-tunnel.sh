@@ -77,9 +77,11 @@ fi
 echo "$SHOW_OUT"
 
 echo "¡Listo! Tu frontend desplegado puede conectarse al backend a través del túnel."
+# Extraer el Tunnel ID completo de la salida
+TUNNEL_ID=$(echo "$SHOW_OUT" | grep "Tunnel ID" | sed 's/.*: //' | tr -d '\n')
 echo "URLs:"
-echo "  - Backend: https://$(echo "$SHOW_OUT" | grep -o 'https://[^"]*' | head -1 | sed 's|https://||')8080/"
-echo "  - BD (si expuesta): https://$(echo "$SHOW_OUT" | grep -o 'https://[^"]*' | head -1 | sed 's|https://||')3306/"
+echo "  - Backend: https://$TUNNEL_ID.devtunnels.ms:8080/"
+echo "  - BD (si expuesta): https://$TUNNEL_ID.devtunnels.ms:3306/"
 echo ""
 echo "Para detener: docker-compose down"
 echo "Para detener el túnel: $DEV_TUNNEL_BIN delete $TUNNEL_NAME"
