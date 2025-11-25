@@ -18,7 +18,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:8081",
                         "http://127.0.0.1:5500",
                         "http://127.0.0.1:3000",
-                        "https://fancy-horse-2s412p7.brs.devtunnels.ms",
+                        "https://fancy-horse-2s412p7.brs.devtunnels.ms:8080",
                         "https://farmaya.netlify.app",
                         "null" // Para permitir file://
                 )
