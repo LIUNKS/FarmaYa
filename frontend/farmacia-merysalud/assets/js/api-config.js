@@ -2,7 +2,7 @@
 
 // Configuración base de la API
 const API_CONFIG = {
-    BASE_URL: 'https://62wnmjzw.brs.devtunnels.ms:8080/api',
+    BASE_URL: 'https://fancy-horse-2s412p7.brs.devtunnels.ms:8080/api',
     TIMEOUT: 30000, // 30 segundos
     HEADERS: {
         'Content-Type': 'application/json',
