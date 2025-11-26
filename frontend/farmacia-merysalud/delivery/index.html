@@ -518,13 +518,13 @@
             if (window.App && window.App.confirmAction) {
                 window.App.confirmAction('¿Desea cerrar sesión?', () => {
                     localStorage.clear();
-                    window.location.href = '/login.html';
+                    window.location.href = '/admin/index.html';
                 });
             } else {
                 // Fallback si App no está disponible - usar modal básico
                 showConfirmModal('¿Desea cerrar sesión?', () => {
                     localStorage.clear();
-                    window.location.href = '/login.html';
+                    window.location.href = '/admin/index.html';
                 });
             }
         }
