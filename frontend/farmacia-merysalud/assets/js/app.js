@@ -1,7 +1,6 @@
 // app.js - Lógica principal de la aplicación
 
 const App = {
-    accessibilityEnabled: false,
 
     async init() {
         await this.restoreSession();
@@ -9,7 +8,6 @@ const App = {
         await this.checkAuth();
         await this.updateCartBadge();
         this.bindGlobalEvents();
-        this.initAccessibility();
     },
 
     async restoreSession() {
@@ -298,167 +296,6 @@ const App = {
 
     confirmAction(message, onConfirm, onCancel = null) {
         this.showConfirmModal(message, onConfirm, onCancel);
-    },
-
-    // Inicializar accesibilidad
-    initAccessibility() {
-        this.bindAccessibilityEvents();
-    },
-
-    // Crear botón de accesibilidad
-    createAccessibilityButton() {
-        // Ya no se crea flotante, se asume en HTML
-    },
-
-    // Eventos de accesibilidad
-    bindAccessibilityEvents() {
-        const button = document.getElementById('accessibility-btn');
-        button.addEventListener('click', () => this.toggleAccessibility());
-    },
-
-    // Alternar modo accesibilidad
-    toggleAccessibility() {
-        this.accessibilityEnabled = !this.accessibilityEnabled;
-        const button = document.getElementById('accessibility-btn');
-        const icon = button.querySelector('i');
-        if (icon) {
-            icon.style.color = this.accessibilityEnabled ? '#28a745' : '';
-        }
-        button.title = this.accessibilityEnabled ? 'Desactivar modo accesibilidad' : 'Activar modo accesibilidad';
-        
-        if (this.accessibilityEnabled) {
-            this.enableAccessibility();
-        } else {
-            this.disableAccessibility();
-        }
-    },
-
-    // Habilitar accesibilidad
-    enableAccessibility() {
-        // Verificar soporte de síntesis de voz
-        if (!('speechSynthesis' in window)) {
-            alert('Tu navegador no soporta síntesis de voz. Usa Chrome, Edge o Safari para esta función.');
-            return;
-        }
-        
-        // Agregar event listeners
-        document.addEventListener('focusin', this.handleFocus.bind(this), true);
-        document.addEventListener('click', this.handleClick.bind(this), true);
-        
-        // Actualizar atributo aria-pressed del botón
-        const button = document.getElementById('accessibility-btn');
-        if (button) {
-            button.setAttribute('aria-pressed', 'true');
-        }
-    },
-
-    // Deshabilitar accesibilidad
-    disableAccessibility() {
-        document.removeEventListener('focusin', this.handleFocus.bind(this), true);
-        document.removeEventListener('click', this.handleClick.bind(this), true);
-        speechSynthesis.cancel(); // Detener cualquier habla en curso
-        
-        // Actualizar atributo aria-pressed del botón
-        const button = document.getElementById('accessibility-btn');
-        if (button) {
-            button.setAttribute('aria-pressed', 'false');
-        }
-    },
-
-    // Manejar foco (para PC con Tab)
-    handleFocus(event) {
-        if (!this.accessibilityEnabled) return;
-        const element = event.target;
-        const text = this.getReadableText(element);
-        if (text) this.speak(text);
-    },
-
-    // Manejar click (para móvil)
-    handleClick(event) {
-        if (!this.accessibilityEnabled) return;
-        const element = event.target;
-        const text = this.getReadableText(element);
-        if (text) {
-            event.preventDefault();
-            this.speak(text).then(() => {
-                // Después de hablar, ejecutar el click
-                setTimeout(() => {
-                    element.click();
-                }, 500); // Pequeño delay para asegurar que el habla termine
-            });
-        }
-    },
-
-    // Obtener texto legible del elemento
-    getReadableText(element) {
-        // Prioridad: aria-label, title, textContent, placeholder
-        let text = '';
-        if (element.getAttribute('aria-label')) {
-            text = element.getAttribute('aria-label');
-        } else if (element.title) {
-            text = element.title;
-        } else if (element.textContent && element.textContent.trim()) {
-            text = element.textContent.trim();
-        } else if (element.placeholder) {
-            text = element.placeholder;
-        }
-        
-        // Para inputs, usar label asociado
-        if (['INPUT', 'SELECT', 'TEXTAREA'].includes(element.tagName)) {
-            const label = document.querySelector(`label[for="${element.id}"]`);
-            if (label && label.textContent.trim()) {
-                text = label.textContent.trim();
-            }
-        }
-        
-        if (!text) {
-            // Para botones sin texto, usar tipo
-            if (element.tagName === 'BUTTON' && !element.textContent.trim()) {
-                text = element.type === 'submit' ? 'Enviar' : 'Botón';
-            } else {
-                return null;
-            }
-        }
-        
-        // Agregar prefijo según tipo de elemento
-        let prefix = '';
-        const tag = element.tagName.toLowerCase();
-        if (tag === 'a') {
-            prefix = 'Enlace: ';
-        } else if (tag === 'button') {
-            prefix = 'Botón: ';
-        } else if (tag === 'input') {
-            if (element.type === 'text' || element.type === 'email' || element.type === 'password') {
-                prefix = 'Campo de texto: ';
-            } else if (element.type === 'checkbox') {
-                prefix = 'Casilla de verificación: ';
-            } else if (element.type === 'radio') {
-                prefix = 'Botón de opción: ';
-            } else {
-                prefix = 'Campo: ';
-            }
-        } else if (tag === 'select') {
-            prefix = 'Lista desplegable: ';
-        } else if (tag === 'textarea') {
-            prefix = 'Área de texto: ';
-        } else if (tag === 'img') {
-            prefix = 'Imagen: ';
-        } else {
-            prefix = 'Elemento: ';
-        }
-        
-        return prefix + text;
-    },
-
-    // Función para hablar texto
-    speak(text) {
-        return new Promise(resolve => {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'es-ES'; // Español de España, ajustar si es necesario
-            utterance.rate = 0.8; // Un poco más lento para claridad
-            utterance.onend = resolve;
-            speechSynthesis.speak(utterance);
-        });
     },
 };
 
