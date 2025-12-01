@@ -399,7 +399,7 @@
                 const container = document.getElementById('featuredProducts');
                 
                 if (!productos || productos.length === 0) {
-                    container.innerHTML = '<div class="col-12"><p class="text-center text-dark">No hay productos disponibles</p></div>';
+                    container.innerHTML = '<div class="col-12" role="listitem"><p class="text-center text-dark">No hay productos disponibles</p></div>';
                     return;
                 }
                 
@@ -461,7 +461,7 @@
             } catch (error) {
                 console.error('Error al cargar productos destacados:', error);
                 const container = document.getElementById('featuredProducts');
-                container.innerHTML = '<div class="col-12"><p class="text-center text-danger">Error al cargar productos</p></div>';
+                container.innerHTML = '<div class="col-12" role="listitem"><p class="text-center text-danger">Error al cargar productos</p></div>';
             }
         }
 
