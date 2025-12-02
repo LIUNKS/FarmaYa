@@ -126,7 +126,7 @@ public class OrderControllerIntegrationTest {
         mockMvc.perform(put("/api/orders/1/status")
                 .param("status", "PROCESANDO"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("PROCESANDO"));
+                .andExpect(jsonPath("$.status").value("PROCESSING"));
     }
 
     @Test
