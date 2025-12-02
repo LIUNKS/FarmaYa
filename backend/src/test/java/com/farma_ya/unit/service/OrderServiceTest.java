@@ -66,7 +66,7 @@ class OrderServiceTest {
     @Test
     void getOrderById_ExistingOrder_ReturnsOrder() {
         // Given
-        when(orderRepository.findById(1)).thenReturn(Optional.of(testOrder));
+        when(orderRepository.findByIdWithItems(1)).thenReturn(testOrder);
 
         // When
         Order result = orderService.getOrderById(1);
@@ -74,13 +74,13 @@ class OrderServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1);
-        verify(orderRepository).findById(1);
+        verify(orderRepository).findByIdWithItems(1);
     }
 
     @Test
     void getOrderById_NonExistingOrder_ThrowsException() {
         // Given
-        when(orderRepository.findById(999)).thenReturn(Optional.empty());
+        when(orderRepository.findByIdWithItems(999)).thenReturn(null);
 
         // When & Then
         assertThatThrownBy(() -> orderService.getOrderById(999))
@@ -91,7 +91,7 @@ class OrderServiceTest {
     @Test
     void updateOrderStatus_ValidStatus_UpdatesSuccessfully() {
         // Given
-        when(orderRepository.findById(1)).thenReturn(Optional.of(testOrder));
+        when(orderRepository.findByIdWithItems(1)).thenReturn(testOrder);
         when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
 
         // When
@@ -106,7 +106,7 @@ class OrderServiceTest {
     @Test
     void updateOrderStatus_InvalidStatus_ThrowsException() {
         // Given
-        when(orderRepository.findById(1)).thenReturn(Optional.of(testOrder));
+        when(orderRepository.findByIdWithItems(1)).thenReturn(testOrder);
 
         // When & Then
         assertThatThrownBy(() -> orderService.updateOrderStatus(1, "INVALID_STATUS"))
@@ -117,7 +117,7 @@ class OrderServiceTest {
     @Test
     void updateOrderStatus_FrontendStatusConversion_ConvertsCorrectly() {
         // Given
-        when(orderRepository.findById(1)).thenReturn(Optional.of(testOrder));
+        when(orderRepository.findByIdWithItems(1)).thenReturn(testOrder);
         when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
 
         // When - Simular envío desde frontend con "EN_PROCESO"
@@ -134,7 +134,7 @@ class OrderServiceTest {
         User repartidor = new User(2, "repartidor", "rep@example.com", "pass", Role.DELIVERY);
         List<Order> expectedOrders = Arrays.asList(testOrder);
 
-        when(orderRepository.findByRepartidor(repartidor)).thenReturn(expectedOrders);
+        when(orderRepository.findByRepartidorWithItems(repartidor)).thenReturn(expectedOrders);
 
         // When
         List<Order> result = orderService.getOrdersByRepartidor(repartidor);
@@ -143,7 +143,7 @@ class OrderServiceTest {
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1);
-        verify(orderRepository).findByRepartidor(repartidor);
+        verify(orderRepository).findByRepartidorWithItems(repartidor);
     }
 
     @Test
@@ -152,11 +152,14 @@ class OrderServiceTest {
         User repartidor = new User(2, "repartidor", "rep@example.com", "pass", Role.DELIVERY);
 
         Order order1 = createTestOrder(1, OrderStatus.PENDIENTE, BigDecimal.valueOf(50.0));
+        order1.setRepartidor(repartidor);
         Order order2 = createTestOrder(2, OrderStatus.PROCESANDO, BigDecimal.valueOf(75.0));
+        order2.setRepartidor(repartidor);
         Order order3 = createTestOrder(3, OrderStatus.ENTREGADO, BigDecimal.valueOf(100.0));
+        order3.setRepartidor(repartidor);
 
         List<Order> orders = Arrays.asList(order1, order2, order3);
-        when(orderRepository.findByRepartidor(repartidor)).thenReturn(orders);
+        when(orderRepository.findByRepartidorWithItems(repartidor)).thenReturn(orders);
 
         // When
         Map<String, Object> stats = orderService.getDeliveryStats(repartidor);
@@ -173,7 +176,7 @@ class OrderServiceTest {
     void assignRepartidor_ValidAssignment_AssignsSuccessfully() {
         // Given
         User repartidor = new User(2, "repartidor", "rep@example.com", "pass", Role.DELIVERY);
-        when(orderRepository.findById(1)).thenReturn(Optional.of(testOrder));
+        when(orderRepository.findByIdWithItems(1)).thenReturn(testOrder);
         when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
 
         // When
@@ -189,7 +192,7 @@ class OrderServiceTest {
     void getAllOrders_ReturnsAllOrders() {
         // Given
         List<Order> expectedOrders = Arrays.asList(testOrder);
-        when(orderRepository.findAll()).thenReturn(expectedOrders);
+        when(orderRepository.findAllWithItems()).thenReturn(expectedOrders);
 
         // When
         List<Order> result = orderService.getAllOrders();
@@ -197,7 +200,7 @@ class OrderServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
-        verify(orderRepository).findAll();
+        verify(orderRepository).findAllWithItems();
     }
 
     @Test
