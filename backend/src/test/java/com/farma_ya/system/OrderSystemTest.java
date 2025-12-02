@@ -30,8 +30,7 @@ class OrderSystemTest {
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
             .withDatabaseName("farma_ya_test")
             .withUsername("test")
-            .withPassword("test")
-            .withReuse(true);
+            .withPassword("test");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -40,6 +39,8 @@ class OrderSystemTest {
         registry.add("spring.datasource.password", mysql::getPassword);
         registry.add("spring.datasource.driver-class-name", mysql::getDriverClassName);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.MySQLDialect");
+        registry.add("spring.jpa.properties.hibernate.dialect", () -> "org.hibernate.dialect.MySQLDialect");
     }
 
     @Autowired
@@ -174,9 +175,9 @@ class OrderSystemTest {
 
         // Then - Debería haber 1 orden entregada (testOrder) y 1 en proceso
         assertThat(stats).isNotNull();
-        assertThat(stats.get("pedidosPendientes")).isEqualTo(0);
-        assertThat(stats.get("pedidosEnProceso")).isEqualTo(1);
-        assertThat(stats.get("pedidosEntregados")).isEqualTo(1); // solo testOrder
+        assertThat(stats.get("pedidosPendientes")).isEqualTo(0L);
+        assertThat(stats.get("pedidosEnProceso")).isEqualTo(1L);
+        assertThat(stats.get("pedidosEntregados")).isEqualTo(1L); // solo testOrder
         // Total ganancias: 100.0 (solo testOrder entregada)
         assertThat(stats.get("totalGanancias")).isEqualTo(100.0);
     }
