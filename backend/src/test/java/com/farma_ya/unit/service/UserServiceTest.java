@@ -120,7 +120,7 @@ class UserServiceTest {
     void getUsersByRole_DeliveryRole_ReturnsDeliveryUsers() {
         // Given
         List<User> deliveryUsers = Arrays.asList(deliveryUser);
-        when(userRepository.findByRole(3)).thenReturn(deliveryUsers); // 3 = DELIVERY
+        when(userRepository.findByRole(35)).thenReturn(deliveryUsers); // 35 = DELIVERY
 
         // When
         List<User> result = userService.getUsersByRole(Role.DELIVERY);
@@ -129,7 +129,7 @@ class UserServiceTest {
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getRole()).isEqualTo(Role.DELIVERY);
-        verify(userRepository).findByRole(3);
+        verify(userRepository).findByRole(35);
     }
 
     @Test
